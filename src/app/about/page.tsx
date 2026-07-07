@@ -22,7 +22,7 @@ export default function AboutPage() {
         crumb="About"
         eyebrow="Who we are"
         title={<>The studio for the <span className="text-gradient">next decade</span>.</>}
-        subtitle="Since 2009 we've merged Tier-1 hardware with obsessive installation craft — solar, security, networking and automation under one roof."
+        subtitle="Since 2009 we've merged Tier-1 solar and security hardware with professional installation craft — panels, inverters and cameras under one roof."
         image={img("photo-1600607687939-ce8a6c25118c", 1400)}
         accentColor="#22E0FF"
         chips={["Est. 2009", "Certified engineers", "One accountable partner"]}

@@ -23,8 +23,8 @@ export default function Services() {
       <SectionHeading
         eyebrow="What we do"
         align="center"
-        title={<>One studio. <span className="text-gradient">Every system</span> your building needs.</>}
-        intro="A complete stack of electronics and smart-energy services — engineered to work as a single, intelligent whole."
+        title={<>Solar & security, <span className="text-gradient">engineered right</span>.</>}
+        intro="Professional solar panel setups, inverters and CCTV installation — designed and maintained by one accountable team."
       />
 
       <div className="mt-16 grid auto-rows-[minmax(180px,auto)] grid-cols-2 gap-4 md:grid-cols-4">

@@ -10,7 +10,7 @@ import { img } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Services — Mehtab Electronics",
-  description: "CCTV, solar, inverters, UPS, batteries, smart automation, electric fencing, networking and annual maintenance — engineered end to end.",
+  description: "Solar panel installation, inverters, on-grid setups and CCTV security cameras — engineered end to end.",
 };
 
 export default function ServicesPage() {
@@ -18,12 +18,12 @@ export default function ServicesPage() {
     <main>
       <PageHero
         crumb="Services"
-        eyebrow="Everything we do"
-        title={<>One studio for <span className="text-gradient">every system</span>.</>}
-        subtitle="From a single camera to a full solar-plus-security ecosystem — designed, installed and maintained by one accountable team."
+        eyebrow="What we offer"
+        title={<>Solar & security, <span className="text-gradient">one team</span>.</>}
+        subtitle="Solar panels, inverters and security cameras — designed, installed and maintained by one accountable team."
         image={img("photo-1497366811353-6870744d04b2", 1400)}
         accentColor="#2E6BFF"
-        chips={["Solar & storage", "CCTV & access", "Automation", "Networking", "AMC"]}
+        chips={["Solar panels", "Inverters", "CCTV cameras", "Maintenance"]}
       />
       <Services />
       <FeatureSections />

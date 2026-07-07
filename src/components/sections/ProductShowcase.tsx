@@ -10,24 +10,14 @@ import { cn } from "@/lib/utils";
 
 const PRODUCTS = [
   {
-    key: "solar", label: "Hybrid Solar Kit", icon: "SunMedium",
-    tagline: "10kW Hybrid System", image: img("photo-1508514177221-188b1cf16e9d", 1200),
-    specs: [["Panels", "18 × 555W mono-PERC"], ["Inverter", "10kW hybrid MPPT"], ["Storage", "15kWh lithium"], ["Yield", "~1,450 kWh / month"]],
+    key: "solar", label: "Solar Setup", icon: "SunMedium",
+    tagline: "10kW On-Grid System", image: img("photo-1508514177221-188b1cf16e9d", 1200),
+    specs: [["Panels", "18 × 555W mono-PERC"], ["Inverter", "10kW hybrid MPPT"], ["Mounting", "Roof rail kit incl."], ["Yield", "~1,450 kWh / month"]],
   },
   {
-    key: "security", label: "AI Security Suite", icon: "Cctv",
+    key: "security", label: "CCTV Package", icon: "Cctv",
     tagline: "8-Camera 4K Grid", image: img("photo-1557597774-9d273605dfa9", 1200),
-    specs: [["Cameras", "8 × 4K IP, colour night"], ["Analytics", "Person / vehicle AI"], ["Storage", "8TB NVR + cloud"], ["Access", "App + facial unlock"]],
-  },
-  {
-    key: "power", label: "Power Backbone", icon: "BatteryCharging",
-    tagline: "Online UPS + Storage", image: img("photo-1581092160562-40aa08e78837", 1200),
-    specs: [["UPS", "6kVA online, pure sine"], ["Battery", "Lithium 10kWh"], ["Switchover", "0 ms seamless"], ["Monitoring", "Live load telemetry"]],
-  },
-  {
-    key: "smart", label: "Smart Home Hub", icon: "House",
-    tagline: "Unified Automation", image: img("photo-1600607687939-ce8a6c25118c", 1200),
-    specs: [["Control", "Voice + app + scenes"], ["Network", "Mesh WiFi 6"], ["Devices", "Lights, locks, climate"], ["Integrations", "200+ ecosystems"]],
+    specs: [["Cameras", "8 × 4K IP, colour night"], ["Analytics", "Person / vehicle AI"], ["Storage", "8TB NVR + cloud"], ["Viewing", "Mobile app access"]],
   },
 ];
 

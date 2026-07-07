@@ -4,19 +4,19 @@ import SmoothScroll from "@/components/providers/SmoothScroll";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import CursorGlow from "@/components/ui/CursorGlow";
 import ScrollProgress from "@/components/ui/ScrollProgress";
-import VideoBackground from "@/components/ui/VideoBackground";
+import SiteBackground from "@/components/ui/SiteBackground";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 
 export const metadata: Metadata = {
-  title: "Mehtab Electronics — Smart Energy & Security Systems",
+  title: "Mehtab Electronics — Solar & Security Systems",
   description:
-    "Mehtab Electronics designs and installs CCTV, smart-home automation, solar power, inverters, UPS, batteries and networking across Pakistan. A futuristic energy & security showroom.",
-  keywords: ["CCTV installation Pakistan","solar panel installation","hybrid solar systems","inverters","smart home automation","UPS systems","electric fencing","networking wifi"],
+    "Mehtab Electronics installs solar panels, inverters and security cameras across Pakistan. Professional on-grid solar setups and CCTV installation.",
+  keywords: ["CCTV installation Pakistan", "solar panel installation", "hybrid solar systems", "inverters", "security cameras", "solar setup Lahore"],
   icons: { icon: "/favicon.svg" },
   openGraph: {
-    title: "Mehtab Electronics — Smart Energy & Security Systems",
-    description: "Futuristic energy & security showroom: solar, CCTV, smart home, inverters and more.",
+    title: "Mehtab Electronics — Solar & Security Systems",
+    description: "Solar panel installation, inverters and security cameras — professionally installed across Pakistan.",
     type: "website",
   },
 };
@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
-          <VideoBackground />
+          <SiteBackground />
           <ScrollProgress />
           <CursorGlow />
           <SmoothScroll>

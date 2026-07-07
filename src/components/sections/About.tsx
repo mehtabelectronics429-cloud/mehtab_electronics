@@ -11,7 +11,7 @@ import { Target, Leaf, Cpu } from "lucide-react";
 const pillars = [
   { icon: Cpu, title: "Engineering-first", body: "Every install is designed, load-calculated and commissioned by certified engineers — not guesswork." },
   { icon: Leaf, title: "Clean by default", body: "We treat energy independence and lower bills as the baseline, not a premium upsell." },
-  { icon: Target, title: "One accountable partner", body: "Solar, security, networking and automation under a single roof, warranty and support line." },
+  { icon: Target, title: "One accountable partner", body: "Solar panels, inverters and security cameras under a single roof, warranty and support line." },
 ];
 
 export default function About() {
@@ -22,7 +22,7 @@ export default function About() {
           <SectionHeading
             eyebrow="Who we are"
             title={<>The energy & security studio for the <span className="text-gradient">next decade</span>.</>}
-            intro={`Since ${COMPANY.founded}, ${COMPANY.name} has quietly become one of Pakistan's most trusted names in smart energy and security — merging Tier-1 hardware with obsessive installation craft.`}
+            intro={`Since ${COMPANY.founded}, ${COMPANY.name} has become one of Pakistan's trusted names in solar installation and CCTV security — merging Tier-1 hardware with professional installation craft.`}
           />
           <div className="mt-10 space-y-5">
             {pillars.map((p, i) => (

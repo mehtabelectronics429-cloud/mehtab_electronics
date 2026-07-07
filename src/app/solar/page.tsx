@@ -12,24 +12,23 @@ import { SCENE_STRIPS, INVERTER_PARTS, INVERTER_PART_IMAGES } from "@/lib/data";
 import { img } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Solar & Storage — Mehtab Electronics",
-  description: "Hybrid & on-grid solar, lithium storage, inverters and UPS — net-metering ready and monitored.",
+  title: "Solar Solutions — Mehtab Electronics",
+  description: "Solar panel installation, hybrid inverters and on-grid setups — net-metering ready and professionally installed.",
 };
 
 export default function SolarPage() {
   return (
     <main>
       <PageHero
-        crumb="Solar & Storage"
-        eyebrow="Solar · Hybrid · On-Grid"
+        crumb="Solar Solutions"
+        eyebrow="Panels · Inverters · Setup"
         title={<>Turn your roof into a <span className="text-gradient-solar">power plant</span>.</>}
-        subtitle="Tier-1 panels, hybrid inverters and lithium storage — engineered to your exact load, net-metering handled end to end."
+        subtitle="Tier-1 solar panels, hybrid inverters and complete on-grid setups — engineered to your load, net-metering handled end to end."
         image={img("photo-1509391366360-2e959784a276", 1400)}
         accentColor="#FF8A34"
-        chips={["Mono-PERC panels", "Hybrid inverters", "Lithium storage", "Net metering"]}
+        chips={["Mono-PERC panels", "Hybrid inverters", "On-grid setup", "Net metering"]}
       />
 
-      {/* Cinematic scroll-driven exploded view of a hybrid inverter */}
       <ExplodedExperience
         variant="inverter"
         eyebrow="Inside the machine"

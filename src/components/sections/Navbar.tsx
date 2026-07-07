@@ -14,9 +14,7 @@ const ROUTES = [
   { label: "Products", href: "/products" },
   { label: "Solar", href: "/solar" },
   { label: "Security", href: "/security" },
-  { label: "Smart Home", href: "/smart-home" },
   { label: "Services", href: "/services" },
-  { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
 ];
 

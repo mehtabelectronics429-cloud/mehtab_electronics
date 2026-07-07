@@ -2,7 +2,7 @@ import { img } from "./utils";
 
 export const COMPANY = {
   name: "Mehtab Electronics",
-  tagline: "Smart Energy. Absolute Security.",
+  tagline: "Solar Power. Trusted Security.",
   phone: "+92 300 1234567",
   phoneHref: "tel:+923001234567",
   whatsapp: "+92 321 7654321",
@@ -21,9 +21,8 @@ export const COMPANY = {
 export const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Services", href: "#services" },
-  { label: "Solar", href: "#solar" },
-  { label: "Smart Home", href: "#smart-home" },
-  { label: "Projects", href: "#projects" },
+  { label: "Solar", href: "/solar" },
+  { label: "Security", href: "/security" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -38,36 +37,28 @@ export type Service = {
 };
 
 export const SERVICES: Service[] = [
-  { key: "cctv", title: "CCTV Installation", blurb: "4K IP camera systems with AI motion analytics, night vision and cloud recording.", icon: "Cctv", accent: "cyan", span: "wide", image: img("photo-1557597774-9d273605dfa9", 1400) },
-  { key: "security", title: "Home & Office Security", blurb: "Integrated alarms, access control and 24/7 monitored intrusion detection.", icon: "ShieldCheck", accent: "electric" },
-  { key: "solar", title: "Solar Panel Solutions", blurb: "Tier-1 mono-PERC panels engineered for maximum roof yield.", icon: "SunMedium", accent: "solar", span: "tall", image: img("photo-1509391366360-2e959784a276", 1200) },
-  { key: "hybrid", title: "Hybrid & On-Grid Solar", blurb: "Net-metering ready hybrid systems that switch seamlessly across sources.", icon: "Zap", accent: "energy" },
-  { key: "inverters", title: "Inverters", blurb: "High-frequency pure sine-wave inverters with MPPT charge control.", icon: "Waves", accent: "electric" },
-  { key: "ups", title: "UPS Systems", blurb: "Line-interactive & online UPS for zero-flicker critical loads.", icon: "BatteryCharging", accent: "cyan" },
-  { key: "batteries", title: "Batteries", blurb: "Lithium & tubular storage banks with smart BMS and deep-cycle life.", icon: "BatteryFull", accent: "energy" },
-  { key: "automation", title: "Smart Home Automation", blurb: "Voice, app and scene control for lighting, climate, blinds and locks.", icon: "House", accent: "cyan", span: "wide", image: img("photo-1558002038-1055907df827", 1400) },
-  { key: "fencing", title: "Electric Fencing", blurb: "Perimeter energizers with tamper alarms and mobile alerts.", icon: "Fence", accent: "solar" },
-  { key: "networking", title: "Networking & WiFi", blurb: "Mesh WiFi 6, structured cabling and enterprise-grade coverage.", icon: "Wifi", accent: "electric" },
-  { key: "amc", title: "Annual Maintenance", blurb: "Proactive health checks, priority callouts and performance reports.", icon: "Wrench", accent: "cyan" },
-  { key: "monitoring", title: "Energy Monitoring", blurb: "Live dashboards for generation, consumption and battery health.", icon: "Activity", accent: "energy" },
+  { key: "solar", title: "Solar Panel Installation", blurb: "Tier-1 mono-PERC panels sized and mounted for maximum roof yield.", icon: "SunMedium", accent: "solar", span: "tall", image: img("photo-1509391366360-2e959784a276", 1200) },
+  { key: "hybrid", title: "On-Grid & Hybrid Solar", blurb: "Complete solar setups with net-metering documentation handled for you.", icon: "Zap", accent: "energy", span: "wide", image: img("photo-1466611653911-95081537e5b7", 1400) },
+  { key: "inverters", title: "Solar Inverters", blurb: "Hybrid and on-grid inverters with MPPT charge control and remote monitoring.", icon: "Waves", accent: "electric" },
+  { key: "cctv", title: "CCTV Installation", blurb: "4K IP camera systems with night vision, NVR recording and mobile viewing.", icon: "Cctv", accent: "cyan", span: "wide", image: img("photo-1557597774-9d273605dfa9", 1400) },
+  { key: "security", title: "Security Camera Systems", blurb: "Indoor and outdoor cameras with AI detection and professional cabling.", icon: "ShieldCheck", accent: "electric" },
+  { key: "amc", title: "Maintenance & Support", blurb: "Scheduled health checks and priority callouts for solar and CCTV systems.", icon: "Wrench", accent: "cyan" },
 ];
 
 export const SCENES = [
-  { id: 1, eyebrow: "01 · The Structure", title: "A home that thinks", body: "Every Mehtab install begins with the building itself — mapped, modelled and wired for intelligence." },
-  { id: 2, eyebrow: "02 · Vision", title: "Eyes that never blink", body: "AI cameras orbit the perimeter, laser-scanning every entry point in 4K, day and night." },
-  { id: 3, eyebrow: "03 · Harvest", title: "Sunlight becomes power", body: "Solar arrays rise and tilt to the sun, converting daylight into clean, bankable energy." },
-  { id: 4, eyebrow: "04 · Storage", title: "Energy, banked", body: "Surplus flows down glowing conduits into lithium storage — power kept for when you need it." },
-  { id: 5, eyebrow: "05 · Conversion", title: "Pure, stable current", body: "Hybrid inverters transform stored DC into flawless sine-wave AC, particle-clean and instant." },
-  { id: 6, eyebrow: "06 · The Living System", title: "The whole house awakens", body: "Lights, network and a security shield ignite as one connected, self-aware system." },
+  { id: 1, eyebrow: "01 · Survey", title: "Designed for your roof", body: "We map your load, roof angles and sun path before a single panel is mounted." },
+  { id: 2, eyebrow: "02 · Harvest", title: "Sunlight becomes power", body: "Tier-1 solar panels convert daylight into clean energy for your home or business." },
+  { id: 3, eyebrow: "03 · Conversion", title: "Inverters that deliver", body: "Hybrid inverters turn DC solar power into stable AC — sized precisely to your setup." },
+  { id: 4, eyebrow: "04 · Vision", title: "Eyes that never blink", body: "4K security cameras cover every entry point — live on your phone, day and night." },
 ];
 
 export const PROJECTS = [
-  { title: "DHA Phase 6 Smart Villa", type: "Full-home automation + 12kW hybrid solar", image: img("photo-1512917774080-9991f1c4c750", 1400), tag: "Residential" },
-  { title: "Gulberg Corporate Tower", type: "128-camera CCTV grid + access control", image: img("photo-1497366811353-6870744d04b2", 1400), tag: "Commercial" },
+  { title: "DHA Phase 6 Residence", type: "8kW on-grid solar + inverter setup", image: img("photo-1512917774080-9991f1c4c750", 1400), tag: "Solar" },
+  { title: "Gulberg Corporate Tower", type: "64-camera CCTV grid with NVR", image: img("photo-1497366811353-6870744d04b2", 1400), tag: "Security" },
   { title: "Bahria Town Solar Farm", type: "480kW on-grid net-metered array", image: img("photo-1466611653911-95081537e5b7", 1400), tag: "Solar" },
-  { title: "Model Town Residence", type: "Mesh WiFi 6 + smart lighting scenes", image: img("photo-1600607687939-ce8a6c25118c", 1400), tag: "Networking" },
-  { title: "Johar Town Retail Chain", type: "Multi-site UPS + energy monitoring", image: img("photo-1504384308090-c894fdcc538d", 1400), tag: "Energy" },
-  { title: "Lake City Farmhouse", type: "Electric fencing + perimeter CCTV", image: img("photo-1600585154340-be6161a56a0c", 1400), tag: "Security" },
+  { title: "Model Town Residence", type: "12-camera 4K security package", image: img("photo-1600607687939-ce8a6c25118c", 1400), tag: "Security" },
+  { title: "Johar Town Retail Chain", type: "Hybrid solar across 3 outlets", image: img("photo-1504384308090-c894fdcc538d", 1400), tag: "Solar" },
+  { title: "Lake City Farmhouse", type: "Perimeter CCTV + 6kW solar", image: img("photo-1600585154340-be6161a56a0c", 1400), tag: "Security" },
 ];
 
 export const BEFORE_AFTER = [
@@ -78,26 +69,24 @@ export const BEFORE_AFTER = [
 export const TECH = [
   { name: "AI Video Analytics", desc: "On-device person/vehicle detection filters false alarms before they reach you.", icon: "ScanEye" },
   { name: "MPPT Solar Tracking", desc: "Maximum power-point tracking squeezes up to 30% more yield from every panel.", icon: "SunMedium" },
-  { name: "Lithium BMS", desc: "Cell-level battery management for safety, longevity and live health telemetry.", icon: "BatteryCharging" },
   { name: "Net Metering", desc: "Sell surplus generation back to the grid with fully compliant bi-directional metering.", icon: "Gauge" },
-  { name: "Mesh WiFi 6", desc: "Self-healing wireless backbone with seamless roaming across the whole property.", icon: "Wifi" },
-  { name: "Unified App Control", desc: "One dashboard for cameras, energy, climate and access — anywhere in the world.", icon: "Smartphone" },
+  { name: "4K Night Vision", desc: "Full-colour and infrared imaging keeps your property visible around the clock.", icon: "Cctv" },
 ];
 
 export const TESTIMONIALS = [
   { quote: "Our electricity bill dropped 70% after the hybrid solar install, and the monitoring app is genuinely beautiful. This felt like buying an Apple product, not a solar system.", name: "Ayesha Khan", role: "Homeowner · DHA Lahore" },
-  { quote: "128 cameras, access control and alarms integrated flawlessly across our tower. The AI analytics cut our false alerts to almost zero.", name: "Bilal Ahmed", role: "Facilities Director · Gulberg" },
+  { quote: "64 cameras installed across our building with clean cabling and a simple mobile app. False alerts dropped to almost zero with the AI detection.", name: "Bilal Ahmed", role: "Facilities Director · Gulberg" },
   { quote: "The AMC team is proactive — they call us before something fails. Uptime has been effectively perfect for two years.", name: "Sana Malik", role: "Operations Lead · Retail Chain" },
   { quote: "From the site survey to the final walkthrough, everything felt engineered and premium. Best contractor decision we made.", name: "Usman Tariq", role: "Farmhouse Owner · Lake City" },
 ];
 
 export const FAQS = [
-  { q: "Do you handle net-metering approvals?", a: "Yes. We manage the full net-metering application, LESCO/IESCO documentation and bi-directional meter installation end to end, so you can legally sell surplus solar back to the grid." },
-  { q: "What warranty do you provide?", a: "Panels carry 25-year performance warranties, inverters 5–10 years, and our workmanship is covered for 24 months. Lithium batteries include up to 6,000-cycle warranties." },
-  { q: "Can CCTV, solar and automation run on one app?", a: "Absolutely. We integrate cameras, energy generation, climate and access control into a single unified dashboard accessible from your phone anywhere in the world." },
-  { q: "How long does a typical installation take?", a: "A residential solar + security package is usually commissioned in 3–5 working days after the site survey. Larger commercial projects are scheduled in phases." },
-  { q: "Do you offer financing?", a: "Yes — we partner with several banks for solar financing and offer flexible installment plans on complete smart-home packages." },
-  { q: "Is there ongoing support after installation?", a: "Every install includes 60 days of complimentary support, and our Annual Maintenance Contracts add priority callouts, scheduled health checks and performance reporting." },
+  { q: "Do you handle net-metering approvals?", a: "Yes. We manage the full net-metering application, LESCO/IESCO documentation and bi-directional meter installation end to end." },
+  { q: "What warranty do you provide?", a: "Panels carry 25-year performance warranties, inverters 5–10 years, and our workmanship is covered for 24 months on every install." },
+  { q: "What types of cameras do you install?", a: "We install 4K IP dome, bullet and PTZ cameras from Hikvision and Dahua — with NVR recording, mobile app access and professional cabling." },
+  { q: "How long does a typical installation take?", a: "A residential solar setup is usually commissioned in 3–5 working days after the site survey. CCTV packages are typically completed in 1–2 days." },
+  { q: "Do you offer financing?", a: "Yes — we partner with several banks for solar financing and offer flexible installment plans on complete solar packages." },
+  { q: "Is there ongoing support after installation?", a: "Every install includes 60 days of complimentary support. Our maintenance contracts add priority callouts and scheduled health checks." },
 ];
 
 export const PROCESS = [
@@ -116,26 +105,26 @@ export const IMPACT = [
 
 export const TEAM = [
   { name: "Imran Mehtab", role: "Founder & Chief Engineer", image: img("photo-1633332755192-727a05c4013d", 800), focus: "Power systems" },
-  { name: "Hassan Raza", role: "Head of Solar", image: img("photo-1600486913747-55e5470d6f40", 800), focus: "PV & storage" },
-  { name: "Fatima Noor", role: "Security Systems Lead", image: img("photo-1573496359142-b8d87734a5a2", 800), focus: "CCTV & access" },
-  { name: "Ahmed Sheikh", role: "Automation Architect", image: img("photo-1560250097-0b93528c311a", 800), focus: "Smart home & networks" },
+  { name: "Hassan Raza", role: "Head of Solar", image: img("photo-1600486913747-55e5470d6f40", 800), focus: "PV & inverters" },
+  { name: "Fatima Noor", role: "Security Systems Lead", image: img("photo-1573496359142-b8d87734a5a2", 800), focus: "CCTV & install" },
+  { name: "Ahmed Sheikh", role: "Installations Manager", image: img("photo-1560250097-0b93528c311a", 800), focus: "Site commissioning" },
 ];
 
 export const PACKAGES = [
   {
-    name: "Home Essentials", tag: "Most popular", accent: "cyan",
-    price: "from PKR 385k", blurb: "Secure and connect a family home.",
-    features: ["6 × 4K AI cameras + NVR", "Smart door lock & alarm", "Mesh WiFi 6 (3 nodes)", "App control + 60-day support"],
+    name: "Solar Starter", tag: "Most popular", accent: "solar", featured: true,
+    price: "from PKR 1.2M", blurb: "Complete on-grid solar with panels and inverter.",
+    features: ["Tier-1 mono-PERC panels", "Hybrid inverter with MPPT", "Net-metering handled for you", "Professional roof mounting", "5-yr workmanship warranty"],
   },
   {
-    name: "Solar Pro", tag: "Best value", accent: "solar", featured: true,
-    price: "from PKR 1.65M", blurb: "Generate, store and sell your own power.",
-    features: ["10kW hybrid solar array", "15kWh lithium storage", "Net-metering handled for you", "Live energy dashboard", "5-yr workmanship warranty"],
+    name: "Security Essentials", tag: "Best value", accent: "cyan",
+    price: "from PKR 185k", blurb: "Professional CCTV for home or small business.",
+    features: ["4–8 × 4K AI cameras", "NVR with mobile app", "Night vision + motion alerts", "Cabling & install included", "60-day support"],
   },
   {
-    name: "Enterprise", tag: "Commercial", accent: "electric",
-    price: "custom", blurb: "Multi-site security, power and networking.",
-    features: ["100+ camera grids + access control", "3-phase solar & online UPS", "Structured cabling & VLANs", "Priority AMC + SLA", "Dedicated account engineer"],
+    name: "Solar + Security", tag: "Bundle", accent: "electric",
+    price: "custom", blurb: "Power your property and protect it — one team, one quote.",
+    features: ["Custom solar array sizing", "Hybrid inverter setup", "Multi-camera CCTV grid", "Single site survey", "Priority maintenance"],
   },
 ];
 
@@ -143,7 +132,7 @@ export const PACKAGES = [
 export const SCENE_STRIPS = [
   { eyebrow: "Signal", title: "Every corner, covered", body: "Overlapping camera fields eliminate blind spots — mapped before a single bracket is drilled.", image: img("photo-1551808525-51a94da548ce", 1400), accent: "cyan" },
   { eyebrow: "Sunlight", title: "Peak-hour harvesting", body: "Panels angled to your latitude capture the most energy exactly when you use it most.", image: img("photo-1613665813446-82a78c468a1d", 1400), accent: "solar" },
-  { eyebrow: "Flow", title: "Power that never blinks", body: "Seamless switchover between grid, solar and storage keeps critical loads alive — silently.", image: img("photo-1581092160562-40aa08e78837", 1400), accent: "energy" },
+  { eyebrow: "Conversion", title: "Clean, stable power", body: "Hybrid inverters sized to your array deliver reliable AC output with remote monitoring.", image: img("photo-1581092160562-40aa08e78837", 1400), accent: "energy" },
 ];
 
 export type Product = {
@@ -159,27 +148,18 @@ export type Product = {
 };
 
 export const PRODUCT_CATEGORIES = [
-  "All", "Solar Panels", "Inverters", "Batteries", "Security Cameras",
-  "CCTV Packages", "Biometric Systems", "Smart Door Locks", "Intercom Systems",
-  "Networking", "Accessories",
+  "All", "Solar Panels", "Inverters", "Security Cameras", "CCTV Packages", "Accessories",
 ];
 
 export const PRODUCTS: Product[] = [
   { id: "sp-555", name: "Canadian 555W Mono-PERC", category: "Solar Panels", model: "CS7L-555MS", description: "Tier-1 half-cut mono-PERC module with 21.3% efficiency and 25-year performance warranty.", specs: ["555W peak", "21.3% eff.", "Half-cut mono", "25-yr warranty"], image: img("photo-1509391366360-2e959784a276", 1000), badge: "Tier-1" },
   { id: "sp-580", name: "JA Solar 580W Bifacial", category: "Solar Panels", model: "JAM72D40-580", description: "Bifacial dual-glass panel harvesting rear-side light for up to 20% extra yield.", specs: ["580W peak", "Bifacial", "Dual-glass", "30-yr warranty"], image: img("photo-1466611653911-95081537e5b7", 1000) },
   { id: "inv-10k", name: "Solis 10kW Hybrid Inverter", category: "Inverters", model: "S6-EH3P10K", description: "Three-phase hybrid inverter with dual MPPT, battery-ready and net-metering compliant.", specs: ["10kW", "Dual MPPT", "Hybrid", "WiFi monitor"], image: img("photo-1581092160562-40aa08e78837", 1000), badge: "Best seller" },
-  { id: "inv-6k", name: "Growatt 6kW MPPT", category: "Inverters", model: "SPF 6000 ES", description: "Pure sine-wave off-grid inverter with high-voltage MPPT and parallel support.", specs: ["6kW", "Pure sine", "80A MPPT", "Parallel-ready"], image: img("photo-1497440001374-f26997328c1b", 1000) },
-  { id: "bat-15", name: "Pylontech 15kWh Lithium", category: "Batteries", model: "US5000 ×3", description: "Stackable LiFePO4 storage with smart BMS and 6,000-cycle rated life.", specs: ["15kWh", "LiFePO4", "Smart BMS", "6,000 cycles"], image: img("photo-1620714223084-8fcacc6dfd8d", 1000), badge: "Long-life" },
-  { id: "bat-tub", name: "Phoenix TX-2500 Tubular", category: "Batteries", model: "TX-2500", description: "Deep-cycle tubular battery engineered for heavy backup duty and long life.", specs: ["230Ah", "Tubular", "Deep-cycle", "Low maintenance"], image: img("photo-1558449028-b53a39d100fc", 1000) },
+  { id: "inv-6k", name: "Growatt 6kW MPPT", category: "Inverters", model: "SPF 6000 ES", description: "Pure sine-wave hybrid inverter with high-voltage MPPT and parallel support.", specs: ["6kW", "Pure sine", "80A MPPT", "Parallel-ready"], image: img("photo-1497440001374-f26997328c1b", 1000) },
   { id: "cam-4k", name: "Hikvision 4K ColorVu Dome", category: "Security Cameras", model: "DS-2CD2387G2", description: "8MP full-colour night vision dome with AcuSense person/vehicle detection.", specs: ["8MP / 4K", "ColorVu night", "AcuSense AI", "IP67"], image: img("photo-1557597774-9d273605dfa9", 1000), badge: "AI" },
   { id: "cam-ptz", name: "Dahua 4MP PTZ Auto-Track", category: "Security Cameras", model: "SD49425XB", description: "25× optical zoom PTZ with intelligent auto-tracking and 100m IR.", specs: ["4MP", "25× zoom", "Auto-track", "100m IR"], image: img("photo-1551808525-51a94da548ce", 1000) },
   { id: "cctv-8", name: "8-Camera 4K CCTV Package", category: "CCTV Packages", model: "ME-CCTV-8", description: "Complete 8× 4K camera kit with 8-channel NVR, 4TB storage, cabling and install.", specs: ["8 × 4K cams", "8CH NVR", "4TB storage", "Install incl."], image: img("photo-1590494165264-1ebe3602eb80", 1000), badge: "Package" },
-  { id: "cctv-16", name: "16-Camera Business Grid", category: "CCTV Packages", model: "ME-CCTV-16", description: "Enterprise 16-camera grid with dual-NVR redundancy, cloud backup and mobile app.", specs: ["16 cams", "Dual NVR", "Cloud backup", "Mobile app"], image: img("photo-1521791136064-7986c2920216", 1000) },
-  { id: "bio-face", name: "ZKTeco Face + Fingerprint", category: "Biometric Systems", model: "SpeedFace-V5L", description: "Contactless face and fingerprint access terminal with anti-spoof and app control.", specs: ["Face + FP", "Anti-spoof", "Access ctrl", "App control"], image: img("photo-1563986768609-322da13575f3", 1000) },
-  { id: "lock-smart", name: "Yale Smart Door Lock", category: "Smart Door Locks", model: "YDM7116", description: "PIN, fingerprint, RFID and app unlock with tamper alarm and auto-lock.", specs: ["4 unlock modes", "Tamper alarm", "Auto-lock", "App control"], image: img("photo-1558002038-1055907df827", 1000), badge: "Smart" },
-  { id: "intercom", name: "Hikvision Video Intercom", category: "Intercom Systems", model: "DS-KIS604", description: "2-wire video door phone kit with app forwarding and remote unlock.", specs: ["Video door", "App forward", "Remote unlock", "Night vision"], image: img("photo-1585687501004-615dfdfa7141", 1000) },
-  { id: "net-mesh", name: "TP-Link Deco WiFi 6 Mesh", category: "Networking", model: "Deco X60 (3-pack)", description: "Whole-home AX3000 mesh WiFi 6 with seamless roaming across the property.", specs: ["WiFi 6 AX3000", "3 nodes", "Seamless roam", "App setup"], image: img("photo-1518770660439-4636190af475", 1000), badge: "WiFi 6" },
-  { id: "net-poe", name: "Ubiquiti 24-Port PoE Switch", category: "Networking", model: "USW-Pro-24-PoE", description: "Managed Layer-3 PoE++ switch for camera grids and enterprise networks.", specs: ["24 × PoE++", "Layer-3", "Managed", "SFP+ uplinks"], image: img("photo-1544197150-b99a580bb7a8", 1000) },
+  { id: "cctv-16", name: "16-Camera Business Grid", category: "CCTV Packages", model: "ME-CCTV-16", description: "Enterprise 16-camera grid with NVR, cloud backup and mobile app.", specs: ["16 cams", "Dual NVR", "Cloud backup", "Mobile app"], image: img("photo-1521791136064-7986c2920216", 1000) },
   { id: "acc-rail", name: "Solar Mounting Rail Kit", category: "Accessories", model: "ME-RAIL-STD", description: "Anodised aluminium roof mounting rails, clamps and grounding for solar arrays.", specs: ["Anodised alu", "Wind-rated", "Grounding", "Universal"], image: img("photo-1613665813446-82a78c468a1d", 1000) },
 ];
 
@@ -187,9 +167,9 @@ export const BENEFITS = [
   { icon: "BadgeCheck", title: "Certified engineers", body: "Every install designed and commissioned by qualified engineers — not subcontracted guesswork." },
   { icon: "Wallet", title: "Transparent pricing", body: "Fixed, itemised quotes after a free survey. No surprises, no hidden line items." },
   { icon: "ShieldCheck", title: "Real warranties", body: "Manufacturer + workmanship warranties, honoured locally with priority callouts." },
-  { icon: "Headphones", title: "One support line", body: "Solar, security, networking and automation — one team, one number, full accountability." },
-  { icon: "Gauge", title: "Live monitoring", body: "Everything on one app: generation, consumption, cameras, access and battery health." },
-  { icon: "Truck", title: "Nationwide reach", body: "Installations and AMC coverage across major cities, with stocked genuine parts." },
+  { icon: "Headphones", title: "One support line", body: "Solar and security — one team, one number, full accountability." },
+  { icon: "Gauge", title: "Live monitoring", body: "Track solar generation and camera feeds from your phone, anywhere." },
+  { icon: "Truck", title: "Nationwide reach", body: "Installations and maintenance across major cities, with stocked genuine parts." },
 ];
 
 export const INDUSTRIES = [
@@ -203,7 +183,7 @@ export const INDUSTRIES = [
   { icon: "Hotel", label: "Hospitality" },
 ];
 
-export const BRANDS = ["Canadian Solar", "JA Solar", "Solis", "Growatt", "Hikvision", "Dahua", "Pylontech", "TP-Link", "Ubiquiti", "Yale", "ZKTeco", "Schneider"];
+export const BRANDS = ["Canadian Solar", "JA Solar", "Solis", "Growatt", "Hikvision", "Dahua"];
 
 export const VALUES = [
   { icon: "Compass", title: "Engineering-first", body: "We solve for physics and load before aesthetics. It just happens to look beautiful too." },
@@ -214,10 +194,10 @@ export const VALUES = [
 
 export const TIMELINE = [
   { year: "2009", title: "Founded in Lahore", body: "Started as a specialist CCTV and electronics installer on Hall Road." },
-  { year: "2013", title: "Into solar", body: "Added solar design and installation as energy costs climbed — our first hybrid systems." },
-  { year: "2017", title: "Smart automation", body: "Launched full home-automation and networking services for premium residences." },
+  { year: "2013", title: "Into solar", body: "Added solar panel and inverter installation as energy costs climbed." },
+  { year: "2018", title: "Hybrid systems", body: "Launched on-grid and hybrid solar setups with full net-metering support." },
   { year: "2021", title: "18 MW milestone", body: "Crossed 18 MW of solar deployed and 4,000+ total installations nationwide." },
-  { year: "2025", title: "Unified platform", body: "Rolled out one app uniting energy, security, climate and access for every client." },
+  { year: "2025", title: "Solar + security focus", body: "Dedicated to two core services: solar power systems and professional CCTV installation." },
 ];
 
 export type ExplodePart = {

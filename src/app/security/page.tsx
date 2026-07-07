@@ -4,7 +4,6 @@ import ExplodedExperience from "@/components/sections/ExplodedExperience";
 import FeatureRow from "@/components/ui/FeatureRow";
 import SceneStrip from "@/components/sections/SceneStrip";
 import Projects from "@/components/sections/Projects";
-import Technology from "@/components/sections/Technology";
 import Testimonials from "@/components/sections/Testimonials";
 import Contact from "@/components/sections/Contact";
 import { FEATURES } from "@/lib/features";
@@ -13,7 +12,7 @@ import { img } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Security & CCTV — Mehtab Electronics",
-  description: "AI CCTV, alarms, access control and electric fencing — monitored 24/7 with encrypted backup.",
+  description: "4K security camera installation, CCTV packages and NVR systems — professionally installed with mobile viewing.",
 };
 
 export default function SecurityPage() {
@@ -21,15 +20,14 @@ export default function SecurityPage() {
     <main>
       <PageHero
         crumb="Security & CCTV"
-        eyebrow="CCTV · Access · Fencing"
+        eyebrow="Cameras · NVR · Installation"
         title={<>Security that <span className="text-gradient">actually watches</span>.</>}
-        subtitle="4K AI cameras, monitored alarms, access control and electric fencing — one encrypted system, live on any device."
+        subtitle="4K AI security cameras, NVR recording and professional installation — live on your phone, day and night."
         image={img("photo-1557597774-9d273605dfa9", 1400)}
         accentColor="#22E0FF"
-        chips={["4K AI cameras", "Access control", "Electric fencing", "Cloud + NVR"]}
+        chips={["4K AI cameras", "NVR recording", "Mobile viewing", "Professional install"]}
       />
 
-      {/* Cinematic scroll-driven exploded view of an AI security camera */}
       <ExplodedExperience
         variant="camera"
         eyebrow="Inside the lens"
@@ -43,7 +41,6 @@ export default function SecurityPage() {
       <FeatureRow {...FEATURES[0]} />
       <SceneStrip scenes={[SCENE_STRIPS[0]]} />
       <Projects />
-      <Technology />
       <Testimonials />
       <Contact />
     </main>

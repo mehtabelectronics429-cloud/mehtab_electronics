@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, ArrowUpRight } from "lucide-react";
 import MagneticButton from "./MagneticButton";
 import AuroraBackground from "./AuroraBackground";
-import ParticleFieldBG from "./ParticleFieldBG";
+import HeroParticleCanvas from "./HeroParticleCanvas";
 import SmartImage from "./SmartImage";
 
 type Props = {
@@ -27,10 +27,17 @@ const anim = (d: number) => ({
 export default function PageHero({ crumb, eyebrow, title, subtitle, image, accentColor = "#22E0FF", chips }: Props) {
   return (
     <section className="relative flex min-h-[92vh] items-center overflow-hidden px-6 pb-16 pt-36 md:px-8">
+      <div aria-hidden className="absolute inset-0 -z-20 overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.2] mix-blend-multiply dark:opacity-[0.3] dark:mix-blend-luminosity"
+          style={{ backgroundImage: `url(${image})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-bg/80 via-bg/55 to-bg/35 dark:from-bg/85 dark:via-bg/60 dark:to-bg/40" />
+      </div>
       <AuroraBackground />
-      <ParticleFieldBG color={accentColor} count={1000} />
+      <HeroParticleCanvas density="normal" />
 
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-2">
+      <div className="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-2">
         <div>
           <motion.nav {...anim(0.05)} className="mb-6 flex items-center gap-1.5 text-xs text-fg/45">
             <Link href="/" className="hover:text-fg">Home</Link>
@@ -52,7 +59,7 @@ export default function PageHero({ crumb, eyebrow, title, subtitle, image, accen
 
           <motion.div {...anim(0.44)} className="mt-10 flex flex-wrap gap-4">
             <MagneticButton href="/contact">Book a survey <ArrowUpRight className="h-4 w-4" /></MagneticButton>
-            <MagneticButton href="/projects" variant="ghost">See our work</MagneticButton>
+            <MagneticButton href="/products" variant="ghost">Browse products</MagneticButton>
           </motion.div>
         </div>
 

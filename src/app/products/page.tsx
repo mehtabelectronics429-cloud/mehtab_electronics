@@ -7,7 +7,7 @@ import { img } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Products — Mehtab Electronics",
-  description: "Solar panels, inverters, batteries, CCTV, biometrics, smart locks, networking and more — with instant WhatsApp inquiry.",
+  description: "Solar panels, inverters, security cameras and CCTV packages — with instant WhatsApp inquiry.",
 };
 
 export default function ProductsPage() {
@@ -17,10 +17,10 @@ export default function ProductsPage() {
         crumb="Products"
         eyebrow="The catalogue"
         title={<>Premium hardware, <span className="text-gradient">ready to install</span>.</>}
-        subtitle="Browse our curated range of solar, security, automation and networking hardware — then inquire on WhatsApp in one tap for pricing and installation."
+        subtitle="Browse solar panels, inverters and security cameras — then inquire on WhatsApp in one tap for pricing and installation."
         image={img("photo-1518770660439-4636190af475", 1400)}
         accentColor="#22E0FF"
-        chips={["Genuine brands", "Installed & warrantied", "Instant WhatsApp quote"]}
+        chips={["Solar & CCTV", "Installed & warrantied", "Instant WhatsApp quote"]}
       />
       <ProductsCatalog />
       <Brands />

@@ -11,18 +11,14 @@ const EXPLORE = [
   { label: "Services", href: "/services" },
   { label: "Solar", href: "/solar" },
   { label: "Security", href: "/security" },
-  { label: "Smart Home", href: "/smart-home" },
-  { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 const CATEGORIES = [
   { label: "Solar Panels", href: "/products" },
-  { label: "Inverters & UPS", href: "/products" },
-  { label: "Batteries", href: "/products" },
+  { label: "Inverters", href: "/products" },
   { label: "Security Cameras", href: "/products" },
-  { label: "Smart Locks", href: "/products" },
-  { label: "Networking", href: "/products" },
+  { label: "CCTV Packages", href: "/products" },
 ];
 const SOCIALS = [Facebook, Instagram, Linkedin, Youtube];
 
@@ -41,7 +37,7 @@ export default function Footer() {
               <span className="font-display text-base tracking-wider text-fg">MEHTAB</span>
             </Link>
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-fg/50">
-              {COMPANY.tagline} Electronics & smart-energy systems engineered for the buildings of tomorrow.
+              {COMPANY.tagline} Solar panels, inverters and security cameras — professionally installed.
             </p>
             <div className="mt-6 space-y-2 text-sm text-fg/60">
               <a href={COMPANY.phoneHref} className="flex items-center gap-2 hover:text-fg"><Phone className="h-4 w-4 text-cyan" /> {COMPANY.phone}</a>
