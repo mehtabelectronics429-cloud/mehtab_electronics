@@ -1,12 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import SmoothScroll from "@/components/providers/SmoothScroll";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import CursorGlow from "@/components/ui/CursorGlow";
-import ScrollProgress from "@/components/ui/ScrollProgress";
-import SiteBackground from "@/components/ui/SiteBackground";
-import Navbar from "@/components/sections/Navbar";
-import Footer from "@/components/sections/Footer";
+import PublicChrome from "@/components/providers/PublicChrome";
 
 export const metadata: Metadata = {
   title: "Mehtab Electronics — Solar & Security Systems",
@@ -27,7 +22,6 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Applies saved theme (default dark) before paint to avoid a flash.
 const themeScript = `(function(){try{var t=localStorage.getItem('theme')||'dark';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){document.documentElement.classList.add('dark');}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -44,14 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-body antialiased">
         <ThemeProvider>
-          <SiteBackground />
-          <ScrollProgress />
-          <CursorGlow />
-          <SmoothScroll>
-            <Navbar />
-            {children}
-            <Footer />
-          </SmoothScroll>
+          <PublicChrome>{children}</PublicChrome>
         </ThemeProvider>
       </body>
     </html>

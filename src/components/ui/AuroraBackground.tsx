@@ -27,29 +27,16 @@ export default function AuroraBackground({ rays = true, stars = true }: { rays?:
       )}
 
       {stars && (
-        <>
-          {/* light mode — blue/teal specks */}
-          <div
-            className="absolute inset-0 opacity-50 dark:hidden"
-            style={{
-              backgroundImage:
-                "radial-gradient(1.2px 1.2px at 18% 28%, rgba(46,107,255,0.55) 50%, transparent), radial-gradient(1px 1px at 72% 58%, rgba(14,90,224,0.45) 50%, transparent), radial-gradient(1.5px 1.5px at 42% 78%, rgba(46,107,255,0.4) 50%, transparent), radial-gradient(1px 1px at 88% 22%, rgba(34,224,255,0.5) 50%, transparent), radial-gradient(1px 1px at 55% 12%, rgba(46,107,255,0.35) 50%, transparent), radial-gradient(1px 1px at 30% 65%, rgba(255,138,52,0.3) 50%, transparent)",
-              backgroundSize: "cover",
-            }}
-          />
-          {/* dark mode — bright specks */}
-          <div
-            className="absolute inset-0 hidden opacity-65 dark:block"
-            style={{
-              backgroundImage:
-                "radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.7) 50%, transparent), radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.55) 50%, transparent), radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.5) 50%, transparent), radial-gradient(1.5px 1.5px at 85% 25%, rgba(34,224,255,0.7) 50%, transparent), radial-gradient(1px 1px at 55% 15%, rgba(255,255,255,0.45) 50%, transparent)",
-              backgroundSize: "cover",
-            }}
-          />
-        </>
+        <div
+          className="absolute inset-0 opacity-40 dark:opacity-60"
+          style={{
+            backgroundImage:
+              "radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.6) 50%, transparent), radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.5) 50%, transparent), radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.45) 50%, transparent), radial-gradient(1.5px 1.5px at 85% 25%, rgba(34,224,255,0.6) 50%, transparent), radial-gradient(1px 1px at 55% 15%, rgba(255,255,255,0.4) 50%, transparent)",
+          }}
+        />
       )}
 
-      <div className="absolute inset-0 bg-grid-lines [background-size:64px_64px] opacity-30 [mask-image:radial-gradient(70%_60%_at_50%_40%,black,transparent)] dark:opacity-22" />
+      <div className="absolute inset-0 bg-grid-lines [background-size:64px_64px] opacity-40 [mask-image:radial-gradient(70%_60%_at_50%_40%,black,transparent)]" />
     </div>
   );
 }

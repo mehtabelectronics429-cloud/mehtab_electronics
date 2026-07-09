@@ -17,10 +17,7 @@ export default function Particles({ count = 26 }: { count?: number }) {
     [count],
   );
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden"
-    >
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
       {dots.map((d, i) => (
         <span
           key={i}

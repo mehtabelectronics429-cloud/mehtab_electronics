@@ -9,5 +9,4 @@
  *                  prefers-reduced-motion. Set to false for a pure-CSS hero.
  */
 export const ENABLE_3D = false;
-/** Pure CSS/canvas hero — no WebGL bundle on the critical path. */
-export const ENABLE_HERO_3D = false;
+export const ENABLE_HERO_3D = true;
