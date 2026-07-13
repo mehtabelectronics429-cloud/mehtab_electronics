@@ -24,5 +24,6 @@ declare module "next-auth/jwt" {
     role?: Role;
     title?: string;
     employeeId?: string | null;
+    profileSyncedAt?: number;
   }
 }

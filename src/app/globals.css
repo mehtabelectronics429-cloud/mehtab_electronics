@@ -59,6 +59,16 @@ body {
   background: transparent;
 }
 
+/* Admin console must use a normal pointer (marketing site uses custom cursor). */
+.admin-root,
+.admin-root * {
+  cursor: auto !important;
+}
+.admin-root button:disabled,
+.admin-root [disabled] {
+  cursor: not-allowed !important;
+}
+
 @media (pointer: coarse) { body { cursor: auto; } }
 
 ::selection { background: rgba(34, 224, 255, 0.28); color: rgb(var(--fg)); }

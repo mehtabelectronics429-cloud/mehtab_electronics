@@ -10,10 +10,12 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <QueryProvider>
-        <AdminShell>{children}</AdminShell>
-      </QueryProvider>
-    </AuthProvider>
+    <div className="admin-root min-h-screen cursor-auto bg-[#06070d] text-white antialiased">
+      <AuthProvider>
+        <QueryProvider>
+          <AdminShell>{children}</AdminShell>
+        </QueryProvider>
+      </AuthProvider>
+    </div>
   );
 }

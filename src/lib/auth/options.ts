@@ -8,6 +8,13 @@ import { Employee } from "@/lib/db/models/Employee";
 import { notDeleted } from "@/lib/db/soft-delete";
 import type { Role } from "@/lib/admin/types";
 
+const PROFILE_SYNC_MS = 10 * 60 * 1000; // refresh role/email from DB at most every 10m
+
+/** Ensure NextAuth has a public URL on Vercel when NEXTAUTH_URL is unset. */
+if (!process.env.NEXTAUTH_URL && process.env.VERCEL_URL) {
+  process.env.NEXTAUTH_URL = `https://${process.env.VERCEL_URL}`;
+}
+
 async function linkEmployee(profileId: string, email: string, role: Role) {
   if (role !== "employee") return null;
   const emp = await Employee.findOne({ email, ...notDeleted });
@@ -16,7 +23,27 @@ async function linkEmployee(profileId: string, email: string, role: Role) {
   return String(emp._id);
 }
 
+function applyProfileToToken(
+  token: Record<string, unknown>,
+  profile: {
+    email: string;
+    name: string;
+    role: Role;
+    title?: string;
+    employeeId?: { toString(): string } | null;
+  }
+) {
+  token.email = profile.email;
+  token.name = profile.name;
+  token.role = profile.role;
+  token.title = profile.title || "";
+  token.employeeId = profile.employeeId ? String(profile.employeeId) : null;
+  token.profileSyncedAt = Date.now();
+}
+
 export const authOptions: NextAuthOptions = {
+  // Required on Vercel / behind proxies when NEXTAUTH_URL host may differ.
+  trustHost: true,
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 },
   pages: {
     signIn: "/admin/login",
@@ -24,6 +51,7 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     CredentialsProvider({
+      id: "credentials",
       name: "Email",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -35,19 +63,12 @@ export const authOptions: NextAuthOptions = {
         const email = credentials.email.trim().toLowerCase();
         const profile = await Profile.findOne({ email, ...notDeleted });
         if (!profile?.passwordHash) return null;
-        const ok = await bcrypt.compare(
-          credentials.password,
-          profile.passwordHash,
-        );
+        const ok = await bcrypt.compare(credentials.password, profile.passwordHash);
         if (!ok) return null;
 
         let employeeId = profile.employeeId ? String(profile.employeeId) : null;
         if (!employeeId && profile.role === "employee") {
-          employeeId = await linkEmployee(
-            String(profile._id),
-            profile.email,
-            profile.role,
-          );
+          employeeId = await linkEmployee(String(profile._id), profile.email, profile.role);
         }
 
         return {
@@ -112,33 +133,28 @@ export const authOptions: NextAuthOptions = {
       (user as { employeeId?: string | null }).employeeId = employeeId;
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
         token.role = (user as { role?: Role }).role || "employee";
         token.title = (user as { title?: string }).title || "";
-        token.employeeId =
-          (user as { employeeId?: string | null }).employeeId ?? null;
+        token.employeeId = (user as { employeeId?: string | null }).employeeId ?? null;
+        token.profileSyncedAt = Date.now();
+        return token;
       }
 
-      // Re-read Profile by id so Mongo email/role edits show up in the session.
-      if (token.id) {
+      // Avoid Mongo on every session poll (breaks Vercel/serverless login UX).
+      // Refresh only periodically, or when NextAuth asks for an update.
+      const syncedAt = typeof token.profileSyncedAt === "number" ? token.profileSyncedAt : 0;
+      const shouldSync = trigger === "update" || Date.now() - syncedAt > PROFILE_SYNC_MS;
+      if (token.id && shouldSync) {
         try {
           await connectMongo();
-          const profile = await Profile.findOne({
-            _id: String(token.id),
-            ...notDeleted,
-          });
+          const profile = await Profile.findOne({ _id: String(token.id), ...notDeleted });
           if (profile) {
-            token.email = profile.email;
-            token.name = profile.name;
-            token.role = profile.role;
-            token.title = profile.title || "";
-            token.employeeId = profile.employeeId
-              ? String(profile.employeeId)
-              : null;
+            applyProfileToToken(token as Record<string, unknown>, profile);
           }
         } catch {
           // keep existing token if DB briefly unavailable
@@ -159,5 +175,5 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || "mehtab-dev-secret-change-me",
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "mehtab-dev-secret-change-me",
 };

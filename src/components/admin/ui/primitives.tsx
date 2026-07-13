@@ -53,8 +53,16 @@ export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttrib
     return <textarea ref={ref} className={cn("w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15", className)} {...props} />;
   }
 );
-export function Label({ className, children }: { className?: string; children: React.ReactNode }) {
-  return <label className={cn("mb-1.5 block text-xs font-medium text-white/60", className)}>{children}</label>;
+export function Label({
+  className,
+  children,
+  ...props
+}: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  return (
+    <label className={cn("mb-1.5 block text-xs font-medium text-white/60", className)} {...props}>
+      {children}
+    </label>
+  );
 }
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cn("animate-pulse rounded-lg bg-white/[0.06]", className)} />;
