@@ -5,9 +5,10 @@
   "description": "Mehtab Electronics — Electronics & Smart Energy. A cinematic, 3D, Awwwards-flavored website.",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
     "db:seed": "tsx scripts/seed.ts"
   },
