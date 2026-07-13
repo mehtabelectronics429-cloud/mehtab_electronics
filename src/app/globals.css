@@ -83,6 +83,16 @@ body {
   }
   .hairline { border: 1px solid var(--glass-border); }
 
+  /* Native <select> dropdowns in admin (dark panel; options inherit OS styling otherwise) */
+  .admin-select {
+    color-scheme: dark;
+  }
+  .admin-select option,
+  .admin-select optgroup {
+    background-color: #12151f;
+    color: #e8ecf4;
+  }
+
   .text-gradient {
     background: linear-gradient(100deg, #0A1F44 0%, #2E6BFF 55%, #0FB6D8 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;

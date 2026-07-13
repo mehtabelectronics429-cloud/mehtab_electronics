@@ -6,8 +6,6 @@ import { useScroll, useTransform, motion, MotionValue } from "framer-motion";
 import { SCENES } from "@/lib/data";
 import { ENABLE_3D } from "@/lib/config";
 import Reveal from "@/components/ui/Reveal";
-import AuroraBackground from "@/components/ui/AuroraBackground";
-import HeroParticleCanvas from "@/components/ui/HeroParticleCanvas";
 import { img } from "@/lib/utils";
 
 const ShowroomScene = dynamic(() => import("@/components/three/ShowroomScene"), {
@@ -72,8 +70,6 @@ function StoryLight() {
         style={{ backgroundImage: `url(${img("photo-1613665813446-82a78c468a1d", 1600)})` }}
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-bg/50 via-transparent to-bg/60" />
-      <AuroraBackground />
-      <HeroParticleCanvas density="normal" />
       <div className="relative z-10 mx-auto max-w-6xl px-6 md:px-8">
         <div className="text-center">
           <span className="eyebrow">The Mehtab Experience</span>

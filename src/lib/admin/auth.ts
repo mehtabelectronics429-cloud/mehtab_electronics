@@ -1,53 +1,59 @@
 "use client";
 
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import type { Role, User } from "./types";
-
-const DEMO: Record<string, { password: string; user: User }> = {
-  "admin@mehtab.pk": {
-    password: "admin123",
-    user: { id: "u_admin", name: "Imran Mehtab", email: "admin@mehtab.pk", role: "admin", title: "Administrator" },
-  },
-  "staff@mehtab.pk": {
-    password: "staff123",
-    user: { id: "u_staff", name: "Ahmed Sheikh", email: "staff@mehtab.pk", role: "employee", title: "Installation Technician" },
-  },
-};
-
-const COOKIE = "me_admin_role";
-function setCookie(role: Role | null) {
-  if (typeof document === "undefined") return;
-  if (role) document.cookie = `${COOKIE}=${role}; path=/; max-age=86400; samesite=lax`;
-  else document.cookie = `${COOKIE}=; path=/; max-age=0`;
-}
-
-interface AuthState {
-  user: User | null;
-  login: (email: string, password: string) => { ok: boolean; error?: string };
-  logout: () => void;
-  syncCookie: () => void;
-}
-
-export const useAuth = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      user: null,
-      login: (email, password) => {
-        const rec = DEMO[email.trim().toLowerCase()];
-        if (!rec || rec.password !== password) return { ok: false, error: "Invalid email or password." };
-        setCookie(rec.user.role);
-        set({ user: rec.user });
-        return { ok: true };
-      },
-      logout: () => { setCookie(null); set({ user: null }); },
-      syncCookie: () => { const u = get().user; setCookie(u?.role ?? null); },
-    }),
-    { name: "me_admin_auth" }
-  )
-);
+import { useCallback } from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import type { User } from "./types";
 
 export const DEMO_ACCOUNTS = [
   { label: "Admin", email: "admin@mehtab.pk", password: "admin123" },
   { label: "Employee", email: "staff@mehtab.pk", password: "staff123" },
 ];
+
+export function googleAuthEnabled() {
+  return process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";
+}
+
+export function useAuth() {
+  const { data, status } = useSession();
+
+  const user: User | null = data?.user
+    ? {
+        id: data.user.id,
+        name: data.user.name || "",
+        email: data.user.email || "",
+        role: data.user.role,
+        title: data.user.title,
+        avatar: data.user.image || undefined,
+        employeeId: data.user.employeeId ?? null,
+      }
+    : null;
+
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+    if (res?.error) return { ok: false as const, error: "Invalid email or password." };
+    if (res?.ok) return { ok: true as const };
+    return { ok: false as const, error: "Login failed" };
+  }, []);
+
+  const loginWithGoogle = useCallback(async () => {
+    await signIn("google", { callbackUrl: "/admin" });
+    return { ok: true as const };
+  }, []);
+
+  const logout = useCallback(async () => {
+    await signOut({ callbackUrl: "/admin/login" });
+  }, []);
+
+  return {
+    user,
+    loading: status === "loading",
+    authenticated: status === "authenticated",
+    login,
+    loginWithGoogle,
+    logout,
+  };
+}

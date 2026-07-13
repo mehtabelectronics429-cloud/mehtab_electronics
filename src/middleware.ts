@@ -1,25 +1,28 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-/** Protect /admin. Unauthenticated users are sent to /admin/login. */
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const role = req.cookies.get("me_admin_role")?.value;
+export default withAuth(
+  function middleware(req) {
+    const { pathname } = req.nextUrl;
+    const token = req.nextauth.token;
 
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
-    if (!role) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin/login";
-      url.searchParams.set("from", pathname);
-      return NextResponse.redirect(url);
+    // Already signed in → leave login page once.
+    if (pathname === "/admin/login" && token) {
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const path = req.nextUrl.pathname;
+        if (path === "/admin/login") return true;
+        return !!token;
+      },
+    },
   }
-  if (pathname === "/admin/login" && role) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/admin";
-    return NextResponse.redirect(url);
-  }
-  return NextResponse.next();
-}
+);
 
-export const config = { matcher: ["/admin/:path*"] };
+export const config = {
+  matcher: ["/admin", "/admin/:path*"],
+};

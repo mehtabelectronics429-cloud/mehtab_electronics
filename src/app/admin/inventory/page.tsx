@@ -1,39 +1,80 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { PageHeader, StatCard } from "@/components/admin/ui/feedback";
-import { Card } from "@/components/admin/ui/primitives";
-import DataTable from "@/components/admin/ui/DataTable";
 import { type ColumnDef } from "@tanstack/react-table";
+import { PageHeader } from "@/components/admin/ui/feedback";
+import { Badge } from "@/components/admin/ui/primitives";
+import DataTable from "@/components/admin/ui/DataTable";
 import { api } from "@/lib/admin/services";
 import { pkr, num } from "@/lib/admin/format";
 import type { Product } from "@/lib/admin/types";
 
 export default function InventoryPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["products"], queryFn: api.products });
-  const products = data ?? [];
-  const value = products.reduce((s, p) => s + p.stock * p.purchasePrice, 0);
-  const units = products.reduce((s, p) => s + p.stock, 0);
-  const low = products.filter((p) => p.stock <= 5);
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useQuery({
+    queryKey: ["inventory", page],
+    queryFn: () => api.products({ page, limit: 20, sort: "stock" }),
+  });
+
+  const low = useMemo(() => (data?.items ?? []).filter((p) => p.stock <= 5).length, [data]);
 
   const columns: ColumnDef<Product>[] = [
-    { accessorKey: "model", header: "Product", cell: (i) => `${i.row.original.brand} ${i.row.original.model}` },
+    {
+      accessorKey: "model",
+      header: "Item",
+      cell: (i) => (
+        <div>
+          <div className="font-medium text-white">
+            {i.row.original.brand} {i.row.original.model}
+          </div>
+          <div className="text-xs text-white/40">{i.row.original.sku}</div>
+        </div>
+      ),
+    },
     { accessorKey: "category", header: "Category" },
-    { accessorKey: "stock", header: "Units left", cell: (i) => <span className="text-red-300">{i.getValue<number>()}</span> },
+    {
+      accessorKey: "stock",
+      header: "Qty",
+      cell: (i) => (
+        <span className={i.getValue<number>() <= 5 ? "font-medium text-red-300" : "text-white"}>
+          {num(i.getValue<number>())}
+        </span>
+      ),
+    },
+    {
+      id: "value",
+      header: "Stock value",
+      cell: (i) => pkr(i.row.original.stock * i.row.original.purchasePrice),
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: (i) =>
+        i.row.original.stock <= 5 ? (
+          <Badge className="border-red-400/30 bg-red-400/10 text-red-300">Low</Badge>
+        ) : (
+          <Badge className="border-emerald-400/30 bg-emerald-400/10 text-emerald-300">OK</Badge>
+        ),
+    },
   ];
 
   return (
     <div>
-      <PageHeader title="Inventory" subtitle="Stock levels and valuation across the catalogue." />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard label="Inventory Value" value={pkr(value)} icon="Warehouse" accent="cyan" index={0} />
-        <StatCard label="Total Units" value={num(units)} icon="Boxes" accent="energy" index={1} />
-        <StatCard label="Low Stock SKUs" value={String(low.length)} icon="PackageMinus" accent="red" index={2} />
-      </div>
-      <Card className="mt-6 p-5">
-        <h3 className="mb-4 text-sm font-medium text-white/80">Low stock alerts</h3>
-        <DataTable columns={columns} data={low} loading={isLoading} empty={{ title: "All good", body: "No products are below the reorder threshold." }} />
-      </Card>
+      <PageHeader
+        title="Inventory"
+        subtitle={`${low} low-stock item${low === 1 ? "" : "s"} on this page · live product stock`}
+      />
+      <DataTable
+        columns={columns}
+        data={data?.items ?? []}
+        loading={isLoading}
+        page={data?.page}
+        totalPages={data?.totalPages}
+        total={data?.total}
+        onPageChange={setPage}
+        empty={{ title: "No inventory" }}
+      />
     </div>
   );
 }

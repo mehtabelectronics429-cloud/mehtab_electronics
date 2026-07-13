@@ -6,7 +6,7 @@ import type { Role } from "./types";
  */
 export type Capability =
   | "dashboard.view"
-  | "customers.view" | "customers.manage"
+  | "customers.view" | "customers.view.own" | "customers.manage"
   | "installations.view.all" | "installations.view.own" | "installations.manage" | "installations.approve"
   | "materials.view" | "materials.manage"
   | "products.view" | "products.manage"
@@ -14,7 +14,8 @@ export type Capability =
   | "billing.view.all" | "billing.view.own" | "billing.manage" | "billing.approve"
   | "ledger.view.all" | "ledger.view.own" | "ledger.manage" | "ledger.approve"
   | "employees.view" | "employees.manage"
-  | "whatsapp.view" | "reports.view" | "settings.manage"
+  | "whatsapp.view" | "whatsapp.send"
+  | "reports.view" | "settings.manage"
   | "profile.view";
 
 const MATRIX: Record<Role, Capability[]> = {
@@ -24,12 +25,18 @@ const MATRIX: Record<Role, Capability[]> = {
     "materials.view", "materials.manage", "products.view", "products.manage",
     "inventory.view", "billing.view.all", "billing.manage", "billing.approve",
     "ledger.view.all", "ledger.manage", "ledger.approve",
-    "employees.view", "employees.manage", "whatsapp.view", "reports.view",
-    "settings.manage", "profile.view",
+    "employees.view", "employees.manage", "whatsapp.view", "whatsapp.send",
+    "reports.view", "settings.manage", "profile.view",
   ],
   employee: [
-    "dashboard.view", "installations.view.own", "billing.view.own",
-    "billing.manage", "ledger.view.own", "ledger.manage", "profile.view",
+    "dashboard.view",
+    "customers.view", "customers.manage",
+    "installations.view.own", "installations.manage",
+    "materials.view",
+    "billing.view.own", "billing.manage",
+    "ledger.view.own",
+    "whatsapp.send",
+    "profile.view",
   ],
 };
 

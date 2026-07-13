@@ -15,14 +15,14 @@ export default function ReportsPage() {
         actions={<Button variant="secondary" onClick={() => toast.success("Exporting report…")}><Download className="h-4 w-4" /> Export</Button>} />
 
       <Card className="mb-5 flex flex-wrap items-center gap-3 p-4">
-        <select className="h-9 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none">
-          <option className="bg-[#0c0e16]">Monthly Summary</option><option className="bg-[#0c0e16]">Revenue</option><option className="bg-[#0c0e16]">Expenses</option><option className="bg-[#0c0e16]">Employee Performance</option>
+        <select className="admin-select h-9 rounded-xl border border-white/10 bg-[#12151f] px-3 text-sm text-white outline-none">
+          <option>Monthly Summary</option><option>Revenue</option><option>Expenses</option><option>Employee Performance</option>
         </select>
-        <select className="h-9 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none">
-          <option className="bg-[#0c0e16]">This Year</option><option className="bg-[#0c0e16]">Last Quarter</option><option className="bg-[#0c0e16]">This Month</option>
+        <select className="admin-select h-9 rounded-xl border border-white/10 bg-[#12151f] px-3 text-sm text-white outline-none">
+          <option>This Year</option><option>Last Quarter</option><option>This Month</option>
         </select>
-        <select className="h-9 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white outline-none">
-          <option className="bg-[#0c0e16]">All Employees</option>{db.EMPLOYEES.map((e) => <option key={e.id} className="bg-[#0c0e16]">{e.name}</option>)}
+        <select className="admin-select h-9 rounded-xl border border-white/10 bg-[#12151f] px-3 text-sm text-white outline-none">
+          <option>All Employees</option>{db.EMPLOYEES.map((e) => <option key={e.id}>{e.name}</option>)}
         </select>
       </Card>
 

@@ -11,6 +11,7 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: "LayoutDashboard", cap: "dashboard.view", group: "Overview" },
   { label: "Customers", href: "/admin/customers", icon: "Users", cap: "customers.view", group: "Operations" },
+  { label: "My Customers", href: "/admin/customers", icon: "Users", cap: "customers.view.own", group: "Operations" },
   { label: "Installations", href: "/admin/installations", icon: "Wrench", cap: "installations.view.all", group: "Operations" },
   { label: "My Installations", href: "/admin/installations", icon: "Wrench", cap: "installations.view.own", group: "Operations" },
   { label: "Materials", href: "/admin/materials", icon: "Boxes", cap: "materials.view", group: "Inventory" },

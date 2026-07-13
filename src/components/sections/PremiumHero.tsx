@@ -6,8 +6,6 @@ import { ArrowUpRight, Play, Sparkles } from "lucide-react";
 import MagneticButton from "@/components/ui/MagneticButton";
 import SmartImage from "@/components/ui/SmartImage";
 import TiltCard from "@/components/ui/TiltCard";
-import AuroraBackground from "@/components/ui/AuroraBackground";
-import HeroParticleCanvas from "@/components/ui/HeroParticleCanvas";
 import { img } from "@/lib/utils";
 import { COMPANY } from "@/lib/data";
 
@@ -27,7 +25,7 @@ const HEADLINE = [
 function HeroBackdrop() {
   return (
     <div aria-hidden className="absolute inset-0 -z-20 overflow-hidden">
-      {/* hero-specific photographic layer */}
+      {/* hero-specific photographic layer — no particles (site background owns those) */}
       <div
         className="absolute inset-0 bg-cover bg-[center_30%] opacity-[0.22] mix-blend-multiply saturate-90 dark:opacity-[0.32] dark:mix-blend-luminosity"
         style={{ backgroundImage: `url(${img("photo-1509391366360-2e959784a276", 1920)})` }}
@@ -38,8 +36,6 @@ function HeroBackdrop() {
       />
 
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_70%_at_50%_-10%,rgb(var(--elevated)/0.7)_0%,rgb(var(--bg)/0.55)_55%)]" />
-      <AuroraBackground />
-      <HeroParticleCanvas density="rich" />
 
       <div className="absolute inset-0 bg-grid-lines [background-size:56px_56px] opacity-[0.28] [mask-image:radial-gradient(ellipse_75%_65%_at_50%_45%,black,transparent)] dark:opacity-20" />
 

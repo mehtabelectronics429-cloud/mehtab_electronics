@@ -6,13 +6,16 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 type Dot = { x: number; y: number; vx: number; vy: number; r: number };
 type Density = "subtle" | "normal" | "rich";
 
-const DENSITY: Record<Density, { mobile: number; desktop: number; linkMul: number; dotMul: number }> = {
-  subtle: { mobile: 28, desktop: 48, linkMul: 0.85, dotMul: 0.9 },
-  normal: { mobile: 36, desktop: 62, linkMul: 1, dotMul: 1 },
-  rich: { mobile: 42, desktop: 78, linkMul: 1.2, dotMul: 1.25 },
+const DENSITY: Record<
+  Density,
+  { mobile: number; desktop: number; linkDist: number; speed: number; sizeMin: number; sizeRange: number }
+> = {
+  subtle: { mobile: 28, desktop: 44, linkDist: 120, speed: 0.36, sizeMin: 2.2, sizeRange: 2.8 },
+  normal: { mobile: 36, desktop: 56, linkDist: 135, speed: 0.4, sizeMin: 2.4, sizeRange: 3.2 },
+  rich: { mobile: 42, desktop: 68, linkDist: 145, speed: 0.42, sizeMin: 2.6, sizeRange: 3.4 },
 };
 
-/** Lightweight 2D particle network — theme-aware, pauses off-screen. */
+/** 2D particle network — auto-drifting dots with links; pauses off-screen / tab hidden. */
 export default function HeroParticleCanvas({
   className = "",
   density = "normal",
@@ -28,7 +31,7 @@ export default function HeroParticleCanvas({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!ctx) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -47,26 +50,26 @@ export default function HeroParticleCanvas({
       dots = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.38,
-        vy: (Math.random() - 0.5) * 0.38,
-        r: Math.random() * 3.5 + 2.5,
+        vx: (Math.random() - 0.5) * cfg.speed,
+        vy: (Math.random() - 0.5) * cfg.speed,
+        r: Math.random() * cfg.sizeRange + cfg.sizeMin,
       }));
     };
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio, 1.75);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       const rect = canvas.getBoundingClientRect();
       w = rect.width;
       h = rect.height;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       seed();
     };
 
     const draw = () => {
       frame = requestAnimationFrame(draw);
-      if (!visible || count === 0) return;
+      if (!visible || count === 0 || document.hidden) return;
 
       const dark = themeRef.current === "dark";
       ctx.clearRect(0, 0, w, h);
@@ -81,13 +84,14 @@ export default function HeroParticleCanvas({
         const dy = p.y - mouse.y;
         const md = Math.hypot(dx, dy);
         if (md < 110 && md > 0) {
-          p.x += (dx / md) * 1.4;
-          p.y += (dy / md) * 1.4;
+          p.x += (dx / md) * 1.35;
+          p.y += (dy / md) * 1.35;
         }
       }
 
-      const linkDist = (dark ? 140 : 125) * cfg.linkMul;
-      const linkBase = (dark ? 0.32 : 0.24) * cfg.linkMul;
+      const linkDist = cfg.linkDist;
+      const linkBase = dark ? 0.3 : 0.22;
+      ctx.lineWidth = dark ? 1.05 : 0.95;
       for (let i = 0; i < dots.length; i++) {
         for (let j = i + 1; j < dots.length; j++) {
           const dx = dots[i].x - dots[j].x;
@@ -96,7 +100,6 @@ export default function HeroParticleCanvas({
           if (d < linkDist) {
             const a = (1 - d / linkDist) * linkBase;
             ctx.strokeStyle = dark ? `rgba(34,224,255,${a})` : `rgba(46,107,255,${a})`;
-            ctx.lineWidth = dark ? 1.1 : 1;
             ctx.beginPath();
             ctx.moveTo(dots[i].x, dots[i].y);
             ctx.lineTo(dots[j].x, dots[j].y);
@@ -109,13 +112,13 @@ export default function HeroParticleCanvas({
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         if (dark) {
-          ctx.fillStyle = `rgba(34,224,255,${(0.5 + p.r * 0.14) * cfg.dotMul})`;
-          ctx.shadowColor = "rgba(34,224,255,0.65)";
-          ctx.shadowBlur = 12;
-        } else {
-          ctx.fillStyle = `rgba(46,107,255,${(0.5 + p.r * 0.1) * cfg.dotMul})`;
-          ctx.shadowColor = "rgba(46,107,255,0.5)";
+          ctx.fillStyle = `rgba(34,224,255,${0.55 + p.r * 0.1})`;
+          ctx.shadowColor = "rgba(34,224,255,0.55)";
           ctx.shadowBlur = 10;
+        } else {
+          ctx.fillStyle = `rgba(46,107,255,${0.5 + p.r * 0.08})`;
+          ctx.shadowColor = "rgba(46,107,255,0.4)";
+          ctx.shadowBlur = 8;
         }
         ctx.fill();
         ctx.shadowBlur = 0;
@@ -130,16 +133,19 @@ export default function HeroParticleCanvas({
       mouse = { x: -9999, y: -9999 };
     };
 
-    const io = new IntersectionObserver(([e]) => {
-      visible = e.isIntersecting;
-    }, { threshold: 0.02 });
+    const io = new IntersectionObserver(
+      ([e]) => {
+        visible = e.isIntersecting;
+      },
+      { threshold: 0.02 }
+    );
     io.observe(canvas);
 
     resize();
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", resize, { passive: true });
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("mouseleave", onLeave);
-    draw();
+    frame = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(frame);
@@ -150,5 +156,11 @@ export default function HeroParticleCanvas({
     };
   }, [density]);
 
-  return <canvas ref={canvasRef} aria-hidden className={`pointer-events-none absolute inset-0 h-full w-full ${className}`} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 h-full w-full ${className}`}
+    />
+  );
 }
