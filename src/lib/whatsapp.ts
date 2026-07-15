@@ -7,12 +7,19 @@ export function waLink(message: string, phone: string = COMPANY.whatsapp) {
 }
 
 /** Prefilled product inquiry message (dynamic per product). */
-export function productInquiry(p: { name: string; category: string; model: string }) {
+export function productInquiry(p: {
+  name: string;
+  category: string;
+  model: string;
+  price?: string;
+}) {
+  const priceLine = p.price ? `Listed price: ${p.price}\n` : "";
   const msg =
     `Hello,\n\nI am interested in the following product.\n\n` +
     `Product Name: ${p.name}\n` +
     `Category: ${p.category}\n` +
-    `Model: ${p.model}\n\n` +
-    `Please provide pricing and installation details.`;
+    `Model: ${p.model}\n` +
+    priceLine +
+    `\nPlease provide pricing and installation details.`;
   return waLink(msg);
 }

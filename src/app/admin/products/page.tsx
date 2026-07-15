@@ -27,6 +27,7 @@ const schema = z.object({
   warranty: z.string().optional(),
   stock: z.coerce.number().int().min(0),
   description: z.string().optional(),
+  image: z.string().url().optional().or(z.literal("")),
 });
 type Form = z.infer<typeof schema>;
 
@@ -47,13 +48,13 @@ export default function ProductsPage() {
     return ["all", ...fromItems];
   }, [data]);
 
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<Form>({
+  const { register, handleSubmit, reset, getValues, formState: { errors, isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
   });
 
   const openCreate = () => {
     setEditing(null);
-    reset({ category: "", brand: "", model: "", sku: "", purchasePrice: 0, sellingPrice: 0, warranty: "", stock: 0, description: "" });
+    reset({ category: "", brand: "", model: "", sku: "", purchasePrice: 0, sellingPrice: 0, warranty: "", stock: 0, description: "", image: "" });
     setOpen(true);
   };
   const openEdit = (p: Product) => {
@@ -210,6 +211,43 @@ export default function ProductsPage() {
           <div>
             <Label>Stock</Label>
             <Input type="number" {...register("stock")} />
+          </div>
+          <div className="sm:col-span-2">
+            <Label>Product image URL</Label>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Input {...register("image")} placeholder="https://res.cloudinary.com/..." />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={async () => {
+                  const fileInput = document.createElement("input");
+                  fileInput.type = "file";
+                  fileInput.accept = "image/*";
+                  fileInput.click();
+                  fileInput.onchange = async () => {
+                    const file = fileInput.files?.[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.set("file", file);
+                    try {
+                      const res = await fetch("/api/products/upload", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Upload failed");
+                      reset({ ...getValues(), image: data.url });
+                      toast.success("Image uploaded");
+                    } catch (error) {
+                      toast.error(error instanceof Error ? error.message : "Upload failed");
+                    }
+                  };
+                }}
+              >
+                Upload
+              </Button>
+            </div>
+            {errors.image && <p className="mt-1 text-xs text-red-400">{errors.image.message}</p>}
           </div>
           <div className="sm:col-span-2 flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>

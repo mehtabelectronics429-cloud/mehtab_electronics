@@ -14,11 +14,12 @@ const nextConfig = {
     optimizePackageImports: ["lucide-react", "framer-motion", "date-fns"],
   },
   images: {
-    // Client-side loading of remote royalty-free imagery (Unsplash).
+    // Client-side loading of remote royalty-free imagery (Unsplash) and Cloudinary.
     // unoptimized avoids build-time fetches so the project builds offline.
     unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
   transpilePackages: ["three"],

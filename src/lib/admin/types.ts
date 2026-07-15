@@ -53,6 +53,7 @@ export interface Product {
   warranty: string;
   stock: number;
   description?: string;
+  image?: string;
 }
 
 export interface Material {

@@ -40,11 +40,15 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
               ))}
             </div>
 
+            {product.price && (
+              <p className="mt-5 font-mono text-sm tracking-wide text-cyan">{product.price}</p>
+            )}
+
             <a
               href={productInquiry(product)}
               target="_blank"
               rel="noopener noreferrer"
-              className="sheen mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-medium text-[#052e16] shadow-[0_0_40px_-14px_rgba(37,211,102,0.9)] transition-transform duration-300 hover:scale-[1.03]"
+              className="sheen mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-medium text-[#052e16] shadow-[0_0_40px_-14px_rgba(37,211,102,0.9)] transition-transform duration-300 hover:scale-[1.03]"
             >
               <MessageCircle className="h-4 w-4" /> Inquire on WhatsApp
             </a>

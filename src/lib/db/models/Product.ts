@@ -12,6 +12,7 @@ export interface IProduct {
   warranty: string;
   stock: number;
   description: string;
+  image?: string;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +29,7 @@ const schema = new Schema<IProduct>(
     warranty: { type: String, default: "" },
     stock: { type: Number, default: 0, min: 0 },
     description: { type: String, default: "" },
+    image: { type: String, default: "" },
     deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }

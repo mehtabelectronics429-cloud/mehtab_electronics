@@ -36,11 +36,12 @@ export const productInput = z.object({
   brand: z.string().min(1),
   model: z.string().min(1),
   sku: z.string().min(1),
-  purchasePrice: z.number().min(0),
-  sellingPrice: z.number().min(0),
+  purchasePrice: z.coerce.number().min(0),
+  sellingPrice: z.coerce.number().min(0),
   warranty: z.string().optional(),
-  stock: z.number().int().min(0).optional(),
+  stock: z.coerce.number().int().min(0).optional(),
   description: z.string().optional(),
+  image: z.string().url().optional().or(z.literal("")),
 });
 
 export const materialInput = z.object({

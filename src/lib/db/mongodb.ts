@@ -1,8 +1,18 @@
 import mongoose from "mongoose";
 
 const URI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/mehtab_electronics";
-console.log("MongoDB URI: ", URI);
+  process.env.MONGODB_URI?.trim() || "mongodb://127.0.0.1:27017/mehtab_electronics";
+const redactedUri = URI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@");
+console.log("MongoDB URI:", redactedUri);
+
+const connectOptions = {
+  bufferCommands: false,
+  connectTimeoutMS: 30000,
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
+  family: 4,
+};
+
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -22,8 +32,13 @@ global.mongooseCache = cache;
 export async function connectMongo(): Promise<typeof mongoose> {
   if (cache.conn) return cache.conn;
   if (!cache.promise) {
-    cache.promise = mongoose.connect(URI, { bufferCommands: false });
+    cache.promise = mongoose.connect(URI, connectOptions).catch((err) => {
+      cache.promise = null;
+      cache.conn = null;
+      throw err;
+    });
   }
+
   cache.conn = await cache.promise;
   return cache.conn;
 }
