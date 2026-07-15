@@ -12,7 +12,10 @@ const URI =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/mehtab_electronics";
 
 async function main() {
-  console.log("Seeding MongoDB...", URI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@"));
+  console.log(
+    "Seeding MongoDB...",
+    URI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@"),
+  );
   await mongoose.connect(URI);
   const redacted = URI.replace(/\/\/([^:]+):([^@]+)@/, "//$1:***@");
   console.log("Connected to", redacted);
@@ -21,7 +24,7 @@ async function main() {
   // Prefer explicit DB name; Atlas default path "/" lands on "test".
   if (db.databaseName === "test") {
     console.warn(
-      'Warning: connected to database "test". Set path /mehtab_electronics in MONGODB_URI.'
+      'Warning: connected to database "test". Set path /mehtab_electronics in MONGODB_URI.',
     );
   }
 
@@ -420,11 +423,11 @@ async function main() {
 
   // NextAuth login profiles (credentials stored in Mongo)
   const adminHash = await bcrypt.hash("admin123", 10);
-  const staffHash = await bcrypt.hash("staff123", 10);
+  const staffHash = await bcrypt.hash("developer123", 10);
 
   await db.collection("profiles").insertMany([
     {
-      email: "admin@mehtab.pk",
+      email: "admin@mehtabelectronics.com",
       name: "Imran Mehtab",
       role: "admin",
       title: "Administrator",
@@ -437,13 +440,13 @@ async function main() {
       updatedAt: new Date(),
     },
     {
-      email: "staff@mehtab.pk",
-      name: "Ahmed Sheikh",
-      role: "employee",
-      title: "Installation Technician",
+      email: "developer@mehtabelectronics.com",
+      name: "M Umar Liaqat",
+      role: "admin",
+      title: "Software Developer",
       passwordHash: staffHash,
       googleId: null,
-      employeeId: empIds[0],
+      employeeId: null,
       avatar: "",
       deletedAt: null,
       createdAt: new Date(),
@@ -451,7 +454,9 @@ async function main() {
     },
   ]);
 
-  console.log("Auth profiles ready: admin@mehtab.pk / admin123, staff@mehtab.pk / staff123");
+  console.log(
+    "Auth profiles ready: admin@mehtab.pk / admin123, staff@mehtab.pk / staff123",
+  );
   console.log("Seed complete.");
   await mongoose.disconnect();
 }

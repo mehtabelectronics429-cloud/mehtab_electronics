@@ -31,7 +31,7 @@ function applyProfileToToken(
     role: Role;
     title?: string;
     employeeId?: { toString(): string } | null;
-  }
+  },
 ) {
   token.email = profile.email;
   token.name = profile.name;
@@ -62,13 +62,21 @@ export const authOptions: NextAuthOptions = {
         await connectMongo();
         const email = credentials.email.trim().toLowerCase();
         const profile = await Profile.findOne({ email, ...notDeleted });
+        console.log("Profile: ", profile);
         if (!profile?.passwordHash) return null;
-        const ok = await bcrypt.compare(credentials.password, profile.passwordHash);
+        const ok = await bcrypt.compare(
+          credentials.password,
+          profile.passwordHash,
+        );
         if (!ok) return null;
 
         let employeeId = profile.employeeId ? String(profile.employeeId) : null;
         if (!employeeId && profile.role === "employee") {
-          employeeId = await linkEmployee(String(profile._id), profile.email, profile.role);
+          employeeId = await linkEmployee(
+            String(profile._id),
+            profile.email,
+            profile.role,
+          );
         }
 
         return {
@@ -140,19 +148,25 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name;
         token.role = (user as { role?: Role }).role || "employee";
         token.title = (user as { title?: string }).title || "";
-        token.employeeId = (user as { employeeId?: string | null }).employeeId ?? null;
+        token.employeeId =
+          (user as { employeeId?: string | null }).employeeId ?? null;
         token.profileSyncedAt = Date.now();
         return token;
       }
 
       // Avoid Mongo on every session poll (breaks Vercel/serverless login UX).
       // Refresh only periodically, or when NextAuth asks for an update.
-      const syncedAt = typeof token.profileSyncedAt === "number" ? token.profileSyncedAt : 0;
-      const shouldSync = trigger === "update" || Date.now() - syncedAt > PROFILE_SYNC_MS;
+      const syncedAt =
+        typeof token.profileSyncedAt === "number" ? token.profileSyncedAt : 0;
+      const shouldSync =
+        trigger === "update" || Date.now() - syncedAt > PROFILE_SYNC_MS;
       if (token.id && shouldSync) {
         try {
           await connectMongo();
-          const profile = await Profile.findOne({ _id: String(token.id), ...notDeleted });
+          const profile = await Profile.findOne({
+            _id: String(token.id),
+            ...notDeleted,
+          });
           if (profile) {
             applyProfileToToken(token as Record<string, unknown>, profile);
           }
@@ -175,5 +189,8 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "mehtab-dev-secret-change-me",
+  secret:
+    process.env.NEXTAUTH_SECRET ||
+    process.env.AUTH_SECRET ||
+    "mehtab-dev-secret-change-me",
 };

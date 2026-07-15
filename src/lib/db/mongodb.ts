@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 
-const URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/mehtab_electronics";
-
+const URI =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/mehtab_electronics";
+console.log("MongoDB URI: ", URI);
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -12,7 +13,10 @@ declare global {
   var mongooseCache: MongooseCache | undefined;
 }
 
-const cache: MongooseCache = global.mongooseCache ?? { conn: null, promise: null };
+const cache: MongooseCache = global.mongooseCache ?? {
+  conn: null,
+  promise: null,
+};
 global.mongooseCache = cache;
 
 export async function connectMongo(): Promise<typeof mongoose> {
