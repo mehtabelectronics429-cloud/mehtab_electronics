@@ -8,23 +8,39 @@ export default function CursorGlow() {
 
   useEffect(() => {
     if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     let rx = window.innerWidth / 2;
     let ry = window.innerHeight / 2;
     let x = rx;
     let y = ry;
     let raf = 0;
-
-    const move = (e: MouseEvent) => {
-      x = e.clientX;
-      y = e.clientY;
-      if (dot.current) dot.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    };
+    let running = false;
 
     const loop = () => {
       rx += (x - rx) * 0.14;
       ry += (y - ry) * 0.14;
       if (ring.current) ring.current.style.transform = `translate3d(${rx}px, ${ry}px, 0)`;
+      // Stop the loop once the ring has essentially caught up — saves the main
+      // thread from an always-on rAF while the pointer is idle.
+      if (Math.abs(x - rx) < 0.3 && Math.abs(y - ry) < 0.3) {
+        running = false;
+        return;
+      }
       raf = requestAnimationFrame(loop);
+    };
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      raf = requestAnimationFrame(loop);
+    };
+
+    const move = (e: MouseEvent) => {
+      x = e.clientX;
+      y = e.clientY;
+      if (dot.current) dot.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      start();
     };
 
     const over = (e: MouseEvent) => {
@@ -32,9 +48,8 @@ export default function CursorGlow() {
       if (ring.current) ring.current.dataset.hover = t ? "true" : "false";
     };
 
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseover", over);
-    raf = requestAnimationFrame(loop);
+    window.addEventListener("mousemove", move, { passive: true });
+    window.addEventListener("mouseover", over, { passive: true });
     return () => {
       window.removeEventListener("mousemove", move);
       window.removeEventListener("mouseover", over);
@@ -47,10 +62,10 @@ export default function CursorGlow() {
       <div
         ref={ring}
         data-hover="false"
-        className="absolute -ml-5 -mt-5 h-10 w-10 rounded-full border border-cyan/60 transition-[width,height,opacity] duration-300 data-[hover=true]:h-16 data-[hover=true]:w-16 data-[hover=true]:-ml-8 data-[hover=true]:-mt-8 data-[hover=true]:border-cyan"
-        style={{ boxShadow: "0 0 30px -6px rgba(34,224,255,0.7)" }}
+        className="absolute -ml-5 -mt-5 h-10 w-10 rounded-full border border-brand/60 transition-[width,height,opacity] duration-300 data-[hover=true]:h-16 data-[hover=true]:w-16 data-[hover=true]:-ml-8 data-[hover=true]:-mt-8 data-[hover=true]:border-brand"
+        style={{ boxShadow: "0 0 30px -6px rgba(16,185,129,0.6)" }}
       />
-      <div ref={dot} className="absolute -ml-1 -mt-1 h-2 w-2 rounded-full bg-cyan" style={{ boxShadow: "0 0 12px 2px rgba(34,224,255,0.9)" }} />
+      <div ref={dot} className="absolute -ml-1 -mt-1 h-2 w-2 rounded-full bg-brand" style={{ boxShadow: "0 0 12px 2px rgba(16,185,129,0.9)" }} />
     </div>
   );
 }

@@ -13,30 +13,45 @@ const config: Config = {
         fg: "rgb(var(--fg) / <alpha-value>)",
         muted: "rgb(var(--muted) / <alpha-value>)",
         line: "rgb(var(--line) / <alpha-value>)",
-        // Fixed brand palette
-        void: "#04060B",
-        obsidian: "#080B12",
-        graphite: "#12161F",
-        steel: "#1B2130",
+        // Fixed brand palette — dark shell
+        void: "#09090B",
+        obsidian: "#0C0C0F",
+        graphite: "#141418",
+        steel: "#1C1C22",
         chrome: "#C7CDD6",
-        electric: "#2E6BFF",
-        cyan: "#22E0FF",
-        solar: "#FF8A34",
-        energy: "#38F6A4",
+        // Signature accent (emerald) — theme-aware via CSS vars, alpha-enabled
+        brand: "rgb(var(--brand) / <alpha-value>)",
+        brand2: "rgb(var(--brand2) / <alpha-value>)",
+        // Legacy accents kept for inner pages that still reference them
+        electric: "#10B981",
+        cyan: "#10B981",
+        solar: "#10B981",
+        energy: "#34D399",
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],
         body: ["var(--font-body)", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
       },
+      // Tighter radii — crisper, more architectural edges to match the bold type
+      borderRadius: {
+        DEFAULT: "0.1875rem",
+        sm: "0.125rem",
+        md: "0.25rem",
+        lg: "0.375rem",
+        xl: "0.5rem",
+        "2xl": "0.75rem",
+        "3xl": "1rem",
+      },
       boxShadow: {
-        glass: "inset 0 1px 0 0 rgba(255,255,255,0.08), 0 20px 60px -20px rgba(0,0,0,0.7)",
-        glow: "0 0 60px -10px rgba(34,224,255,0.55)",
-        "glow-blue": "0 0 80px -20px rgba(46,107,255,0.7)",
+        glass: "inset 0 1px 0 0 rgba(255,255,255,0.06), 0 20px 60px -20px rgba(0,0,0,0.8)",
+        glow: "0 0 60px -10px rgba(16,185,129,0.5)",
+        "glow-blue": "0 0 80px -20px rgba(16,185,129,0.55)",
+        "glow-brand": "0 18px 50px -18px rgba(16,185,129,0.5)",
       },
       backgroundImage: {
         aurora:
-          "radial-gradient(60% 60% at 20% 10%, rgba(46,107,255,0.35) 0%, transparent 60%), radial-gradient(50% 50% at 85% 20%, rgba(34,224,255,0.28) 0%, transparent 55%), radial-gradient(60% 60% at 60% 100%, rgba(56,246,164,0.18) 0%, transparent 60%)",
+          "radial-gradient(60% 60% at 20% 10%, rgba(16,185,129,0.14) 0%, transparent 60%), radial-gradient(50% 50% at 85% 20%, rgba(52,211,153,0.10) 0%, transparent 55%)",
         "grid-lines":
           "linear-gradient(rgb(var(--line)/0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--line)/0.06) 1px, transparent 1px)",
       },

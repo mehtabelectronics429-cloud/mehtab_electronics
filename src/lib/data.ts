@@ -2,19 +2,27 @@ import { img } from "./utils";
 
 export const COMPANY = {
   name: "Mehtab Electronics",
-  tagline: "Solar Power. Trusted Security.",
-  phone: "+92 300 1234567",
-  phoneHref: "tel:+923001234567",
-  whatsapp: "+92 321 7654321",
-  email: "hello@mehtabelectronics.pk",
-  address: "Plot 12, Hall Road Electronics Market, Lahore, Punjab, Pakistan",
+  tagline: "Power your home. Protect what matters.",
+  region: "Narowal · Serving all Punjab",
+  phone: "0303 7777921",
+  phoneHref: "tel:+923037777921",
+  whatsapp: "+92 303 7777921",
+  email: "info@mehtabelectronics.pk",
+  address: "Mehtab Electronics, Narowal, Punjab, Pakistan",
   hours: "Mon–Sat · 9:00 AM – 8:00 PM",
-  founded: 2009,
+  mapEmbed:
+    "https://www.google.com/maps?q=Narowal,Punjab,Pakistan&output=embed",
+  founded: 2014,
+  // The two people who run the shop (shown in the contact section)
+  contacts: [
+    { name: "Mudassar Sherazi", phone: "0303 7777921", phoneHref: "tel:+923037777921" },
+    { name: "M. Qasim", phone: "0313 7777921", phoneHref: "tel:+923137777921" },
+  ],
   stats: [
-    { value: "4,200+", label: "Installations delivered" },
-    { value: "15 yrs", label: "Field experience" },
-    { value: "18 MW", label: "Solar capacity deployed" },
-    { value: "99.2%", label: "Uptime on AMC clients" },
+    { value: "500+", label: "Systems Installed" },
+    { value: "1000+", label: "Happy Clients" },
+    { value: "10+", label: "Years Experience" },
+    { value: "All", label: "Punjab Coverage" },
   ],
 };
 
@@ -53,12 +61,92 @@ export const SCENES = [
 ];
 
 export const PROJECTS = [
-  { title: "DHA Phase 6 Residence", type: "8kW on-grid solar + inverter setup", image: img("photo-1512917774080-9991f1c4c750", 1400), tag: "Solar" },
-  { title: "Gulberg Corporate Tower", type: "64-camera CCTV grid with NVR", image: img("photo-1497366811353-6870744d04b2", 1400), tag: "Security" },
-  { title: "Bahria Town Solar Farm", type: "480kW on-grid net-metered array", image: img("photo-1466611653911-95081537e5b7", 1400), tag: "Solar" },
-  { title: "Model Town Residence", type: "12-camera 4K security package", image: img("photo-1600607687939-ce8a6c25118c", 1400), tag: "Security" },
-  { title: "Johar Town Retail Chain", type: "Hybrid solar across 3 outlets", image: img("photo-1504384308090-c894fdcc538d", 1400), tag: "Solar" },
-  { title: "Lake City Farmhouse", type: "Perimeter CCTV + 6kW solar", image: img("photo-1600585154340-be6161a56a0c", 1400), tag: "Security" },
+  { title: "10 kW Hybrid Solar", type: "Solar", location: "Residential · Narowal", image: img("photo-1509391366360-2e959784a276", 1400), tag: "Solar" },
+  { title: "24-Camera IP Network", type: "CCTV", location: "Factory · Sialkot", image: img("photo-1557597774-9d273605dfa9", 1400), tag: "Security" },
+  { title: "25 kW Commercial Solar", type: "Solar", location: "Shopping Plaza · Gujranwala", image: img("photo-1504384308090-c894fdcc538d", 1400), tag: "Solar" },
+  { title: "8-Camera CCTV Setup", type: "CCTV", location: "Villa · Lahore", image: img("photo-1551808525-51a94da548ce", 1400), tag: "Security" },
+  { title: "5 kW Off-Grid Solar", type: "Solar", location: "Farmhouse · Pasrur", image: img("photo-1466611653911-95081537e5b7", 1400), tag: "Solar" },
+  { title: "50 kW Solar Array", type: "Solar", location: "Industrial · Faisalabad", image: img("photo-1613665813446-82a78c468a1d", 1400), tag: "Solar" },
+];
+
+/** Three headline specialties (home "what we do" grid). */
+export type Specialty = {
+  key: string;
+  tag: string;
+  title: string;
+  blurb: string;
+  image: string;
+  features: string[];
+  href: string;
+  icon: string;
+};
+
+export const SPECIALTIES: Specialty[] = [
+  {
+    key: "solar",
+    tag: "01 · Energy",
+    title: "Solar System Installation",
+    blurb:
+      "On-grid, off-grid and hybrid solar systems — from 3 kW homes to 50 kW commercial. Designed around your load, installed clean.",
+    image: img("photo-1509391366360-2e959784a276", 1200),
+    features: ["Tier-1 panels & inverters", "Batteries & backup ready", "Net-metering handled", "After-sales support"],
+    href: "/solar",
+    icon: "SunMedium",
+  },
+  {
+    key: "wholesale",
+    tag: "02 · Supply",
+    title: "Wholesale Dealer",
+    blurb:
+      "Authorized wholesale of solar panels, inverters, batteries and CCTV equipment. Dealer pricing for shops and installers across Punjab.",
+    image: img("photo-1558618666-fcd25c85cd64", 1200),
+    features: ["Inverex, Solis authorized", "Bulk pricing available", "Fast dispatch", "Genuine warranty"],
+    href: "/products",
+    icon: "PackageOpen",
+  },
+  {
+    key: "cctv",
+    tag: "03 · Security",
+    title: "CCTV Installation",
+    blurb:
+      "HD & 4K IP camera networks with mobile viewing, night vision and DVR/NVR storage. Neat conduit runs, tested playback.",
+    image: img("photo-1557597774-9d273605dfa9", 1200),
+    features: ["2 MP – 8 MP options", "Weather-sealed outdoor", "iOS & Android app", "Remote viewing setup"],
+    href: "/security",
+    icon: "Cctv",
+  },
+];
+
+/** Certified / authorized brand partners (home logo wall). */
+export const PARTNERS = [
+  { name: "Inverex", role: "Authorized Solar Partner" },
+  { name: "Solis", role: "Authorized Inverter Dealer" },
+  { name: "itel", role: "Authorized Dealer" },
+  { name: "LONGi", role: "Trusted Supplier" },
+  { name: "JinKO Solar", role: "Trusted Supplier" },
+  { name: "Hikvision", role: "CCTV Partner" },
+];
+
+/** Load-calculator appliance catalogue (watts, and whether it only runs briefly). */
+export type Appliance = { name: string; watts: number; qty: number; shortUse?: boolean };
+
+export const APPLIANCES: Appliance[] = [
+  { name: "LED Bulb / Saver", watts: 15, qty: 8 },
+  { name: "Ceiling Fan", watts: 80, qty: 4 },
+  { name: "Pedestal Fan", watts: 100, qty: 0 },
+  { name: "LED TV", watts: 100, qty: 1 },
+  { name: "Refrigerator", watts: 200, qty: 1 },
+  { name: "Deep Freezer", watts: 250, qty: 0 },
+  { name: "AC 1.0 Ton (Inverter)", watts: 900, qty: 0 },
+  { name: "AC 1.5 Ton (Inverter)", watts: 1200, qty: 1 },
+  { name: "AC 2.0 Ton", watts: 1800, qty: 0 },
+  { name: "Computer / Laptop", watts: 150, qty: 0 },
+  { name: "Wi-Fi Router", watts: 15, qty: 0 },
+  { name: "Iron", watts: 1000, qty: 1, shortUse: true },
+  { name: "Water Pump / Motor", watts: 750, qty: 1, shortUse: true },
+  { name: "Washing Machine", watts: 500, qty: 0, shortUse: true },
+  { name: "Microwave Oven", watts: 1000, qty: 0, shortUse: true },
+  { name: "Electric Kettle", watts: 1500, qty: 0, shortUse: true },
 ];
 
 export const BEFORE_AFTER = [
@@ -183,7 +271,7 @@ export const INDUSTRIES = [
   { icon: "Hotel", label: "Hospitality" },
 ];
 
-export const BRANDS = ["Canadian Solar", "JA Solar", "Solis", "Growatt", "Hikvision", "Dahua"];
+export const BRANDS = ["Inverex", "Solis", "LONGi", "JinKO Solar", "Hikvision", "itel"];
 
 export const VALUES = [
   { icon: "Compass", title: "Engineering-first", body: "We solve for physics and load before aesthetics. It just happens to look beautiful too." },

@@ -1,93 +1,109 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Zap, Phone, Mail, MapPin, Facebook, Instagram, Linkedin, Youtube, ArrowUpRight } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { COMPANY } from "@/lib/data";
-import WhatsAppButton from "@/components/ui/WhatsAppButton";
+import { waLink } from "@/lib/whatsapp";
 
 const EXPLORE = [
-  { label: "Products", href: "/products" },
+  { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
-  { label: "Solar", href: "/solar" },
-  { label: "Security", href: "/security" },
+  { label: "Products", href: "/products" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
-const CATEGORIES = [
-  { label: "Solar Panels", href: "/products" },
-  { label: "Inverters", href: "/products" },
-  { label: "Security Cameras", href: "/products" },
-  { label: "CCTV Packages", href: "/products" },
-];
-const SOCIALS = [Facebook, Instagram, Linkedin, Youtube];
+
+const PARTNERS = ["Inverex — Authorized", "Solis — Authorized", "itel — Authorized Dealer"];
 
 export default function Footer() {
-  const [sent, setSent] = useState(false);
   return (
-    <footer className="relative overflow-hidden border-t border-line/10 bg-surface/40">
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[60rem] -translate-x-1/2 rounded-full bg-electric/15 blur-[140px]" />
+    <footer className="relative border-t border-line/15 bg-surface/30">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-8">
-        <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr]">
+        <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
+          {/* brand */}
           <div>
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-electric to-cyan shadow-glow-blue">
-                <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
+              <span className="grid h-10 w-10 place-items-center rounded-md bg-brand text-on-brand">
+                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 20V8l8-5 8 5v12" />
+                  <path d="M9 20v-6h6v6" />
+                </svg>
               </span>
-              <span className="font-display text-base tracking-wider text-fg">MEHTAB</span>
+              <span className="font-display text-base uppercase tracking-wide text-fg">
+                Mehtab <span className="text-brand">Electronics</span>
+              </span>
             </Link>
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-fg/50">
-              {COMPANY.tagline} Solar panels, inverters and security cameras — professionally installed.
+              Solar systems, CCTV networks and wholesale supply — engineered across Punjab from our
+              Narowal base.
             </p>
-            <div className="mt-6 space-y-2 text-sm text-fg/60">
-              <a href={COMPANY.phoneHref} className="flex items-center gap-2 hover:text-fg"><Phone className="h-4 w-4 text-cyan" /> {COMPANY.phone}</a>
-              <a href={`mailto:${COMPANY.email}`} className="flex items-center gap-2 hover:text-fg"><Mail className="h-4 w-4 text-cyan" /> {COMPANY.email}</a>
-              <span className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0 text-cyan" /> {COMPANY.address}</span>
-            </div>
-            <div className="mt-6 flex gap-2.5">
-              {SOCIALS.map((S, i) => (
-                <a key={i} href="#" aria-label="social" className="grid h-9 w-9 place-items-center rounded-full glass hairline text-fg/70 transition-colors hover:border-cyan/40 hover:text-cyan">
-                  <S className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
 
-          <FooterCol title="Explore" links={EXPLORE} />
-          <div>
-            <FooterCol title="Categories" links={CATEGORIES} />
-            <div className="mt-8">
-              <h4 className="font-mono text-[0.7rem] uppercase tracking-widest text-fg/45">Newsletter</h4>
-              {sent ? (
-                <p className="mt-4 text-sm text-energy">Subscribed — thank you!</p>
-              ) : (
-                <form onSubmit={(e) => { e.preventDefault(); setSent(true); }} className="mt-4 flex overflow-hidden rounded-full glass hairline">
-                  <input required type="email" placeholder="Email" className="w-full bg-transparent px-4 py-2.5 text-sm text-fg outline-none placeholder:text-fg/40" />
-                  <button type="submit" aria-label="Subscribe" className="grid w-11 shrink-0 place-items-center bg-gradient-to-r from-electric to-cyan text-white"><ArrowUpRight className="h-4 w-4" /></button>
-                </form>
-              )}
-            </div>
-          </div>
+          <FooterCol title="Explore">
+            {EXPLORE.map((l) => (
+              <li key={l.label}>
+                <Link href={l.href} className="text-sm text-fg/60 transition-colors hover:text-brand">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </FooterCol>
+
+          <FooterCol title="Partners">
+            {PARTNERS.map((p) => (
+              <li key={p} className="text-sm text-fg/60">
+                {p}
+              </li>
+            ))}
+          </FooterCol>
+
+          <FooterCol title="Contact">
+            {COMPANY.contacts.map((c) => (
+              <li key={c.phone}>
+                <a href={c.phoneHref} className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand">
+                  <Phone className="h-3.5 w-3.5 text-brand" /> {c.phone}
+                </a>
+              </li>
+            ))}
+            <li>
+              <a
+                href={waLink(`Hello ${COMPANY.name}!`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand"
+              >
+                <MessageCircle className="h-3.5 w-3.5 text-brand" /> WhatsApp
+              </a>
+            </li>
+            <li>
+              <a href={`mailto:${COMPANY.email}`} className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand">
+                <Mail className="h-3.5 w-3.5 text-brand" /> {COMPANY.email}
+              </a>
+            </li>
+            <li className="flex items-start gap-2 text-sm text-fg/60">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> Narowal, Punjab, Pakistan
+            </li>
+          </FooterCol>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-line/10 pt-8 md:flex-row">
-          <p className="text-xs text-fg/40">© {new Date().getFullYear()} {COMPANY.name}. All rights reserved.</p>
-          <WhatsAppButton label="Chat with us" variant="ghost" className="!py-2 !text-xs" message={`Hello ${COMPANY.name}!`} />
+        <div className="mt-14 flex flex-col items-center justify-between gap-3 border-t border-line/15 pt-7 md:flex-row">
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-fg/40">
+            © {new Date().getFullYear()} {COMPANY.name} — Mudassar Sherazi &amp; M. Qasim
+          </p>
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-fg/40">
+            Serving all Punjab
+          </p>
         </div>
       </div>
     </footer>
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
+function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h4 className="font-mono text-[0.7rem] uppercase tracking-widest text-fg/45">{title}</h4>
-      <ul className="mt-4 space-y-2.5">
-        {links.map((l) => (
-          <li key={l.label}><Link href={l.href} className="text-sm text-fg/60 transition-colors hover:text-cyan">{l.label}</Link></li>
-        ))}
-      </ul>
+      <h4 className="font-mono text-[0.62rem] font-bold uppercase tracking-[0.2em] text-brand">{title}</h4>
+      <ul className="mt-4 space-y-2.5">{children}</ul>
     </div>
   );
 }
