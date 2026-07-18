@@ -3,16 +3,31 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import PublicChrome from "@/components/providers/PublicChrome";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mehtabelectronics.pk";
+
 export const metadata: Metadata = {
-  title: "Mehtab Electronics — Solar & Security Systems | Narowal, Punjab",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Mehtab Electronics — Solar & Security Systems | Narowal, Punjab",
+    template: "%s | Mehtab Electronics",
+  },
   description:
-    "Solar system installation, CCTV networks and wholesale supply — trusted by homeowners, farmers and businesses across Punjab. Based in Narowal, serving all Punjab.",
-  keywords: ["solar installation Narowal", "CCTV installation Punjab", "solar wholesale dealer", "hybrid solar systems", "inverters", "security cameras", "Longi JinKO Solis Hikvision"],
-  icons: { icon: "/favicon.svg" },
+    "Solar system installation, CCTV networks and wholesale supply — trusted by homeowners, farmers and businesses across Punjab. Based in Narowal since 1996, serving all Punjab.",
+  applicationName: "Mehtab Electronics",
+  keywords: ["solar installation Narowal", "CCTV installation Punjab", "solar wholesale dealer", "hybrid solar systems", "inverters", "batteries", "security cameras", "Longi JinKO Solis Inverex Hikvision"],
+  alternates: { canonical: "/" },
   openGraph: {
     title: "Mehtab Electronics — Solar & Security Systems",
-    description: "Solar panel installation, inverters and security cameras — professionally installed across Pakistan.",
+    description: "Solar installation, inverters, batteries and CCTV — professionally installed across Punjab since 1996.",
+    url: SITE_URL,
+    siteName: "Mehtab Electronics",
+    locale: "en_PK",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mehtab Electronics — Solar & Security Systems",
+    description: "Solar, inverters, batteries and CCTV — installed across Punjab since 1996.",
   },
 };
 

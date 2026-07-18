@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/admin/ui/feedback";
 import { Card, Badge, Button, Input, Label } from "@/components/admin/ui/primitives";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
-import { toastForWhatsAppResult } from "@/lib/admin/whatsapp-client";
+import { toastForWhatsAppResult, openBlankWhatsAppPopup, openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
 import { cn } from "@/lib/utils";
 
 const S: Record<string, string> = {
@@ -57,13 +57,22 @@ export default function WhatsAppPage() {
         channel,
         body: body || undefined,
       }),
-    onSuccess: (res) => {
-      qc.invalidateQueries({ queryKey: ["whatsapp"] });
-      setOpen(false);
-      toast.success(toastForWhatsAppResult(res, () => void api.tickJobs()));
-    },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const onSend = () => {
+    // Pre-open a blank popup synchronously (inside the click) so the browser
+    // keeps the user-gesture and doesn't block it after the async send.
+    const popup = channel === "direct" ? openBlankWhatsAppPopup() : null;
+    send.mutate(undefined, {
+      onSuccess: (res) => {
+        qc.invalidateQueries({ queryKey: ["whatsapp"] });
+        setOpen(false);
+        toast.success(toastForWhatsAppResult(res, () => void api.tickJobs(), popup));
+      },
+      onError: () => popup?.close(),
+    });
+  };
 
   const retry = useMutation({
     mutationFn: (id: string) => api.retryWhatsapp(id),
@@ -159,14 +168,12 @@ export default function WhatsAppPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {(h as { waUrl?: string }).waUrl && (
-                    <a
-                      href={(h as { waUrl?: string }).waUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      onClick={() => openWhatsAppUrl((h as { waUrl?: string }).waUrl)}
                       className="text-xs text-[#25D366] hover:underline"
                     >
                       Open
-                    </a>
+                    </button>
                   )}
                   <Badge className={S[h.status] || S.sent}>
                     <span className="capitalize">{h.status}</span>
@@ -202,7 +209,7 @@ export default function WhatsAppPage() {
                 )}
               >
                 <div className="font-medium">Direct WhatsApp</div>
-                <div className="mt-0.5 opacity-70">Opens wa.me with template</div>
+                <div className="mt-0.5 opacity-70">Opens a WhatsApp popup with the message</div>
               </button>
               <button
                 type="button"
@@ -239,9 +246,9 @@ export default function WhatsAppPage() {
             </Button>
             <Button
               disabled={!toName || !toPhone || send.isPending}
-              onClick={() => send.mutate()}
+              onClick={onSend}
             >
-              {send.isPending ? "Sending…" : channel === "direct" ? "Open WhatsApp" : "Queue Business API"}
+              {send.isPending ? "Sending…" : channel === "direct" ? "Open WhatsApp popup" : "Queue Business API"}
             </Button>
           </div>
         </div>
