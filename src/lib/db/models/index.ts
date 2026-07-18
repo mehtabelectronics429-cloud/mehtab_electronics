@@ -2,6 +2,7 @@ export { Profile } from "./Profile";
 export { Customer } from "./Customer";
 export { Employee } from "./Employee";
 export { Product } from "./Product";
+export { Category } from "./Category";
 export { Material } from "./Material";
 export { Installation } from "./Installation";
 export { Invoice } from "./Invoice";

@@ -61,7 +61,7 @@ async function main() {
   const employees = await db.collection("employees").insertMany([
     {
       name: "Ahmed Sheikh",
-      email: "staff@mehtab.pk",
+      email: "staff@mehtabelectronics.com",
       phone: "+92 300 5551122",
       title: "Installation Technician",
       active: true,
@@ -75,7 +75,7 @@ async function main() {
     },
     {
       name: "Fatima Noor",
-      email: "fatima@mehtab.pk",
+      email: "fatima@mehtabelectronics.com",
       phone: "+92 322 5553344",
       title: "Security Systems Lead",
       active: true,
@@ -89,7 +89,7 @@ async function main() {
     },
     {
       name: "Hassan Raza",
-      email: "hassan@mehtab.pk",
+      email: "hassan@mehtabelectronics.com",
       phone: "+92 333 5556677",
       title: "Solar Engineer",
       active: true,
@@ -388,9 +388,9 @@ async function main() {
       value: {
         name: "Mehtab Electronics",
         phone: "+92 300 1234567",
-        email: "hello@mehtabelectronics.pk",
+        email: "hello@mehtabelectronics.com",
         city: "Lahore",
-        address: "Hall Road Electronics Market, Lahore, Pakistan",
+        address: "Narowal, Punjab, Pakistan",
       },
       deletedAt: null,
       createdAt: new Date(),
@@ -455,7 +455,7 @@ async function main() {
   ]);
 
   console.log(
-    "Auth profiles ready: admin@mehtab.pk / admin123, staff@mehtab.pk / staff123",
+    "Auth profiles ready: admin@mehtabelectronics.com / admin123, staff@mehtabelectronics.com / staff123",
   );
   console.log("Seed complete.");
   await mongoose.disconnect();

@@ -15,6 +15,7 @@ export const NAV: NavItem[] = [
   { label: "Installations", href: "/admin/installations", icon: "Wrench", cap: "installations.view.all", group: "Operations" },
   { label: "My Installations", href: "/admin/installations", icon: "Wrench", cap: "installations.view.own", group: "Operations" },
   { label: "Materials", href: "/admin/materials", icon: "Boxes", cap: "materials.view", group: "Inventory" },
+  { label: "Categories", href: "/admin/categories", icon: "Tags", cap: "products.view", group: "Inventory" },
   { label: "Products", href: "/admin/products", icon: "Package", cap: "products.view", group: "Inventory" },
   { label: "Inventory", href: "/admin/inventory", icon: "Warehouse", cap: "inventory.view", group: "Inventory" },
   { label: "Billing", href: "/admin/billing", icon: "ReceiptText", cap: "billing.view.all", group: "Finance" },

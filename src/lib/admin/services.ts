@@ -80,6 +80,15 @@ export const api = {
   archiveProduct: (id: string) =>
     request<{ ok: boolean }>(`/api/products/${id}`, { method: "DELETE" }),
 
+  categories: (params?: ListParams) =>
+    request<Paginated<import("./types").Category>>(`/api/categories${qs(params)}`),
+  createCategory: (body: Partial<import("./types").Category>) =>
+    request<import("./types").Category>("/api/categories", { method: "POST", body: JSON.stringify(body) }),
+  updateCategory: (id: string, body: Partial<import("./types").Category>) =>
+    request<import("./types").Category>(`/api/categories/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  archiveCategory: (id: string) =>
+    request<{ ok: boolean }>(`/api/categories/${id}`, { method: "DELETE" }),
+
   materials: (params?: ListParams) =>
     request<Paginated<import("./types").Material>>(`/api/materials${qs(params)}`),
   getMaterial: (id: string) => request<import("./types").Material>(`/api/materials/${id}`),

@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ export default function SmartImage({
   imgClassName,
   priority = false,
 }: {
-  src: string;
+  src: string | StaticImageData;
   alt: string;
   className?: string;
   imgClassName?: string;

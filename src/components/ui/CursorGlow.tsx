@@ -63,9 +63,9 @@ export default function CursorGlow() {
         ref={ring}
         data-hover="false"
         className="absolute -ml-5 -mt-5 h-10 w-10 rounded-full border border-brand/60 transition-[width,height,opacity] duration-300 data-[hover=true]:h-16 data-[hover=true]:w-16 data-[hover=true]:-ml-8 data-[hover=true]:-mt-8 data-[hover=true]:border-brand"
-        style={{ boxShadow: "0 0 30px -6px rgba(16,185,129,0.6)" }}
+        style={{ boxShadow: "0 0 30px -6px rgba(234,179,8,0.6)" }}
       />
-      <div ref={dot} className="absolute -ml-1 -mt-1 h-2 w-2 rounded-full bg-brand" style={{ boxShadow: "0 0 12px 2px rgba(16,185,129,0.9)" }} />
+      <div ref={dot} className="absolute -ml-1 -mt-1 h-2 w-2 rounded-full bg-brand" style={{ boxShadow: "0 0 12px 2px rgba(234,179,8,0.95)" }} />
     </div>
   );
 }

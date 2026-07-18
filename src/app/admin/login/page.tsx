@@ -42,7 +42,9 @@ function LoginInner() {
     if (!err) return;
     if (err === "CredentialsSignin") toast.error("Invalid email or password.");
     else if (err === "Configuration") {
-      toast.error("Auth is misconfigured. Set NEXTAUTH_URL and NEXTAUTH_SECRET on the host.");
+      toast.error(
+        "Auth is misconfigured. Set NEXTAUTH_URL and NEXTAUTH_SECRET on the host.",
+      );
     } else toast.error("Sign-in failed. Try again.");
   }, [params]);
 
@@ -58,7 +60,9 @@ function LoginInner() {
       }
       toast.error(res.error || "Login failed");
     } catch {
-      toast.error("Could not reach the auth server. Check your connection and try again.");
+      toast.error(
+        "Could not reach the auth server. Check your connection and try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -77,7 +81,10 @@ function LoginInner() {
   if (authLoading || user) {
     return (
       <div className="grid min-h-[100svh] place-items-center bg-[#06070d]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan/30 border-t-cyan" aria-label="Loading" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2 border-cyan/30 border-t-cyan"
+          aria-label="Loading"
+        />
       </div>
     );
   }
@@ -104,12 +111,18 @@ function LoginInner() {
           </div>
         </div>
 
-        <h1 className="mt-7 font-display text-xl font-bold tracking-tight">Sign in</h1>
+        <h1 className="mt-7 font-display text-xl font-bold tracking-tight">
+          Sign in
+        </h1>
         <p className="mt-1 text-sm leading-relaxed text-white/45">
           Access the operations dashboard.
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-6 space-y-4"
+          noValidate
+        >
           <div>
             <Label htmlFor="login-email">Email</Label>
             <Input
@@ -117,12 +130,14 @@ function LoginInner() {
               type="email"
               autoComplete="email"
               inputMode="email"
-              placeholder="you@mehtab.pk"
+              placeholder="you@mehtabelectronics.com"
               className="mt-0"
               {...register("email")}
             />
             {errors.email && (
-              <p className="mt-1.5 text-xs text-red-400">{errors.email.message}</p>
+              <p className="mt-1.5 text-xs text-red-400">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div>
@@ -135,7 +150,9 @@ function LoginInner() {
               {...register("password")}
             />
             {errors.password && (
-              <p className="mt-1.5 text-xs text-red-400">{errors.password.message}</p>
+              <p className="mt-1.5 text-xs text-red-400">
+                {errors.password.message}
+              </p>
             )}
           </div>
           <Button type="submit" disabled={loading} className="mt-1 w-full">
@@ -152,7 +169,8 @@ function LoginInner() {
         {googleAuthEnabled() && (
           <>
             <div className="my-4 flex items-center gap-3 text-[0.65rem] uppercase tracking-wider text-white/30">
-              <span className="h-px flex-1 bg-white/10" /> or <span className="h-px flex-1 bg-white/10" />
+              <span className="h-px flex-1 bg-white/10" /> or{" "}
+              <span className="h-px flex-1 bg-white/10" />
             </div>
             <Button
               type="button"

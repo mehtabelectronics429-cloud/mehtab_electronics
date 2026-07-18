@@ -34,7 +34,11 @@ export default function LoadCalculator() {
   const [city, setCity] = useState("");
 
   const set = (i: number, delta: number) =>
-    setQty((prev) => prev.map((v, idx) => (idx === i ? Math.max(0, Math.min(50, v + delta)) : v)));
+    setQty((prev) =>
+      prev.map((v, idx) =>
+        idx === i ? Math.max(0, Math.min(50, v + delta)) : v,
+      ),
+    );
   const reset = () => setQty(APPLIANCES.map((a) => a.qty));
 
   const { dailyKwh, peakKw, recommended } = useMemo(() => {
@@ -74,7 +78,7 @@ export default function LoadCalculator() {
 
   return (
     <section id="calculator" className="relative py-24 md:py-32">
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 md:px-8 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="mx-auto grid space-x-reverse max-w-7xl gap-12 px-6 md:px-8 lg:grid-cols-[0.85fr_1.15fr]">
         {/* ── left: pitch + result + lead form ── */}
         <div>
           <div className="mono-label">Free tool</div>
@@ -84,60 +88,22 @@ export default function LoadCalculator() {
             <span className="text-accent">for Pakistani</span> homes.
           </h2>
           <p className="lead mt-6 max-w-md">
-            Tell us what you run at home — fans, AC, fridge, lights. We estimate your daily usage and
-            recommend the right solar system size. Send the result on WhatsApp and we&apos;ll follow up
-            with a quote.
+            Tell us what you run at home — fans, AC, fridge, lights. We estimate
+            your daily usage and recommend the right solar system size. Send the
+            result on WhatsApp and we&apos;ll follow up with a quote.
           </p>
 
           <p className="mt-6 max-w-md rounded-md border border-brand/25 bg-brand/[0.06] p-4 text-xs leading-relaxed text-fg/70">
-            <b className="text-brand">Note:</b> Iron, water pump, washing machine and similar appliances
-            only run for a few minutes at a time — we count them at reduced load so your system size
-            stays realistic, not oversized.
+            <b className="text-brand">Note:</b> Iron, water pump, washing
+            machine and similar appliances only run for a few minutes at a time
+            — we count them at reduced load so your system size stays realistic,
+            not oversized.
           </p>
-
-          {/* result panel */}
-          <div className="mt-8 rounded-lg border border-brand/40 bg-brand/[0.04] p-6 shadow-card">
-            <div className="grid grid-cols-2 gap-6">
-              <Metric label="Daily usage" value={dailyKwh.toFixed(1)} unit="kWh" />
-              <Metric label="Peak load" value={peakKw.toFixed(1)} unit="kW" />
-            </div>
-            <div className="mt-6 border-t border-line/15 pt-5">
-              <div className="mono-label">Recommended system</div>
-              <div className="mt-1 flex items-end gap-2">
-                <span className="font-display text-5xl leading-none text-brand">{recommended}</span>
-                <span className="mb-1 font-display text-lg uppercase text-fg">kW Solar System</span>
-              </div>
-            </div>
-          </div>
-
-          {/* lead inputs */}
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              className="input !rounded-md"
-            />
-            <input
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Your city"
-              className="input !rounded-md"
-            />
-          </div>
-          <a
-            href={waLink(summary)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-brand mt-4 w-full justify-center !py-4 !text-sm"
-          >
-            <MessageCircle className="h-4 w-4" /> Send estimate on WhatsApp
-          </a>
         </div>
 
         {/* ── right: appliance picker ── */}
         <div className="rounded-lg border border-line/15 bg-surface/40 p-5 shadow-card md:p-6">
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-5 flex items-center justify-between order-2">
             <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.18em] text-brand">
               <Zap className="h-4 w-4" /> Pick your appliances
             </div>
@@ -149,13 +115,15 @@ export default function LoadCalculator() {
             </button>
           </div>
 
-          <div className="grid gap-2.5 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:grid-cols-2 order-1">
             {APPLIANCES.map((a, i) => (
               <div
                 key={a.name}
                 className={cn(
                   "flex items-center justify-between gap-3 rounded-md border p-3 transition-colors",
-                  qty[i] > 0 ? "border-brand/45 bg-brand/[0.05]" : "border-line/15 bg-bg/40"
+                  qty[i] > 0
+                    ? "border-brand/45 bg-brand/[0.05]"
+                    : "border-line/15 bg-bg/40",
                 )}
               >
                 <div className="min-w-0">
@@ -175,7 +143,9 @@ export default function LoadCalculator() {
                   <Stepper onClick={() => set(i, -1)} disabled={qty[i] === 0}>
                     <Minus className="h-3.5 w-3.5" />
                   </Stepper>
-                  <span className="w-5 text-center font-display text-base text-fg">{qty[i]}</span>
+                  <span className="w-5 text-center font-display text-base text-fg">
+                    {qty[i]}
+                  </span>
                   <Stepper onClick={() => set(i, 1)}>
                     <Plus className="h-3.5 w-3.5" />
                   </Stepper>
@@ -183,19 +153,79 @@ export default function LoadCalculator() {
               </div>
             ))}
           </div>
+          <div>
+            {/* result panel */}
+            <div className="mt-8 rounded-lg border border-brand/40 bg-brand/[0.04] p-6 shadow-card">
+              <div className="grid grid-cols-2 gap-6">
+                <Metric
+                  label="Daily usage"
+                  value={dailyKwh.toFixed(1)}
+                  unit="kWh"
+                />
+                <Metric label="Peak load" value={peakKw.toFixed(1)} unit="kW" />
+              </div>
+              <div className="mt-6 border-t border-line/15 pt-5">
+                <div className="mono-label">Recommended system</div>
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="font-display text-5xl leading-none text-brand">
+                    {recommended}
+                  </span>
+                  <span className="mb-1 font-display text-lg uppercase text-fg">
+                    kW Solar System
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* lead inputs */}
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className="input !rounded-md"
+              />
+              <input
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="Your city"
+                className="input !rounded-md"
+              />
+            </div>
+            <a
+              href={waLink(summary)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-brand mt-4 w-full justify-center !py-4 !text-sm"
+            >
+              <MessageCircle className="h-4 w-4" /> Send estimate on WhatsApp
+            </a>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function Metric({ label, value, unit }: { label: string; value: string; unit: string }) {
+function Metric({
+  label,
+  value,
+  unit,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+}) {
   return (
     <div>
       <div className="mono-label !text-fg/45">{label}</div>
       <div className="mt-1 flex items-end gap-1">
-        <span className="font-display text-4xl leading-none text-fg">{value}</span>
-        <span className="mb-1 font-mono text-xs uppercase text-fg/50">{unit}</span>
+        <span className="font-display text-4xl leading-none text-fg">
+          {value}
+        </span>
+        <span className="mb-1 font-mono text-xs uppercase text-fg/50">
+          {unit}
+        </span>
       </div>
     </div>
   );

@@ -44,6 +44,14 @@ export const productInput = z.object({
   image: z.string().url().optional().or(z.literal("")),
 });
 
+export const categoryInput = z.object({
+  name: z.string().min(1),
+  slug: z.string().optional(),
+  image: z.string().optional(),
+  description: z.string().optional(),
+  order: z.coerce.number().int().optional(),
+});
+
 export const materialInput = z.object({
   name: z.string().min(1),
   unit: z.string().min(1),

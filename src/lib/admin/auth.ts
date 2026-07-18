@@ -5,8 +5,16 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import type { User } from "./types";
 
 export const DEMO_ACCOUNTS = [
-  { label: "Admin", email: "admin@mehtab.pk", password: "admin123" },
-  { label: "Employee", email: "staff@mehtab.pk", password: "staff123" },
+  {
+    label: "Admin",
+    email: "admin@mehtabelectronics.com",
+    password: "admin123",
+  },
+  {
+    label: "Employee",
+    email: "staff@mehtabelectronics.com",
+    password: "staff123",
+  },
 ];
 
 export function googleAuthEnabled() {
@@ -34,7 +42,8 @@ export function useAuth() {
       password,
       redirect: false,
     });
-    if (res?.error) return { ok: false as const, error: "Invalid email or password." };
+    if (res?.error)
+      return { ok: false as const, error: "Invalid email or password." };
     if (res?.ok) return { ok: true as const };
     return { ok: false as const, error: "Login failed" };
   }, []);

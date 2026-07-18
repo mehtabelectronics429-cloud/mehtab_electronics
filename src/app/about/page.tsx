@@ -8,11 +8,11 @@ import Process from "@/components/sections/Process";
 import Team from "@/components/sections/Team";
 import Testimonials from "@/components/sections/Testimonials";
 import Contact from "@/components/sections/Contact";
-import { img } from "@/lib/utils";
+import { HERO_INVERTER } from "@/lib/assets";
 
 export const metadata: Metadata = {
   title: "About — Mehtab Electronics",
-  description: "The engineering-first energy & security studio behind thousands of installations across Pakistan.",
+  description: "Since 1996, Mehtab Electronics has installed solar systems and CCTV networks and supplied genuine equipment across Punjab from our Narowal base.",
 };
 
 export default function AboutPage() {
@@ -21,11 +21,10 @@ export default function AboutPage() {
       <PageHero
         crumb="About"
         eyebrow="Who we are"
-        title={<>The studio for the <span className="text-gradient">next decade</span>.</>}
-        subtitle="Since 2009 we've merged Tier-1 solar and security hardware with professional installation craft — panels, inverters and cameras under one roof."
-        image={img("photo-1600607687939-ce8a6c25118c", 1400)}
-        accentColor="#22E0FF"
-        chips={["Est. 2009", "Certified engineers", "One accountable partner"]}
+        title={<>Trusted in Punjab <span className="text-gradient">since 1996</span>.</>}
+        subtitle="From our Narowal base we've grown from electronics and CCTV into complete solar systems and wholesale supply — installed and backed by one accountable team."
+        image={HERO_INVERTER}
+        chips={["Est. 1996", "Solar · CCTV · Supply", "One accountable partner"]}
       />
       <About />
       <Timeline />

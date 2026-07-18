@@ -2,8 +2,8 @@ import { connectMongo } from "@/lib/db/mongodb";
 import { Product as ProductModel } from "@/lib/db/models/Product";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { pkr } from "@/lib/admin/format";
-import { img } from "@/lib/utils";
 import type { Product } from "@/lib/data";
+import { SOLAR_PANELS, INVERTERS, BATTERIES, CAMERA } from "@/lib/assets";
 
 /** Safe public catalog fields (never expose purchasePrice). */
 export type CatalogItem = {
@@ -19,19 +19,18 @@ export type CatalogItem = {
 };
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  "solar panels": img("photo-1509391366360-2e959784a276", 1000),
-  "solar inverters": img("photo-1581092160562-40aa08e78837", 1000),
-  inverters: img("photo-1581092160562-40aa08e78837", 1000),
-  batteries: img("photo-1497440001374-f26997328c1b", 1000),
-  "security cameras": img("photo-1557597774-9d273605dfa9", 1000),
-  "cctv cameras": img("photo-1557597774-9d273605dfa9", 1000),
-  "cctv packages": img("photo-1590494165264-1ebe3602eb80", 1000),
-  nvr: img("photo-1521791136064-7986c2920216", 1000),
-  accessories: img("photo-1613665813446-82a78c468a1d", 1000),
-  "networking equipment": img("photo-1518770660439-4636190af475", 1000),
+  "solar panels": SOLAR_PANELS[0],
+  "solar inverters": INVERTERS[0],
+  inverters: INVERTERS[0],
+  batteries: BATTERIES[0],
+  cameras: CAMERA,
+  "security cameras": CAMERA,
+  "cctv cameras": CAMERA,
+  "cctv packages": CAMERA,
+  accessories: SOLAR_PANELS[5],
 };
 
-const FALLBACK_IMAGE = img("photo-1466611653911-95081537e5b7", 1000);
+const FALLBACK_IMAGE = SOLAR_PANELS[2];
 
 export function categoryImage(category: string) {
   return CATEGORY_IMAGES[category.trim().toLowerCase()] ?? FALLBACK_IMAGE;

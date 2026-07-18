@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
-import Projects from "@/components/sections/Projects";
-import BeforeAfter from "@/components/sections/BeforeAfter";
+import ProjectsExplorer from "@/components/projects/ProjectsExplorer";
 import Stats from "@/components/sections/Stats";
-import Testimonials from "@/components/sections/Testimonials";
 import Contact from "@/components/sections/Contact";
-import { img } from "@/lib/utils";
+import { HERO_SOLAR } from "@/lib/assets";
 
 export const metadata: Metadata = {
   title: "Projects — Mehtab Electronics",
-  description: "Selected residential and commercial installations: solar farms, camera grids, smart villas and more.",
+  description:
+    "Real solar installations, inverter setups, battery backups and CCTV networks completed across Punjab. Tap any project to see the details and photos.",
 };
 
 export default function ProjectsPage() {
@@ -17,17 +16,14 @@ export default function ProjectsPage() {
     <main>
       <PageHero
         crumb="Projects"
-        eyebrow="Selected work"
-        title={<>Installations we're <span className="text-gradient">proud of</span>.</>}
-        subtitle="From single villas to 480kW farms and 128-camera corporate grids — engineered end to end and built to last."
-        image={img("photo-1497366811353-6870744d04b2", 1400)}
-        accentColor="#2E6BFF"
-        chips={["Residential", "Commercial", "Solar", "Security"]}
+        eyebrow="Recent work"
+        title={<>Projects across <span className="text-gradient">Punjab</span>.</>}
+        subtitle="Real solar arrays, hybrid inverter setups, battery backups and CCTV networks. Tap any project to open the full details and photo gallery."
+        image={HERO_SOLAR}
+        chips={["Solar", "Inverters", "Battery", "CCTV"]}
       />
-      <Projects />
-      <BeforeAfter />
+      <ProjectsExplorer />
       <Stats />
-      <Testimonials />
       <Contact />
     </main>
   );

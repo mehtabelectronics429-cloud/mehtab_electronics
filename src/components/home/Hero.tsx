@@ -4,10 +4,10 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Calculator, MapPin } from "lucide-react";
 import SmartImage from "@/components/ui/SmartImage";
-import { img } from "@/lib/utils";
 import { COMPANY } from "@/lib/data";
+import { HERO_IMAGE } from "@/lib/assets";
 
-const HERO_IMG = img("photo-1613665813446-82a78c468a1d", 1920);
+const HERO_IMG = HERO_IMAGE;
 
 export default function Hero() {
   return (

@@ -17,8 +17,8 @@ export default function ContactShop() {
             <span className="text-accent">Narowal.</span>
           </h2>
           <p className="lead mt-6 max-w-md">
-            Walk into our shop for hands-on demos, dealer pricing or a chat with our team. Prefer to
-            talk first? Call or WhatsApp — we respond fast.
+            Walk into our shop for hands-on demos, dealer pricing or a chat with
+            our team. Prefer to talk first? Call or WhatsApp — we respond fast.
           </p>
 
           <div className="mt-8 space-y-3">
@@ -33,7 +33,7 @@ export default function ContactShop() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href={COMPANY.phoneHref} className="btn-brand">
+            <a href={COMPANY.phoneHref} className="btn-brand text-gray-800">
               <Phone className="h-4 w-4" /> Call now
             </a>
             <a
@@ -84,7 +84,9 @@ function Row({
       </span>
       <div>
         <div className="mono-label !text-fg/45">{label}</div>
-        <div className="mt-1 font-display text-lg uppercase tracking-wide text-fg">{children}</div>
+        <div className="mt-1 font-display text-lg uppercase tracking-wide text-fg">
+          {children}
+        </div>
       </div>
     </div>
   );

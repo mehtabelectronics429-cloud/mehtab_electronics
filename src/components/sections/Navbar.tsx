@@ -4,38 +4,67 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, ChevronDown } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import Logo from "@/components/ui/Logo";
 
-const ROUTES = [
+type NavItem = {
+  label: string;
+  href: string;
+  children?: { label: string; href: string; desc?: string }[];
+};
+
+const NAV: NavItem[] = [
   { label: "Home", href: "/" },
-  { label: "Services", href: "/services" },
-  { label: "Products", href: "/products" },
+  {
+    label: "Services",
+    href: "/services",
+    children: [
+      {
+        label: "Solar Systems",
+        href: "/services/solar",
+        desc: "On-grid, off-grid & hybrid installs",
+      },
+      {
+        label: "CCTV & Security",
+        href: "/services/cctv",
+        desc: "HD/4K camera networks",
+      },
+    ],
+  },
+  {
+    label: "Products",
+    href: "/products",
+    children: [
+      {
+        label: "Solar Panels",
+        href: "/products/solar-panels",
+        desc: "Tier-1 mono-PERC modules",
+      },
+      {
+        label: "Inverters",
+        href: "/products/inverters",
+        desc: "Hybrid & on-grid inverters",
+      },
+      {
+        label: "Batteries",
+        href: "/products/batteries",
+        desc: "Lithium & tubular backup",
+      },
+      { label: "Cameras", href: "/products/cameras", desc: "IP & analog CCTV" },
+    ],
+  },
+  { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 
-function Logo() {
-  return (
-    <Link href="/" className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 place-items-center rounded-md bg-brand text-on-brand">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 20V8l8-5 8 5v12" />
-          <path d="M9 20v-6h6v6" />
-        </svg>
-      </span>
-      <span className="font-display text-base uppercase tracking-wide text-fg">
-        Mehtab <span className="text-brand">Electronics</span>
-      </span>
-    </Link>
-  );
-}
-
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -47,7 +76,12 @@ export default function Navbar() {
 
   useEffect(() => {
     setOpen(false);
+    setOpenGroup(null);
   }, [pathname]);
+
+  const isActive = (item: NavItem) =>
+    pathname === item.href ||
+    (item.href !== "/" && pathname?.startsWith(item.href));
 
   return (
     <motion.header
@@ -56,34 +90,76 @@ export default function Navbar() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-colors duration-500",
-        scrolled ? "border-b border-line/15 bg-bg/85 shadow-card backdrop-blur-xl" : "bg-transparent"
+        scrolled
+          ? "border-b border-line/15 bg-bg/85 shadow-card backdrop-blur-xl"
+          : "bg-transparent",
       )}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
-        <Logo />
+        <Logo markSize={38} />
 
-        <div className="hidden items-center gap-8 lg:flex">
-          {ROUTES.map((l) => {
-            const active = pathname === l.href;
+        {/* desktop nav */}
+        <div className="hidden items-center gap-7 lg:flex">
+          {NAV.map((item) => {
+            const active = isActive(item);
+            if (!item.children) {
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "relative font-mono text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300",
+                    active ? "text-brand" : "text-fg/60 hover:text-fg",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            }
             return (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={cn(
-                  "relative font-mono text-[0.72rem] font-bold uppercase tracking-[0.18em] transition-colors duration-300",
-                  active ? "text-brand" : "text-fg/60 hover:text-fg"
-                )}
-              >
-                {l.label}
-                {active && <motion.span layoutId="nav-active" className="absolute -bottom-1.5 left-0 h-px w-full bg-brand" />}
-              </Link>
+              <div key={item.href} className="group relative">
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-1 font-mono text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300",
+                    active ? "text-brand" : "text-fg/60 hover:text-fg",
+                  )}
+                >
+                  {item.label}
+                  <ChevronDown className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" />
+                </Link>
+                {/* dropdown */}
+                <div className="invisible absolute left-1/2 top-full z-10 w-64 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <div className="overflow-hidden rounded-lg border border-line/15 bg-surface/95 p-2 shadow-card-lg backdrop-blur-xl">
+                    {item.children.map((c) => (
+                      <Link
+                        key={c.href}
+                        href={c.href}
+                        className="block rounded-md px-3 py-2.5 transition-colors hover:bg-brand/10"
+                      >
+                        <div className="font-display text-sm uppercase tracking-wide text-fg">
+                          {c.label}
+                        </div>
+                        {c.desc && (
+                          <div className="mt-0.5 text-xs text-fg/50">
+                            {c.desc}
+                          </div>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
-          <a href={COMPANY.phoneHref} className="btn-brand !py-2.5">
+          <a
+            href={COMPANY.phoneHref}
+            className="btn-brand !py-2.5 text-gray-800"
+          >
             <Phone className="h-3.5 w-3.5" /> Call Now
           </a>
         </div>
@@ -100,25 +176,66 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* mobile menu */}
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
-            className="mx-4 mb-4 rounded-lg border border-line/15 bg-surface/90 p-6 shadow-card-lg backdrop-blur-xl lg:hidden"
+            className="mx-4 mb-4 max-h-[80vh] overflow-y-auto rounded-lg border border-line/15 bg-surface/95 p-4 shadow-card-lg backdrop-blur-xl lg:hidden"
           >
-            <div className="flex flex-col gap-4">
-              {ROUTES.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="font-mono text-sm font-bold uppercase tracking-[0.18em] text-fg/80"
+            <div className="flex flex-col">
+              {NAV.map((item) => (
+                <div
+                  key={item.href}
+                  className="border-b border-line/10 last:border-0"
                 >
-                  {l.label}
-                </Link>
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href={item.href}
+                      className="flex-1 py-3 font-mono text-sm font-bold uppercase tracking-[0.16em] text-fg/80"
+                    >
+                      {item.label}
+                    </Link>
+                    {item.children && (
+                      <button
+                        onClick={() =>
+                          setOpenGroup((g) =>
+                            g === item.label ? null : item.label,
+                          )
+                        }
+                        aria-label={`Toggle ${item.label}`}
+                        className="grid h-9 w-9 place-items-center text-fg/50"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform",
+                            openGroup === item.label && "rotate-180",
+                          )}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {item.children && openGroup === item.label && (
+                    <div className="pb-2 pl-3">
+                      {item.children.map((c) => (
+                        <Link
+                          key={c.href}
+                          href={c.href}
+                          className="block py-2 text-sm text-fg/60"
+                        >
+                          {c.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
-              <a href={COMPANY.phoneHref} className="btn-brand mt-2 justify-center">
+              <a
+                href={COMPANY.phoneHref}
+                className="btn-brand mt-4 justify-center"
+              >
                 <Phone className="h-3.5 w-3.5" /> Call Now · {COMPANY.phone}
               </a>
             </div>

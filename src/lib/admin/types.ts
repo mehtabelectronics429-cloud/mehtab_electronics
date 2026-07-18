@@ -56,6 +56,15 @@ export interface Product {
   image?: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  image?: string;
+  description?: string;
+  order?: number;
+}
+
 export interface Material {
   id: string;
   name: string;

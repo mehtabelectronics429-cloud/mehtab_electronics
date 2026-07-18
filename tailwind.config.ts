@@ -19,14 +19,14 @@ const config: Config = {
         graphite: "#141418",
         steel: "#1C1C22",
         chrome: "#C7CDD6",
-        // Signature accent (emerald) — theme-aware via CSS vars, alpha-enabled
+        // Signature accent (gold) — theme-aware via CSS vars, alpha-enabled
         brand: "rgb(var(--brand) / <alpha-value>)",
         brand2: "rgb(var(--brand2) / <alpha-value>)",
         // Legacy accents kept for inner pages that still reference them
-        electric: "#10B981",
-        cyan: "#10B981",
-        solar: "#10B981",
-        energy: "#34D399",
+        electric: "#FFC21A",
+        cyan: "#FFC21A",
+        solar: "#FFC21A",
+        energy: "#F5A800",
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],
@@ -45,13 +45,13 @@ const config: Config = {
       },
       boxShadow: {
         glass: "inset 0 1px 0 0 rgba(255,255,255,0.06), 0 20px 60px -20px rgba(0,0,0,0.8)",
-        glow: "0 0 60px -10px rgba(16,185,129,0.5)",
-        "glow-blue": "0 0 80px -20px rgba(16,185,129,0.55)",
-        "glow-brand": "0 18px 50px -18px rgba(16,185,129,0.5)",
+        glow: "0 0 60px -10px rgba(234,179,8,0.5)",
+        "glow-blue": "0 0 80px -20px rgba(234,179,8,0.55)",
+        "glow-brand": "0 18px 50px -18px rgba(234,179,8,0.5)",
       },
       backgroundImage: {
         aurora:
-          "radial-gradient(60% 60% at 20% 10%, rgba(16,185,129,0.14) 0%, transparent 60%), radial-gradient(50% 50% at 85% 20%, rgba(52,211,153,0.10) 0%, transparent 55%)",
+          "radial-gradient(60% 60% at 20% 10%, rgba(234,179,8,0.14) 0%, transparent 60%), radial-gradient(50% 50% at 85% 20%, rgba(202,138,4,0.10) 0%, transparent 55%)",
         "grid-lines":
           "linear-gradient(rgb(var(--line)/0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--line)/0.06) 1px, transparent 1px)",
       },

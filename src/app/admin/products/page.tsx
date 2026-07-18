@@ -43,6 +43,16 @@ export default function ProductsPage() {
     queryFn: () => api.products({ page, limit: 20, category: cat === "all" ? undefined : cat }),
   });
 
+  // Managed categories (for the create/edit dropdown + filter)
+  const { data: categoryData } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => api.categories({ limit: 100 }),
+  });
+  const categoryOptions = useMemo(
+    () => (categoryData?.items ?? []).map((c) => c.name),
+    [categoryData]
+  );
+
   const cats = useMemo(() => {
     const fromItems = Array.from(new Set((data?.items ?? []).map((p) => p.category)));
     return ["all", ...fromItems];
@@ -181,7 +191,20 @@ export default function ProductsPage() {
         <form onSubmit={handleSubmit((d) => save.mutate(d))} className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label>Category</Label>
-            <Input {...register("category")} />
+            <select
+              {...register("category")}
+              className="admin-select w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-cyan/40"
+            >
+              <option value="">Select a category…</option>
+              {categoryOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            {categoryOptions.length === 0 && (
+              <p className="mt-1 text-xs text-amber-300">No categories yet — add them under Categories first.</p>
+            )}
             {errors.category && <p className="mt-1 text-xs text-red-400">{errors.category.message}</p>}
           </div>
           <div>

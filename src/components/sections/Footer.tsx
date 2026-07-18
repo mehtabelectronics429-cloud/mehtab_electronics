@@ -4,11 +4,13 @@ import Link from "next/link";
 import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import { waLink } from "@/lib/whatsapp";
+import Logo from "@/components/ui/Logo";
 
 const EXPLORE = [
-  { label: "Home", href: "/" },
-  { label: "Services", href: "/services" },
+  { label: "Solar Systems", href: "/services/solar" },
+  { label: "CCTV & Security", href: "/services/cctv" },
   { label: "Products", href: "/products" },
+  { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
@@ -22,17 +24,7 @@ export default function Footer() {
         <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
           {/* brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-10 w-10 place-items-center rounded-md bg-brand text-on-brand">
-                <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 20V8l8-5 8 5v12" />
-                  <path d="M9 20v-6h6v6" />
-                </svg>
-              </span>
-              <span className="font-display text-base uppercase tracking-wide text-fg">
-                Mehtab <span className="text-brand">Electronics</span>
-              </span>
-            </Link>
+            <Logo markSize={42} />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-fg/50">
               Solar systems, CCTV networks and wholesale supply — engineered across Punjab from our
               Narowal base.

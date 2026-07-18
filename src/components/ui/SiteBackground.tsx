@@ -12,8 +12,8 @@ export default function SiteBackground() {
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-30 overflow-hidden">
       <div className="absolute inset-0 bg-bg" />
 
-      {/* subtle warm glow at the very top, echoing the emerald accent */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_-10%,rgba(16,185,129,0.05)_0%,transparent_60%)]" />
+      {/* subtle warm glow at the very top, echoing the gold accent */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_-10%,rgba(234,179,8,0.06)_0%,transparent_60%)]" />
 
       {/* barely-there film grain for texture */}
       <div

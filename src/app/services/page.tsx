@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
-import Services from "@/components/sections/Services";
-import FeatureSections from "@/components/sections/FeatureSections";
+import Specialties from "@/components/home/Specialties";
 import Process from "@/components/sections/Process";
 import Packages from "@/components/sections/Packages";
-import WhyUs from "@/components/sections/WhyUs";
 import Contact from "@/components/sections/Contact";
-import { img } from "@/lib/utils";
+import { HERO_SOLAR } from "@/lib/assets";
 
 export const metadata: Metadata = {
   title: "Services — Mehtab Electronics",
-  description: "Solar panel installation, inverters, on-grid setups and CCTV security cameras — engineered end to end.",
+  description:
+    "Solar system installation, CCTV & security, and wholesale supply — designed, installed and maintained by one accountable team since 1996.",
 };
 
 export default function ServicesPage() {
@@ -18,18 +17,15 @@ export default function ServicesPage() {
     <main>
       <PageHero
         crumb="Services"
-        eyebrow="What we offer"
-        title={<>Solar & security, <span className="text-gradient">one team</span>.</>}
-        subtitle="Solar panels, inverters and security cameras — designed, installed and maintained by one accountable team."
-        image={img("photo-1497366811353-6870744d04b2", 1400)}
-        accentColor="#2E6BFF"
-        chips={["Solar panels", "Inverters", "CCTV cameras", "Maintenance"]}
+        eyebrow="What we do"
+        title={<>Solar, security & <span className="text-gradient">supply</span>.</>}
+        subtitle="Three specialties, one trusted team — solar systems, CCTV networks and genuine wholesale equipment across Punjab."
+        image={HERO_SOLAR}
+        chips={["Solar systems", "CCTV & security", "Wholesale supply", "Since 1996"]}
       />
-      <Services />
-      <FeatureSections />
+      <Specialties />
       <Process />
       <Packages />
-      <WhyUs />
       <Contact />
     </main>
   );

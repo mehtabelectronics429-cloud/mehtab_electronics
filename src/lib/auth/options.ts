@@ -114,7 +114,8 @@ export const authOptions: NextAuthOptions = {
       });
 
       if (!doc) {
-        const role: Role = email === "admin@mehtab.pk" ? "admin" : "employee";
+        const role: Role =
+          email === "admin@mehtabelectronics.com" ? "admin" : "employee";
         doc = await Profile.create({
           email,
           name: user.name || profile?.name || email.split("@")[0],
