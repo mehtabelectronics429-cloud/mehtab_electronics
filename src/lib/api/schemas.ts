@@ -91,6 +91,7 @@ export const invoiceInput = z.object({
   employeeId: z.string().optional().nullable(),
   installationId: z.string().optional().nullable(),
   amount: z.number().min(0),
+  cost: z.number().min(0).optional(),
   paid: z.number().min(0).optional(),
   status: z.enum(["draft", "pending", "approved", "rejected"]).optional(),
   date: z.string().or(z.date()),

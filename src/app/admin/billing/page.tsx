@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 const schema = z.object({
   customerId: z.string().min(1),
   amount: z.coerce.number().min(0),
+  cost: z.coerce.number().min(0).optional(),
   paid: z.coerce.number().min(0).optional(),
   date: z.string().min(1),
   status: z.enum(["draft", "pending", "approved", "rejected"]).optional(),
@@ -46,9 +47,14 @@ export default function BillingPage() {
     enabled: open,
   });
 
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<Form>({
+  const { register, handleSubmit, reset, watch, formState: { isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
   });
+
+  const wAmount = Number(watch("amount") || 0);
+  const wCost = Number(watch("cost") || 0);
+  const wProfit = wAmount - wCost;
+  const wMargin = wAmount > 0 ? (wProfit / wAmount) * 100 : 0;
 
   const create = useMutation({
     mutationFn: (form: Form) => api.createInvoice({ ...form, status: form.status || "pending" }),
@@ -73,6 +79,14 @@ export default function BillingPage() {
     { accessorKey: "number", header: "Invoice", cell: (i) => <span className="font-medium text-white">{i.getValue<string>()}</span> },
     { accessorKey: "customer", header: "Customer" },
     { accessorKey: "amount", header: "Amount", cell: (i) => pkr(i.getValue<number>()) },
+    {
+      id: "profit",
+      header: "Profit",
+      cell: (i) => {
+        const profit = i.row.original.amount - (i.row.original.cost ?? 0);
+        return <span className={profit >= 0 ? "text-emerald-300" : "text-red-300"}>{pkr(profit)}</span>;
+      },
+    },
     {
       accessorKey: "paid",
       header: "Paid",
@@ -119,6 +133,7 @@ export default function BillingPage() {
               reset({
                 customerId: "",
                 amount: 0,
+                cost: 0,
                 paid: 0,
                 date: new Date().toISOString().slice(0, 10),
                 status: "pending",
@@ -176,12 +191,24 @@ export default function BillingPage() {
             <Input type="date" {...register("date")} />
           </div>
           <div>
-            <Label>Amount</Label>
+            <Label>Amount (sale)</Label>
             <Input type="number" {...register("amount")} />
+          </div>
+          <div>
+            <Label>Cost (goods + materials)</Label>
+            <Input type="number" {...register("cost")} placeholder="0" />
           </div>
           <div>
             <Label>Paid</Label>
             <Input type="number" {...register("paid")} />
+          </div>
+          <div className="flex items-end">
+            <div className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+              <div className="text-[0.65rem] uppercase tracking-wider text-white/40">Profit / Margin</div>
+              <div className="mt-0.5 text-sm font-medium text-emerald-300">
+                {pkr(wProfit)} <span className="text-white/40">·</span> {wMargin.toFixed(0)}%
+              </div>
+            </div>
           </div>
           <div className="sm:col-span-2 flex justify-end gap-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>

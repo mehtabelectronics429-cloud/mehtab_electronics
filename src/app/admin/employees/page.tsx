@@ -13,6 +13,8 @@ import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
+import { pkr } from "@/lib/admin/format";
+import { Card } from "@/components/admin/ui/primitives";
 import type { Employee } from "@/lib/admin/types";
 
 const schema = z.object({
@@ -40,6 +42,9 @@ export default function EmployeesPage() {
     queryKey: ["employees", page],
     queryFn: () => api.employees({ page, limit: 20 }),
   });
+
+  const { data: analytics } = useQuery({ queryKey: ["analytics"], queryFn: api.analytics });
+  const pct = (n: number) => `${(n * 100).toFixed(0)}%`;
 
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -181,6 +186,38 @@ export default function EmployeesPage() {
         empty={{ title: "No employees" }}
       />
 
+      {/* individual analytics */}
+      {(analytics?.employees?.length ?? 0) > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-medium text-white/80">Individual analytics</h3>
+          <p className="text-xs text-white/40">Revenue &amp; profit attributed by invoice; jobs by installation assignment.</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {analytics!.employees.map((e) => (
+              <Card key={e.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-white">{e.name}</div>
+                    <div className="text-xs text-white/40">{e.title}</div>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-xs text-white/70">
+                    <Star className="h-3.5 w-3.5 fill-solar text-solar" />
+                    {e.rating}
+                  </span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <Metric label="Revenue" value={pkr(e.revenue)} />
+                  <Metric label="Profit" value={pkr(e.profit)} accent />
+                  <Metric label="Margin" value={pct(e.margin)} />
+                  <Metric label="Avg invoice" value={pkr(e.avgInvoice)} />
+                  <Metric label="Jobs" value={`${e.completed}/${e.jobs}`} />
+                  <Metric label="Completion" value={pct(e.completionRate)} />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit employee" : "Add employee"} wide>
         <form onSubmit={handleSubmit((d) => save.mutate(d))} className="grid gap-4 sm:grid-cols-2">
           <div>
@@ -218,6 +255,15 @@ export default function EmployeesPage() {
           </div>
         </form>
       </Modal>
+    </div>
+  );
+}
+
+function Metric({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
+      <div className="text-[0.6rem] uppercase tracking-wider text-white/40">{label}</div>
+      <div className={`mt-0.5 text-sm font-medium ${accent ? "text-emerald-300" : "text-white/85"}`}>{value}</div>
     </div>
   );
 }

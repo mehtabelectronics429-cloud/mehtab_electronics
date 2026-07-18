@@ -10,6 +10,8 @@ export interface IInvoice {
   employeeId: Types.ObjectId | null;
   installationId: Types.ObjectId | null;
   amount: number;
+  /** Cost of goods / materials for this job — used for accurate profit (profit = amount - cost). */
+  cost: number;
   paid: number;
   status: InvoiceStatus;
   date: Date;
@@ -26,6 +28,7 @@ const schema = new Schema<IInvoice>(
     employeeId: { type: Schema.Types.ObjectId, ref: "Employee", default: null, index: true },
     installationId: { type: Schema.Types.ObjectId, ref: "Installation", default: null },
     amount: { type: Number, required: true, min: 0 },
+    cost: { type: Number, default: 0, min: 0 },
     paid: { type: Number, default: 0, min: 0 },
     status: { type: String, enum: ["draft", "pending", "approved", "rejected"], default: "draft", index: true },
     date: { type: Date, required: true, index: true },

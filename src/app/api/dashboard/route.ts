@@ -39,14 +39,20 @@ export async function GET() {
       }),
       Installation.countDocuments({ ...notDeleted, ...employeeFilter, status: "completed" }),
       Installation.countDocuments({ ...notDeleted, status: "submitted" }),
-      Invoice.find({ ...notDeleted }).select("amount paid status").lean(),
+      Invoice.find({ ...notDeleted }).select("amount cost paid status").lean(),
       Product.countDocuments({ ...notDeleted, stock: { $lte: 5 } }),
       WhatsAppMessage.countDocuments({ ...notDeleted, status: { $in: ["queued", "failed"] } }),
       Activity.find({ ...notDeleted }).sort({ at: -1 }).limit(10).lean(),
     ]);
 
-    const revenue = invoices.filter((i) => i.status === "approved").reduce((s, i) => s + i.amount, 0);
-    const outstanding = invoices.reduce((s, i) => s + Math.max(0, i.amount - i.paid), 0);
+    const approved = invoices.filter((i) => i.status === "approved");
+    const revenue = approved.reduce((s, i) => s + (i.amount || 0), 0);
+    // Accurate cost/profit from the goods+materials cost recorded on each invoice.
+    const cost = approved.reduce((s, i) => s + (i.cost || 0), 0);
+    const profit = revenue - cost;
+    const margin = revenue > 0 ? profit / revenue : 0;
+    const collected = invoices.reduce((s, i) => s + (i.paid || 0), 0);
+    const outstanding = invoices.reduce((s, i) => s + Math.max(0, (i.amount || 0) - (i.paid || 0)), 0);
 
     return json({
       kpis: {
@@ -56,7 +62,12 @@ export async function GET() {
         pendingApproval,
         revenue,
         outstanding,
-        expenses: Math.round(revenue * 0.48),
+        collected,
+        cost,
+        profit,
+        margin,
+        // kept for backward compatibility with any existing reads
+        expenses: cost,
         inventoryValue: 0,
         lowStock,
         pendingWhatsapp,

@@ -29,6 +29,7 @@ function qs(params?: ListParams) {
 export const api = {
   me: () => request<{ user: import("./types").User }>("/api/auth/me"),
   dashboard: () => request<{ kpis: Record<string, number>; activity: import("./types").ActivityItem[] }>("/api/dashboard"),
+  analytics: () => request<import("./types").Analytics>("/api/analytics"),
 
   customers: (params?: ListParams) =>
     request<Paginated<import("./types").Customer>>(`/api/customers${qs(params)}`),

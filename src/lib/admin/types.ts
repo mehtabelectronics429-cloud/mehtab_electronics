@@ -105,6 +105,7 @@ export interface Invoice {
   employeeId?: string | null;
   installationId?: string | null;
   amount: number;
+  cost?: number;
   paid: number;
   status: InvoiceStatus;
   date: string;
@@ -158,6 +159,43 @@ export interface AppNotification {
   at: string;
   read: boolean;
   kind: "approval" | "assigned" | "completed" | "stock" | "invoice" | "payment" | "rejected";
+}
+
+export interface EmployeeAnalytics {
+  id: string;
+  name: string;
+  title: string;
+  active: boolean;
+  rating: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+  margin: number;
+  invoices: number;
+  avgInvoice: number;
+  jobs: number;
+  completed: number;
+  inProgress: number;
+  completionRate: number;
+}
+
+export interface Analytics {
+  totals: {
+    revenue: number;
+    cost: number;
+    profit: number;
+    margin: number;
+    collected: number;
+    outstanding: number;
+    approvedInvoices: number;
+    totalInvoices: number;
+    costCoverage: number;
+    jobs: number;
+    completed: number;
+  };
+  byStatus: Record<string, number>;
+  months: { key: string; label: string; revenue: number; cost: number; profit: number }[];
+  employees: EmployeeAnalytics[];
 }
 
 export interface Paginated<T> {

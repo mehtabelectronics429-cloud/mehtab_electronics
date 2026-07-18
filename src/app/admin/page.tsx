@@ -27,6 +27,11 @@ export default function DashboardPage() {
   const isAdmin = user?.role === "admin";
 
   const { data } = useQuery({ queryKey: ["dashboard"], queryFn: api.dashboard });
+  const { data: analytics } = useQuery({
+    queryKey: ["analytics"],
+    queryFn: api.analytics,
+    enabled: isAdmin,
+  });
   const { data: installs } = useQuery({
     queryKey: ["installations", "dash"],
     queryFn: () => api.installations({ limit: 10 }),
@@ -39,6 +44,10 @@ export default function DashboardPage() {
     pendingApproval: 0,
     revenue: 0,
     outstanding: 0,
+    collected: 0,
+    cost: 0,
+    profit: 0,
+    margin: 0,
     expenses: 0,
     inventoryValue: 0,
     lowStock: 0,
@@ -49,12 +58,13 @@ export default function DashboardPage() {
     { label: "Today's Installations", value: String(k.todayInstalls), icon: "CalendarClock", accent: "cyan" },
     { label: "Pending Installations", value: String(k.pendingInstalls), icon: "Clock", accent: "solar" },
     { label: "Completed", value: String(k.completedInstalls), icon: "CheckCheck", accent: "energy" },
-    { label: "Pending Approval", value: String(k.pendingApproval), icon: "ShieldQuestion", accent: "solar" },
     { label: "Revenue", value: pkr(k.revenue), icon: "TrendingUp", accent: "energy" },
+    { label: "Cost of Goods", value: pkr(k.cost), icon: "TrendingDown", accent: "solar" },
+    { label: "Net Profit", value: pkr(k.profit), icon: "Wallet", accent: "cyan" },
+    { label: "Margin", value: `${((k.margin || 0) * 100).toFixed(0)}%`, icon: "Percent", accent: "energy" },
     { label: "Outstanding", value: pkr(k.outstanding), icon: "AlertCircle", accent: "red" },
-    { label: "Expenses", value: pkr(k.expenses), icon: "TrendingDown", accent: "electric" },
+    { label: "Pending Approval", value: String(k.pendingApproval), icon: "ShieldQuestion", accent: "solar" },
     { label: "Low Stock", value: String(k.lowStock), icon: "PackageMinus", accent: "red" },
-    { label: "Pending WhatsApp", value: String(k.pendingWhatsapp), icon: "MessageCircle", accent: "energy" },
   ];
 
   const mine = installs?.items ?? [];
@@ -102,13 +112,18 @@ export default function DashboardPage() {
       {isAdmin && (
         <>
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <BarChart title="Monthly Installations" data={db.MONTHLY_INSTALLS} labels={db.MONTHS} accent="#22E0FF" />
+            <BarChart
+              title="Monthly Revenue"
+              data={(analytics?.months ?? []).map((m) => Math.round(m.revenue))}
+              labels={(analytics?.months ?? []).map((m) => m.label)}
+              accent="#34D399"
+            />
             <LineChart
-              title="Revenue vs Expenses (PKR M)"
-              labels={db.MONTHS}
+              title="Revenue vs Profit"
+              labels={(analytics?.months ?? []).map((m) => m.label)}
               series={[
-                { data: db.MONTHLY_REVENUE, color: "#38F6A4", name: "Revenue" },
-                { data: db.MONTHLY_EXPENSES, color: "#FF8A34", name: "Expenses" },
+                { data: (analytics?.months ?? []).map((m) => Math.round(m.revenue)), color: "#34D399", name: "Revenue" },
+                { data: (analytics?.months ?? []).map((m) => Math.round(m.profit)), color: "#EAB308", name: "Profit" },
               ]}
             />
           </div>
