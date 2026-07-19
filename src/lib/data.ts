@@ -14,7 +14,7 @@ export const COMPANY = {
   phone: "0303 7777921",
   phoneHref: "tel:+923037777921",
   whatsapp: "+92 303 7777921",
-  email: "info@mehtabelectronics.pk",
+  email: "info@mehtabelectronics.com",
   address: "Mehtab Electronics, Narowal, Punjab, Pakistan",
   hours: "Mon–Sat · 9:00 AM – 8:00 PM",
   mapEmbed:

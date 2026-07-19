@@ -13,6 +13,7 @@ const EXPLORE = [
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
+  { label: "Sitemap", href: "/sitemap" },
 ];
 
 const PARTNERS = ["Inverex — Authorized", "Solis — Authorized", "itel — Authorized Dealer"];

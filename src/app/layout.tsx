@@ -2,8 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import PublicChrome from "@/components/providers/PublicChrome";
+import JsonLd from "@/components/seo/JsonLd";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://mehtabelectronics.pk";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-body antialiased">
+        <JsonLd />
         <ThemeProvider>
           <PublicChrome>{children}</PublicChrome>
         </ThemeProvider>
