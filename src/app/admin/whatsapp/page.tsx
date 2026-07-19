@@ -10,7 +10,7 @@ import { PageHeader } from "@/components/admin/ui/feedback";
 import { Card, Badge, Button, Input, Label } from "@/components/admin/ui/primitives";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
-import { toastForWhatsAppResult, openBlankWhatsAppPopup, openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
+import { toastForWhatsAppResult, openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
 import { cn } from "@/lib/utils";
 
 const S: Record<string, string> = {
@@ -61,16 +61,12 @@ export default function WhatsAppPage() {
   });
 
   const onSend = () => {
-    // Pre-open a blank popup synchronously (inside the click) so the browser
-    // keeps the user-gesture and doesn't block it after the async send.
-    const popup = channel === "direct" ? openBlankWhatsAppPopup() : null;
     send.mutate(undefined, {
       onSuccess: (res) => {
         qc.invalidateQueries({ queryKey: ["whatsapp"] });
         setOpen(false);
-        toast.success(toastForWhatsAppResult(res, () => void api.tickJobs(), popup));
+        toast.success(toastForWhatsAppResult(res, () => void api.tickJobs()));
       },
-      onError: () => popup?.close(),
     });
   };
 
@@ -209,7 +205,7 @@ export default function WhatsAppPage() {
                 )}
               >
                 <div className="font-medium">Direct WhatsApp</div>
-                <div className="mt-0.5 opacity-70">Opens a WhatsApp popup with the message</div>
+                <div className="mt-0.5 opacity-70">Opens the WhatsApp app with the message</div>
               </button>
               <button
                 type="button"
@@ -248,7 +244,7 @@ export default function WhatsAppPage() {
               disabled={!toName || !toPhone || send.isPending}
               onClick={onSend}
             >
-              {send.isPending ? "Sending…" : channel === "direct" ? "Open WhatsApp popup" : "Queue Business API"}
+              {send.isPending ? "Sending…" : channel === "direct" ? "Open in WhatsApp app" : "Queue Business API"}
             </Button>
           </div>
         </div>

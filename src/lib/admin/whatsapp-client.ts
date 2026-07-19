@@ -1,30 +1,27 @@
 /**
  * WhatsApp sending without the Meta Cloud API.
  *
- * We can't deliver messages fully automatically without the official Business
- * API (and headless WhatsApp-Web automation violates WhatsApp's terms and can't
- * run on serverless). The in-between used here: open WhatsApp Web / the app in a
- * compact POPUP WINDOW (not a new browser tab) with the message pre-filled — the
- * operator just taps Send, staying inside the panel. If the popup is blocked, we
- * copy the link to the clipboard as a fallback.
+ * Clicking "send" fires the WhatsApp deep link (`whatsapp://send?phone=…&text=…`)
+ * which the OS hands straight to the installed WhatsApp app (desktop or mobile)
+ * with the recipient + template message pre-filled — the operator just taps Send.
+ * If the app isn't installed we fall back to wa.me (web), and if even that is
+ * blocked we copy the link to the clipboard.
  */
 
-const POPUP_NAME = "mehtabWhatsApp";
-
-function openCenteredPopup(url: string): Window | null {
-  const w = 460;
-  const h = 680;
-  const dualLeft = typeof window.screenX === "number" ? window.screenX : 0;
-  const dualTop = typeof window.screenY === "number" ? window.screenY : 0;
-  const outerW = window.outerWidth || window.innerWidth || w;
-  const outerH = window.outerHeight || window.innerHeight || h;
-  const left = dualLeft + Math.max(0, (outerW - w) / 2);
-  const top = dualTop + Math.max(0, (outerH - h) / 2);
-  return window.open(
-    url,
-    POPUP_NAME,
-    `popup=yes,noopener,noreferrer,width=${w},height=${h},left=${Math.round(left)},top=${Math.round(top)}`
-  );
+/** Convert a wa.me / api.whatsapp.com URL into a native app deep link. */
+export function toWhatsAppAppUrl(waUrl: string): string | null {
+  try {
+    const u = new URL(waUrl);
+    const fromPath = u.pathname.replace(/\D/g, "");
+    const phone = fromPath || (u.searchParams.get("phone") || "").replace(/\D/g, "");
+    const text = u.searchParams.get("text") || "";
+    const q = new URLSearchParams();
+    if (phone) q.set("phone", phone);
+    if (text) q.set("text", text);
+    return `whatsapp://send?${q.toString()}`;
+  } catch {
+    return null;
+  }
 }
 
 export function copyToClipboard(text: string): Promise<boolean> {
@@ -34,41 +31,48 @@ export function copyToClipboard(text: string): Promise<boolean> {
   return Promise.resolve(false);
 }
 
+function fireDeepLink(url: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  window.setTimeout(() => a.remove(), 0);
+}
+
 /**
- * Pre-open a blank popup synchronously inside the click handler (before any
- * awaited fetch) so the browser keeps the user-gesture and doesn't block it.
- * Redirect it later with `sendPopupTo`.
+ * Open the recipient's chat in the native WhatsApp app with the message
+ * pre-filled. `waUrl` is the wa.me link the API returns.
  */
-export function openBlankWhatsAppPopup(): Window | null {
-  return openCenteredPopup("about:blank");
-}
-
-export function sendPopupTo(popup: Window | null, waUrl: string): boolean {
-  if (popup && !popup.closed) {
-    popup.location.href = waUrl;
-    popup.focus();
-    return true;
-  }
-  // popup was blocked / closed — try a fresh popup, else copy the link
-  const fresh = openCenteredPopup(waUrl);
-  if (fresh) {
-    fresh.focus();
-    return true;
-  }
-  void copyToClipboard(waUrl);
-  return false;
-}
-
-/** Open a direct WhatsApp (wa.me) link in a popup window after the API returns it. */
 export function openWhatsAppUrl(waUrl: string | null | undefined): boolean {
   if (!waUrl) return false;
-  const popup = openCenteredPopup(waUrl);
-  if (popup) {
-    popup.focus();
-    return true;
+  const appUrl = toWhatsAppAppUrl(waUrl);
+  if (!appUrl) {
+    void copyToClipboard(waUrl);
+    return false;
   }
-  void copyToClipboard(waUrl);
-  return false;
+
+  // If the app doesn't grab focus shortly, fall back to wa.me (web).
+  let handedOff = false;
+  const onHide = () => {
+    handedOff = true;
+  };
+  document.addEventListener("visibilitychange", onHide, { once: true });
+  window.addEventListener("blur", onHide, { once: true });
+
+  fireDeepLink(appUrl);
+
+  window.setTimeout(() => {
+    document.removeEventListener("visibilitychange", onHide);
+    window.removeEventListener("blur", onHide);
+    if (!handedOff && !document.hidden) {
+      // App didn't open (likely not installed) — use WhatsApp Web as a fallback.
+      const win = window.open(waUrl, "_blank");
+      if (!win) void copyToClipboard(waUrl);
+    }
+  }, 1500);
+
+  return true;
 }
 
 export type WhatsAppSendResult = {
@@ -79,27 +83,18 @@ export type WhatsAppSendResult = {
   businessApiReady?: boolean;
 };
 
-export function toastForWhatsAppResult(
-  result: WhatsAppSendResult,
-  tickJobs?: () => void,
-  /** optional pre-opened popup from the click handler (avoids blockers) */
-  popup?: Window | null
-) {
+export function toastForWhatsAppResult(result: WhatsAppSendResult, tickJobs?: () => void) {
   const fellBack =
     result.requestedChannel === "business" && result.channel === "direct" && !result.businessApiReady;
 
   if (result.channel === "direct" && result.waUrl) {
-    const opened = popup !== undefined ? sendPopupTo(popup, result.waUrl) : openWhatsAppUrl(result.waUrl);
-    if (!opened) {
-      return "Popup blocked — the WhatsApp link was copied. Paste it to send.";
-    }
+    openWhatsAppUrl(result.waUrl);
     if (fellBack) {
-      return "Business API not configured — opened a WhatsApp popup with the template. Tap Send.";
+      return "Business API not configured — opening the WhatsApp app with the template. Tap Send.";
     }
-    return "Opened a WhatsApp popup with the message — tap Send to deliver.";
+    return "Opening the WhatsApp app with the message — tap Send to deliver.";
   }
 
-  if (popup && !popup.closed) popup.close();
   if (result.jobId) tickJobs?.();
   return "Queued for WhatsApp Business API.";
 }
