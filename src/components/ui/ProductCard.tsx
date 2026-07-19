@@ -72,7 +72,7 @@ export default function ProductCard({
             {/* {product.price && (
               <p className="mt-5 font-mono text-sm tracking-wide text-cyan">{product.price}</p>
             )} */}
-
+            {/* adjfkdjf */}
             <a
               href={productInquiry(product)}
               target="_blank"
