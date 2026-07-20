@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Card, Input, Label } from "@/components/admin/ui/primitives";
 import InvoiceDocument from "@/components/admin/InvoiceDocument";
+import ShareInvoiceButton from "@/components/admin/ShareInvoiceButton";
 import { api } from "@/lib/admin/services";
 import { useAuth } from "@/lib/admin/auth";
 import { pkr } from "@/lib/admin/format";
@@ -89,9 +90,13 @@ export default function InvoiceDetailPage() {
             <Button variant="secondary" onClick={() => window.print()}>
               <Printer className="h-4 w-4" /> Print / PDF
             </Button>
-            <Button onClick={sendWhatsApp}>
-              <MessageCircle className="h-4 w-4" /> Send on WhatsApp
+            <Button variant="secondary" onClick={sendWhatsApp}>
+              <MessageCircle className="h-4 w-4" /> WhatsApp link
             </Button>
+            <ShareInvoiceButton
+              filename={`Invoice-${invoice.number}.pdf`}
+              shareText={`Invoice ${invoice.number} — Mehtab Electronics. Total Rs ${totals.total.toLocaleString("en-PK")}, Balance Due Rs ${balance.toLocaleString("en-PK")}.`}
+            />
           </div>
         }
       />

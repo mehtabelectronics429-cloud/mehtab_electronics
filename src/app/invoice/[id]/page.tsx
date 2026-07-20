@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import InvoiceDocument from "@/components/admin/InvoiceDocument";
 import InvoicePrintButton from "@/components/admin/InvoicePrintButton";
+import ShareInvoiceButton from "@/components/admin/ShareInvoiceButton";
 import { connectMongo } from "@/lib/db/mongodb";
 import { Invoice } from "@/lib/db/models/Invoice";
 import { notDeleted } from "@/lib/db/soft-delete";
@@ -47,7 +48,8 @@ export default async function PublicInvoicePage({ params }: { params: { id: stri
   return (
     <main className="min-h-screen px-4 pt-28 pb-16">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap justify-end gap-2">
+          <ShareInvoiceButton filename={`Invoice-${invoice.number}.pdf`} label="Share PDF" />
           <InvoicePrintButton />
         </div>
         <div className="rounded-xl bg-neutral-200/50 p-3 md:p-4">
