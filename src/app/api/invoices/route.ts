@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/http";
 import { can } from "@/lib/admin/permissions";
 import { invoiceInput } from "@/lib/api/schemas";
+import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 
@@ -60,8 +61,14 @@ export async function POST(req: Request) {
     const body = invoiceInput.parse(await req.json());
     const customer = await Customer.findOne({ _id: body.customerId, ...notDeleted });
     if (!customer) throw new ApiError(400, "Invalid customer");
+    // If line items are provided, the total is computed from them.
+    const amount =
+      body.items && body.items.length
+        ? invoiceTotals(body).total
+        : body.amount ?? 0;
     const doc = await Invoice.create({
       ...body,
+      amount,
       number: body.number || (await nextNumber()),
       date: new Date(body.date),
       employeeId: body.employeeId || user.employeeId || null,

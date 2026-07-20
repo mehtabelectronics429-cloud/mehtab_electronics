@@ -15,6 +15,7 @@ import {
 } from "@/lib/api/http";
 import { can } from "@/lib/admin/permissions";
 import { installationInput } from "@/lib/api/schemas";
+import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { installationAssignedFilter } from "@/lib/api/scope";
@@ -153,6 +154,16 @@ export async function POST(req: Request) {
     }
     const leadId = employeeIds[0] || null;
 
+    const items = body.items || [];
+    // Total from line items (+ discount/tax/shipping) unless an explicit amount is given.
+    const totals = invoiceTotals({
+      items: items.map((i) => ({ qty: i.qty, unitPrice: i.unitPrice })),
+      discount: body.discount,
+      taxRate: body.taxRate,
+      shipping: body.shipping,
+    });
+    const amount = body.amount ?? totals.total;
+
     const doc = await Installation.create({
       ref: body.ref || (await nextRef()),
       customerId: body.customerId,
@@ -161,8 +172,14 @@ export async function POST(req: Request) {
       type: body.type,
       status: body.status || (employeeIds.length ? "assigned" : "pending"),
       date: new Date(body.date),
-      amount: body.amount ?? 0,
+      amount,
       notes: body.notes || "",
+      items: items.map((i) => ({
+        productId: i.productId || null,
+        name: i.name,
+        unitPrice: i.unitPrice,
+        qty: i.qty,
+      })),
       materials: materials.map((m) => ({
         materialId: m.materialId,
         qty: m.qty,
@@ -172,13 +189,16 @@ export async function POST(req: Request) {
 
     await Customer.findByIdAndUpdate(customer._id, { $inc: { installations: 1 } });
 
-    const amount = body.amount ?? 0;
     if (body.createInvoice !== false && amount > 0) {
       const inv = await Invoice.create({
         number: await nextInvoiceNumber(),
         customerId: customer._id,
         employeeId: leadId,
         installationId: doc._id,
+        items: items.map((i) => ({ description: i.name, qty: i.qty, unitPrice: i.unitPrice })),
+        discount: body.discount ?? 0,
+        taxRate: body.taxRate ?? 0,
+        shipping: body.shipping ?? 0,
         amount,
         paid: 0,
         status: "pending",

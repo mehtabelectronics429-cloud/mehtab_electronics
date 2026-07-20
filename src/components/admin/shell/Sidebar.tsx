@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Zap, PanelLeftClose, PanelLeft, LogOut } from "lucide-react";
+import { PanelLeftClose, PanelLeft, LogOut } from "lucide-react";
 import Icon from "@/components/ui/Icon";
+import { LOGO_MARK } from "@/lib/assets";
 import { NAV } from "@/lib/admin/nav";
 import { can } from "@/lib/admin/permissions";
 import { useAuth } from "@/lib/admin/auth";
@@ -34,8 +36,10 @@ export default function Sidebar() {
       )}>
         <div className="flex h-16 items-center gap-2.5 px-4">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-electric to-cyan"><Zap className="h-4 w-4 text-white" strokeWidth={2.5} /></span>
-            {!collapsed && <span className="font-display text-sm tracking-wider text-white">MEHTAB</span>}
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#0c0c10] ring-1 ring-white/10">
+              <Image src={LOGO_MARK} alt="Mehtab Electronics" width={210} height={178} className="h-[78%] w-[78%] object-contain" priority />
+            </span>
+            {!collapsed && <span className="font-display text-sm uppercase tracking-wider text-white">Mehtab <span className="text-brand">Electronics</span></span>}
           </Link>
           <button onClick={toggle} className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-white/40 hover:bg-white/5 hover:text-white lg:grid">
             {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}

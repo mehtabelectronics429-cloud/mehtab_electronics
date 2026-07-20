@@ -69,6 +69,19 @@ export const installationMaterialInput = z.object({
   used: z.number().min(0).optional(),
 });
 
+export const installationItemInput = z.object({
+  productId: z.string().optional().nullable(),
+  name: z.string().min(1),
+  unitPrice: z.coerce.number().min(0),
+  qty: z.coerce.number().min(0),
+});
+
+export const invoiceItemInput = z.object({
+  description: z.string().min(1),
+  qty: z.coerce.number().min(0),
+  unitPrice: z.coerce.number().min(0),
+});
+
 export const installationInput = z.object({
   customerId: z.string().min(1),
   employeeId: z.string().optional().nullable(),
@@ -81,7 +94,11 @@ export const installationInput = z.object({
   amount: z.number().min(0).optional(),
   notes: z.string().optional(),
   ref: z.string().optional(),
+  items: z.array(installationItemInput).optional(),
   materials: z.array(installationMaterialInput).optional(),
+  discount: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
   invoiceId: z.string().optional().nullable(),
   createInvoice: z.boolean().optional(),
 });
@@ -90,9 +107,13 @@ export const invoiceInput = z.object({
   customerId: z.string().min(1),
   employeeId: z.string().optional().nullable(),
   installationId: z.string().optional().nullable(),
-  amount: z.number().min(0),
-  cost: z.number().min(0).optional(),
-  paid: z.number().min(0).optional(),
+  items: z.array(invoiceItemInput).optional(),
+  discount: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
+  amount: z.coerce.number().min(0).optional(),
+  cost: z.coerce.number().min(0).optional(),
+  paid: z.coerce.number().min(0).optional(),
   status: z.enum(["draft", "pending", "approved", "rejected"]).optional(),
   date: z.string().or(z.date()),
   notes: z.string().optional(),

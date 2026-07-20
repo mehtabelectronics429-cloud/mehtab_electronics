@@ -1,0 +1,136 @@
+"use client";
+
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Printer, MessageCircle, ArrowLeft, Wallet, Check } from "lucide-react";
+import toast from "react-hot-toast";
+import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
+import { Button, Card, Input, Label } from "@/components/admin/ui/primitives";
+import InvoiceDocument from "@/components/admin/InvoiceDocument";
+import { api } from "@/lib/admin/services";
+import { useAuth } from "@/lib/admin/auth";
+import { pkr } from "@/lib/admin/format";
+import { invoiceTotals } from "@/lib/invoice";
+import { openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
+
+export default function InvoiceDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const [payment, setPayment] = useState("");
+
+  const { data: invoice, isLoading } = useQuery({
+    queryKey: ["invoice", id],
+    queryFn: () => api.getInvoice(id),
+  });
+
+  const patch = useMutation({
+    mutationFn: (body: Record<string, unknown>) => api.updateInvoice(id, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoice", id] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading || !invoice) {
+    return (
+      <div>
+        <PageHeader title="Invoice" subtitle="Loading…" />
+      </div>
+    );
+  }
+
+  const totals = invoiceTotals(invoice);
+  const paid = invoice.paid ?? 0;
+  const balance = totals.total - paid;
+
+  const recordPayment = () => {
+    const amt = Number(payment);
+    if (!amt || amt <= 0) return toast.error("Enter a payment amount");
+    const newPaid = Math.min(totals.total, paid + amt);
+    const fullyPaid = newPaid >= totals.total;
+    patch.mutate(
+      { paid: newPaid, ...(fullyPaid ? { status: "approved" } : {}) },
+      { onSuccess: () => { setPayment(""); toast.success(fullyPaid ? "Marked fully paid" : "Payment recorded"); } }
+    );
+  };
+
+  const sendWhatsApp = () => {
+    const phone = (invoice.customerWhatsapp || invoice.customerPhone || "").replace(/\D/g, "");
+    if (!phone) return toast.error("No customer WhatsApp number on file");
+    const intl = phone.startsWith("92") ? phone : phone.replace(/^0/, "92");
+    const link = `${window.location.origin}/invoice/${id}`;
+    const msg =
+      `Assalam o Alaikum ${invoice.customer || ""},\n\n` +
+      `Your invoice ${invoice.number} from Mehtab Electronics.\n` +
+      `Total: Rs ${totals.total.toLocaleString("en-PK")}\n` +
+      (paid > 0 ? `Paid: Rs ${paid.toLocaleString("en-PK")}\n` : "") +
+      `Balance Due: Rs ${balance.toLocaleString("en-PK")}\n\n` +
+      `View / download your invoice (PDF): ${link}\n\nJazakAllah — Mehtab Electronics`;
+    openWhatsAppUrl(`https://wa.me/${intl}?text=${encodeURIComponent(msg)}`);
+    toast.success("Opening WhatsApp with the invoice link…");
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title={`Invoice ${invoice.number}`}
+        subtitle={<span className="inline-flex items-center gap-2">{invoice.customer} <StatusBadge status={invoice.status} /></span>}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => router.push("/admin/billing")}>
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Button>
+            <Button variant="secondary" onClick={() => window.print()}>
+              <Printer className="h-4 w-4" /> Print / PDF
+            </Button>
+            <Button onClick={sendWhatsApp}>
+              <MessageCircle className="h-4 w-4" /> Send on WhatsApp
+            </Button>
+          </div>
+        }
+      />
+
+      {/* payment controls */}
+      <div className="mb-5 grid gap-4 lg:grid-cols-3">
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-wider text-white/40">Total</div>
+          <div className="mt-1 text-lg font-semibold text-white">{pkr(totals.total)}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-wider text-white/40">Paid</div>
+          <div className="mt-1 text-lg font-semibold text-emerald-300">{pkr(paid)}</div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-xs uppercase tracking-wider text-white/40">Balance due</div>
+          <div className="mt-1 text-lg font-semibold text-amber-300">{pkr(balance)}</div>
+        </Card>
+      </div>
+
+      {isAdmin && balance > 0 && (
+        <Card className="mb-5 flex flex-wrap items-end gap-3 p-4">
+          <div className="flex-1 min-w-[180px]">
+            <Label>Record a payment (partial or full)</Label>
+            <Input type="number" value={payment} onChange={(e) => setPayment(e.target.value)} placeholder={`Up to ${balance}`} />
+          </div>
+          <Button onClick={recordPayment} disabled={patch.isPending}>
+            <Wallet className="h-4 w-4" /> Record payment
+          </Button>
+          <Button variant="secondary" onClick={() => patch.mutate({ paid: totals.total, status: "approved" }, { onSuccess: () => toast.success("Marked fully paid") })}>
+            <Check className="h-4 w-4" /> Mark fully paid
+          </Button>
+        </Card>
+      )}
+
+      {/* the printable invoice */}
+      <div className="overflow-x-auto rounded-xl bg-neutral-200/60 p-4">
+        <InvoiceDocument invoice={invoice} />
+      </div>
+    </div>
+  );
+}

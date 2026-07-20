@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +32,7 @@ type Form = z.infer<typeof schema>;
 export default function BillingPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const router = useRouter();
   const qc = useQueryClient();
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
@@ -166,6 +168,7 @@ export default function BillingPage() {
         columns={columns}
         data={data?.items ?? []}
         loading={isLoading}
+        onRowClick={(row) => router.push(`/admin/billing/${row.id}`)}
         page={data?.page}
         totalPages={data?.totalPages}
         total={data?.total}

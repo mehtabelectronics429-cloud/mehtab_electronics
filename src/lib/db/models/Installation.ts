@@ -16,6 +16,14 @@ export interface IInstallationMaterial {
   used: number;
 }
 
+/** A product/line used in the installation — from the catalogue or free-form. */
+export interface IInstallationItem {
+  productId: Types.ObjectId | null;
+  name: string;
+  unitPrice: number;
+  qty: number;
+}
+
 export interface IInstallation {
   _id: Types.ObjectId;
   ref: string;
@@ -29,6 +37,7 @@ export interface IInstallation {
   date: Date;
   amount: number;
   notes: string;
+  items: IInstallationItem[];
   materials: IInstallationMaterial[];
   deletedAt: Date | null;
   createdAt: Date;
@@ -40,6 +49,16 @@ const materialLine = new Schema<IInstallationMaterial>(
     materialId: { type: Schema.Types.ObjectId, ref: "Material", required: true },
     qty: { type: Number, default: 0, min: 0 },
     used: { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
+
+const itemLine = new Schema<IInstallationItem>(
+  {
+    productId: { type: Schema.Types.ObjectId, ref: "Product", default: null },
+    name: { type: String, required: true, trim: true },
+    unitPrice: { type: Number, default: 0, min: 0 },
+    qty: { type: Number, default: 1, min: 0 },
   },
   { _id: false }
 );
@@ -65,6 +84,7 @@ const schema = new Schema<IInstallation>(
     date: { type: Date, required: true, index: true },
     amount: { type: Number, default: 0, min: 0 },
     notes: { type: String, default: "" },
+    items: { type: [itemLine], default: [] },
     materials: { type: [materialLine], default: [] },
     deletedAt: { type: Date, default: null, index: true },
   },

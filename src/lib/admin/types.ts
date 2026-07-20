@@ -94,6 +94,7 @@ export interface Installation {
   date: string;
   amount: number;
   notes?: string;
+  items?: InstallationItem[];
   materials?: { materialId: string; name: string; unit: string; qty: number; used: number }[];
 }
 
@@ -104,11 +105,27 @@ export interface Invoice {
   customerId?: string | null;
   employeeId?: string | null;
   installationId?: string | null;
+  items?: { description: string; qty: number; unitPrice: number }[];
+  discount?: number;
+  taxRate?: number;
+  shipping?: number;
   amount: number;
   cost?: number;
   paid: number;
   status: InvoiceStatus;
   date: string;
+  notes?: string;
+  customerId?: string | null;
+  customerPhone?: string;
+  customerWhatsapp?: string;
+  customerAddress?: string;
+}
+
+export interface InstallationItem {
+  productId?: string | null;
+  name: string;
+  unitPrice: number;
+  qty: number;
 }
 
 export interface LedgerEntry {

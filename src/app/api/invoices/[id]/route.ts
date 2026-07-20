@@ -10,17 +10,25 @@ import {
 } from "@/lib/api/http";
 import { can } from "@/lib/admin/permissions";
 import { invoiceInput } from "@/lib/api/schemas";
+import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 
 type Ctx = { params: { id: string } };
 
 function mapInvoice(item: Record<string, unknown>) {
-  const customer = item.customerId as { _id?: unknown; name?: string } | string | null;
+  const customer = item.customerId as
+    | { _id?: unknown; name?: string; phone?: string; whatsapp?: string; address?: string }
+    | string
+    | null;
+  const isObj = typeof customer === "object" && customer !== null;
   return {
     ...item,
-    customerId: typeof customer === "object" && customer?._id ? String(customer._id) : customer ? String(customer) : null,
-    customer: typeof customer === "object" && customer?.name ? customer.name : "",
+    customerId: isObj && customer?._id ? String(customer._id) : customer ? String(customer) : null,
+    customer: isObj && customer?.name ? customer.name : "",
+    customerPhone: isObj ? customer?.phone ?? "" : "",
+    customerWhatsapp: isObj ? customer?.whatsapp ?? "" : "",
+    customerAddress: isObj ? customer?.address ?? "" : "",
     date: item.date instanceof Date ? (item.date as Date).toISOString().slice(0, 10) : item.date,
   };
 }
@@ -51,6 +59,24 @@ export async function PATCH(req: Request, { params }: Ctx) {
       throw new ApiError(403, "Forbidden");
     }
     if (body.date) body.date = new Date(body.date as string) as unknown as string;
+
+    // Recompute the total whenever any money-affecting field changes.
+    const touchesTotals =
+      body.items !== undefined ||
+      body.discount !== undefined ||
+      body.taxRate !== undefined ||
+      body.shipping !== undefined;
+    if (touchesTotals) {
+      const current = await Invoice.findOne({ _id: params.id, ...notDeleted });
+      if (!current) throw new ApiError(404, "Invoice not found");
+      (body as Record<string, unknown>).amount = invoiceTotals({
+        items: body.items ?? current.items,
+        discount: body.discount ?? current.discount,
+        taxRate: body.taxRate ?? current.taxRate,
+        shipping: body.shipping ?? current.shipping,
+      }).total;
+    }
+
     const doc = await Invoice.findOneAndUpdate({ _id: params.id, ...notDeleted }, body, { returnDocument: 'after' }).populate("customerId");
     if (!doc) throw new ApiError(404, "Invoice not found");
     return json(mapInvoice(serializeDoc(doc)));

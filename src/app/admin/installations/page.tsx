@@ -27,10 +27,13 @@ const schema = z.object({
   customerId: z.string().min(1, "Required"),
   type: z.string().min(2),
   date: z.string().min(1),
-  amount: z.coerce.number().min(0),
+  amount: z.coerce.number().min(0).optional(),
   status: z.enum(["pending", "assigned", "in_progress", "submitted", "approved", "rejected", "completed"]).optional(),
 });
 type Form = z.infer<typeof schema>;
+
+type ItemRow = { productId: string; name: string; unitPrice: number; qty: number };
+const money = (n: number) => n.toLocaleString("en-PK", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const customerQuickSchema = z.object({
   name: z.string().min(2, "Required"),
@@ -54,6 +57,9 @@ function InstallationsInner() {
   const [addingCustomer, setAddingCustomer] = useState(false);
   const [employeeIds, setEmployeeIds] = useState<string[]>([]);
   const [matRows, setMatRows] = useState<MatRow[]>([{ materialId: "", qty: 1 }]);
+  const [itemRows, setItemRows] = useState<ItemRow[]>([{ productId: "", name: "", unitPrice: 0, qty: 1 }]);
+  const [discount, setDiscount] = useState(0);
+  const [shipping, setShipping] = useState(0);
 
   const { data, isLoading } = useQuery({
     queryKey: ["installations", page, status],
@@ -75,6 +81,27 @@ function InstallationsInner() {
     queryFn: () => api.materials({ limit: 100 }),
     enabled: !!canCreate && open,
   });
+  const { data: products } = useQuery({
+    queryKey: ["products-opts"],
+    queryFn: () => api.products({ limit: 200 }),
+    enabled: !!canCreate && open,
+  });
+
+  const subtotal = itemRows.reduce((s, r) => s + (r.qty * r.unitPrice || 0), 0);
+  const computedAmount = Math.max(0, subtotal - discount) + shipping;
+
+  const setItem = (idx: number, patch: Partial<ItemRow>) =>
+    setItemRows((rows) => rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
+
+  const pickProduct = (idx: number, productId: string) => {
+    if (!productId) return setItem(idx, { productId: "", name: "", unitPrice: 0 });
+    const p = (products?.items ?? []).find((x) => x.id === productId);
+    setItem(idx, {
+      productId,
+      name: p ? `${p.brand} ${p.model}`.trim() : "",
+      unitPrice: p ? p.sellingPrice : 0,
+    });
+  };
 
   const { register, handleSubmit, reset, setValue, formState: { isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
@@ -117,12 +144,18 @@ function InstallationsInner() {
       const materialsPayload = matRows
         .filter((r) => r.materialId && r.qty > 0)
         .map((r) => ({ materialId: r.materialId, qty: r.qty, used: r.qty }));
+      const itemsPayload = itemRows
+        .filter((r) => r.name.trim() && r.qty > 0)
+        .map((r) => ({ productId: r.productId || null, name: r.name.trim(), unitPrice: r.unitPrice, qty: r.qty }));
       return api.createInstallation({
         customerId: form.customerId,
         employeeIds: isAdmin ? employeeIds : user?.employeeId ? [user.employeeId] : [],
         type: form.type,
         date: form.date,
-        amount: form.amount,
+        items: itemsPayload,
+        discount,
+        shipping,
+        amount: computedAmount,
         status: form.status || "pending",
         materials: materialsPayload,
         createInvoice: true,
@@ -236,11 +269,13 @@ function InstallationsInner() {
                   customerId: "",
                   type: "",
                   date: new Date().toISOString().slice(0, 10),
-                  amount: 0,
                   status: "pending",
                 });
                 setEmployeeIds([]);
                 setMatRows([{ materialId: "", qty: 1 }]);
+                setItemRows([{ productId: "", name: "", unitPrice: 0, qty: 1 }]);
+                setDiscount(0);
+                setShipping(0);
                 setAddingCustomer(false);
                 resetCustomer();
                 setOpen(true);
@@ -348,9 +383,58 @@ function InstallationsInner() {
             <Label>Date</Label>
             <Input type="date" {...register("date")} />
           </div>
+          {/* products / items used in the installation */}
+          <div className="sm:col-span-2">
+            <div className="mb-2 flex items-center justify-between">
+              <Label className="mb-0">Products / items</Label>
+              <button
+                type="button"
+                onClick={() => setItemRows((r) => [...r, { productId: "", name: "", unitPrice: 0, qty: 1 }])}
+                className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
+              >
+                <Plus className="h-3.5 w-3.5" /> Add item
+              </button>
+            </div>
+            <p className="mb-2 text-xs text-white/40">
+              Pick a product from the catalogue or type a custom name &amp; price — it doesn&apos;t have to be in the list.
+            </p>
+            <div className="space-y-2">
+              {itemRows.map((row, idx) => (
+                <div key={idx} className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[1.3fr_1.7fr_0.9fr_0.6fr_auto]">
+                  <Select value={row.productId} onChange={(e) => pickProduct(idx, e.target.value)}>
+                    <option value="">Custom / type below…</option>
+                    {(products?.items ?? []).map((p) => (
+                      <option key={p.id} value={p.id}>{p.brand} {p.model}</option>
+                    ))}
+                  </Select>
+                  <Input value={row.name} onChange={(e) => setItem(idx, { name: e.target.value })} placeholder="Description" />
+                  <Input type="number" value={row.unitPrice} onChange={(e) => setItem(idx, { unitPrice: Number(e.target.value) || 0 })} placeholder="Unit price" />
+                  <Input type="number" value={row.qty} onChange={(e) => setItem(idx, { qty: Number(e.target.value) || 0 })} placeholder="Qty" />
+                  <button
+                    type="button"
+                    disabled={itemRows.length <= 1}
+                    onClick={() => setItemRows((rows) => rows.filter((_, i) => i !== idx))}
+                    className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-white/40 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-30"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* discount / shipping / computed total */}
           <div>
-            <Label>Amount</Label>
-            <Input type="number" {...register("amount")} />
+            <Label>Discount</Label>
+            <Input type="number" value={discount} onChange={(e) => setDiscount(Number(e.target.value) || 0)} />
+          </div>
+          <div>
+            <Label>Shipping / Handling</Label>
+            <Input type="number" value={shipping} onChange={(e) => setShipping(Number(e.target.value) || 0)} />
+          </div>
+          <div className="sm:col-span-2 flex items-center justify-between rounded-xl border border-cyan/20 bg-cyan/5 px-4 py-3">
+            <span className="text-sm text-white/60">Invoice total (auto)</span>
+            <span className="text-lg font-semibold text-white">Rs {money(computedAmount)}</span>
           </div>
 
           {isAdmin && (

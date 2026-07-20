@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
-import { connectMongo } from "@/lib/db/mongodb";
+import { connectMongo, getRedactedMongoUri } from "@/lib/db/mongodb";
 import { Profile } from "@/lib/db/models/Profile";
 import { Employee } from "@/lib/db/models/Employee";
 import { notDeleted } from "@/lib/db/soft-delete";
@@ -62,7 +62,19 @@ export const authOptions: NextAuthOptions = {
         await connectMongo();
         const email = credentials.email.trim().toLowerCase();
         const profile = await Profile.findOne({ email, ...notDeleted });
-        console.log("Profile: ", profile);
+        if (!profile) {
+          // Additional debug: try a case-insensitive search to detect stored-case mismatches.
+          try {
+            const esc = (s: string) =>
+              s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+            const ci = await Profile.findOne({
+              email: new RegExp(`^${esc(email)}$`, "i"),
+              ...notDeleted,
+            });
+          } catch (err) {
+            console.error("Error during case-insensitive lookup:", err);
+          }
+        }
         if (!profile?.passwordHash) return null;
         const ok = await bcrypt.compare(
           credentials.password,
