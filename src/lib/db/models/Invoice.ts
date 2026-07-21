@@ -15,6 +15,8 @@ export interface IInvoice {
   customerId: Types.ObjectId;
   employeeId: Types.ObjectId | null;
   installationId: Types.ObjectId | null;
+  /** Where the invoice originated. */
+  source: "installation" | "pos" | "manual";
   /** Line items shown on the printed invoice. */
   items: IInvoiceItem[];
   discount: number;
@@ -39,6 +41,7 @@ const schema = new Schema<IInvoice>(
     customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: true, index: true },
     employeeId: { type: Schema.Types.ObjectId, ref: "Employee", default: null, index: true },
     installationId: { type: Schema.Types.ObjectId, ref: "Installation", default: null },
+    source: { type: String, enum: ["installation", "pos", "manual"], default: "manual", index: true },
     items: {
       type: [
         new Schema<IInvoiceItem>(

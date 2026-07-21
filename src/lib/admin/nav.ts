@@ -10,6 +10,9 @@ export interface NavItem {
 
 export const NAV: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: "LayoutDashboard", cap: "dashboard.view", group: "Overview" },
+  { label: "POS", href: "/admin/pos", icon: "ScanBarcode", cap: "pos.use", group: "Point of Sale" },
+  { label: "Suppliers", href: "/admin/suppliers", icon: "Truck", cap: "suppliers.view", group: "Point of Sale" },
+  { label: "Purchases", href: "/admin/purchases", icon: "ShoppingBag", cap: "purchases.view", group: "Point of Sale" },
   { label: "Customers", href: "/admin/customers", icon: "Users", cap: "customers.view", group: "Operations" },
   { label: "My Customers", href: "/admin/customers", icon: "Users", cap: "customers.view.own", group: "Operations" },
   { label: "Installations", href: "/admin/installations", icon: "Wrench", cap: "installations.view.all", group: "Operations" },

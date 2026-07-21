@@ -41,7 +41,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
       name: doc.name,
       title: doc.title,
       employeeId: doc._id,
-      role: "employee",
+      role: doc.role || "technician",
       deletedAt: null,
     };
     if (password) profilePatch.passwordHash = await bcrypt.hash(password, 10);

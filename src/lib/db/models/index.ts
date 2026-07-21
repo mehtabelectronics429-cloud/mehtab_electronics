@@ -4,6 +4,8 @@ export { Employee } from "./Employee";
 export { Product } from "./Product";
 export { Category } from "./Category";
 export { Material } from "./Material";
+export { Supplier } from "./Supplier";
+export { Purchase } from "./Purchase";
 export { Installation } from "./Installation";
 export { Invoice } from "./Invoice";
 export { LedgerEntry } from "./LedgerEntry";

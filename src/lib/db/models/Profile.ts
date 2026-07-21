@@ -5,7 +5,7 @@ export interface IProfile {
   _id: Types.ObjectId;
   email: string;
   name: string;
-  role: "admin" | "employee";
+  role: "admin" | "manager" | "cashier" | "technician" | "employee";
   employeeId: Types.ObjectId | null;
   passwordHash: string | null;
   googleId: string | null;
@@ -20,7 +20,7 @@ const schema = new Schema<IProfile>(
   {
     email: { type: String, required: true, lowercase: true, trim: true, unique: true, index: true },
     name: { type: String, required: true, trim: true },
-    role: { type: String, enum: ["admin", "employee"], required: true, index: true },
+    role: { type: String, enum: ["admin", "manager", "cashier", "technician", "employee"], required: true, index: true },
     employeeId: { type: Schema.Types.ObjectId, ref: "Employee", default: null, index: true },
     passwordHash: { type: String, default: null },
     googleId: { type: String, default: null, index: true },

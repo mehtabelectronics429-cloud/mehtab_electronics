@@ -9,19 +9,20 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Plus, Star, Pencil, Archive, KeyRound } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
-import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
+import { Button, Badge, Input, Label, Select } from "@/components/admin/ui/primitives";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { Card } from "@/components/admin/ui/primitives";
-import type { Employee } from "@/lib/admin/types";
+import { EMPLOYEE_ROLES, type Employee } from "@/lib/admin/types";
 
 const schema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   phone: z.string().min(7),
   title: z.string().min(2),
+  role: z.enum(["admin", "manager", "cashier", "technician"]).optional(),
   active: z.boolean().optional(),
   password: z.string().optional(),
 }).superRefine((v, ctx) => {
@@ -52,12 +53,12 @@ export default function EmployeesPage() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: "", email: "", phone: "", title: "", active: true, password: "" });
+    reset({ name: "", email: "", phone: "", title: "", role: "technician", active: true, password: "" });
     setOpen(true);
   };
   const openEdit = (e: Employee) => {
     setEditing(e);
-    reset({ name: e.name, email: e.email, phone: e.phone, title: e.title, active: e.active, password: "" });
+    reset({ name: e.name, email: e.email, phone: e.phone, title: e.title, role: e.role || "technician", active: e.active, password: "" });
     setOpen(true);
   };
 
@@ -102,6 +103,11 @@ export default function EmployeesPage() {
       ),
     },
     { accessorKey: "email", header: "Email" },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: (i) => <Badge className="capitalize">{i.getValue<string>() || "technician"}</Badge>,
+    },
     { accessorKey: "phone", header: "Phone" },
     { accessorKey: "assigned", header: "Assigned" },
     { accessorKey: "completed", header: "Completed" },
@@ -234,7 +240,15 @@ export default function EmployeesPage() {
           </div>
           <div>
             <Label>Title</Label>
-            <Input {...register("title")} />
+            <Input {...register("title")} placeholder="e.g. Senior Technician" />
+          </div>
+          <div>
+            <Label>Role (permissions)</Label>
+            <Select {...register("role")}>
+              {EMPLOYEE_ROLES.map((r) => (
+                <option key={r.value} value={r.value}>{r.label} — {r.desc}</option>
+              ))}
+            </Select>
           </div>
           <div className="sm:col-span-2">
             <Label>{editing ? "New password (leave blank to keep)" : "Dashboard password"}</Label>

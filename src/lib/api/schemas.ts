@@ -21,6 +21,7 @@ export const employeeInput = z.object({
   email: z.string().email(),
   phone: z.string().min(7),
   title: z.string().min(2),
+  role: z.enum(["admin", "manager", "cashier", "technician"]).optional(),
   active: z.boolean().optional(),
   rating: z.number().min(0).max(5).optional(),
   password: z.string().min(6).optional(),
@@ -52,6 +53,41 @@ export const categoryInput = z.object({
   order: z.coerce.number().int().optional(),
 });
 
+export const purchaseItemInput = z.object({
+  productId: z.string().optional().nullable(),
+  name: z.string().min(1),
+  qty: z.coerce.number().min(0.01),
+  unitCost: z.coerce.number().min(0),
+});
+
+export const purchaseInput = z.object({
+  supplierId: z.string().min(1),
+  supplierInvoiceNo: z.string().optional(),
+  items: z.array(purchaseItemInput).min(1),
+  discount: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
+  paid: z.coerce.number().min(0).optional(),
+  date: z.string().or(z.date()),
+  notes: z.string().optional(),
+  ref: z.string().optional(),
+});
+
+/** Record a payment against a purchase (to the supplier). */
+export const purchasePaymentInput = z.object({
+  amount: z.coerce.number().min(0),
+});
+
+export const supplierInput = z.object({
+  name: z.string().min(2),
+  company: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  address: z.string().optional(),
+  balance: z.coerce.number().optional(),
+  notes: z.string().optional(),
+});
+
 export const materialInput = z.object({
   name: z.string().min(1),
   unit: z.string().min(1),
@@ -80,6 +116,23 @@ export const invoiceItemInput = z.object({
   description: z.string().min(1),
   qty: z.coerce.number().min(0),
   unitPrice: z.coerce.number().min(0),
+});
+
+export const posItemInput = z.object({
+  productId: z.string().optional().nullable(),
+  description: z.string().min(1),
+  qty: z.coerce.number().min(0.01),
+  unitPrice: z.coerce.number().min(0),
+});
+
+export const posSaleInput = z.object({
+  customerId: z.string().optional().nullable(),
+  items: z.array(posItemInput).min(1),
+  discount: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
+  paid: z.coerce.number().min(0).optional(),
+  date: z.string().optional(),
 });
 
 export const installationInput = z.object({

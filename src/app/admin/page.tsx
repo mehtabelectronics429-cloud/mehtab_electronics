@@ -7,6 +7,7 @@ import { PageHeader, StatCard, StatusBadge } from "@/components/admin/ui/feedbac
 import { Card } from "@/components/admin/ui/primitives";
 import { BarChart, LineChart } from "@/components/admin/ui/charts";
 import { useAuth } from "@/lib/admin/auth";
+import { can } from "@/lib/admin/permissions";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import * as db from "@/lib/admin/mock-data";
@@ -24,7 +25,9 @@ const KIND_ICON: Record<string, string> = {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  // Admin & manager get the full business dashboard (they hold reports.view).
+  const isAdmin = !!user && can(user.role, "reports.view");
+  const isCashier = user?.role === "cashier";
 
   const { data } = useQuery({ queryKey: ["dashboard"], queryFn: api.dashboard });
   const { data: analytics } = useQuery({
@@ -35,6 +38,13 @@ export default function DashboardPage() {
   const { data: installs } = useQuery({
     queryKey: ["installations", "dash"],
     queryFn: () => api.installations({ limit: 10 }),
+    enabled: !isCashier,
+  });
+  // Own billing (scoped server-side to the logged-in employee) — powers personal stats.
+  const { data: myInvoices } = useQuery({
+    queryKey: ["invoices", "mine"],
+    queryFn: () => api.invoices({ limit: 200 }),
+    enabled: !isAdmin,
   });
 
   const k = data?.kpis ?? {
@@ -68,27 +78,29 @@ export default function DashboardPage() {
   ];
 
   const mine = installs?.items ?? [];
-  const empStats = [
-    { label: "Assigned to me", value: String(mine.length), icon: "Wrench", accent: "cyan" },
-    {
-      label: "In Progress",
-      value: String(mine.filter((i) => i.status === "in_progress").length),
-      icon: "Loader",
-      accent: "solar",
-    },
-    {
-      label: "Awaiting Approval",
-      value: String(mine.filter((i) => i.status === "submitted").length),
-      icon: "ShieldQuestion",
-      accent: "electric",
-    },
-    {
-      label: "Completed",
-      value: String(mine.filter((i) => i.status === "completed").length),
-      icon: "CheckCheck",
-      accent: "energy",
-    },
+
+  // Personal figures from the employee's own invoices (POS sales or job billing).
+  const inv = myInvoices?.items ?? [];
+  const myApproved = inv.filter((i) => i.status === "approved");
+  const myRevenue = myApproved.reduce((s, i) => s + (i.amount || 0), 0);
+  const myProfit = myApproved.reduce((s, i) => s + ((i.amount || 0) - (i.cost || 0)), 0);
+  const myOutstanding = inv.reduce((s, i) => s + Math.max(0, (i.amount || 0) - (i.paid || 0)), 0);
+
+  const cashierStats = [
+    { label: "My Sales", value: String(inv.length), icon: "Receipt", accent: "cyan" },
+    { label: "My Revenue", value: pkr(myRevenue), icon: "TrendingUp", accent: "energy" },
+    { label: "My Profit", value: pkr(myProfit), icon: "Wallet", accent: "cyan" },
+    { label: "Outstanding", value: pkr(myOutstanding), icon: "AlertCircle", accent: "red" },
   ];
+
+  const technicianStats = [
+    { label: "Assigned to me", value: String(mine.length), icon: "Wrench", accent: "cyan" },
+    { label: "In Progress", value: String(mine.filter((i) => i.status === "in_progress").length), icon: "Loader", accent: "solar" },
+    { label: "Completed", value: String(mine.filter((i) => i.status === "completed").length), icon: "CheckCheck", accent: "energy" },
+    { label: "My Revenue", value: pkr(myRevenue), icon: "TrendingUp", accent: "energy" },
+  ];
+
+  const empStats = isCashier ? cashierStats : technicianStats;
 
   const activity = data?.activity?.length ? data.activity : db.ACTIVITY;
 
@@ -182,7 +194,28 @@ export default function DashboardPage() {
         </>
       )}
 
-      {!isAdmin && (
+      {!isAdmin && isCashier && (
+        <Card className="mt-6 p-5">
+          <h3 className="text-sm font-medium text-white/80">My Recent Sales</h3>
+          <div className="mt-4 space-y-2">
+            {inv.length === 0 ? (
+              <p className="text-sm text-white/40">No sales yet.</p>
+            ) : (
+              inv.slice(0, 8).map((i) => (
+                <div key={i.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <div>
+                    <div className="text-sm text-white">{i.number} · {i.customer}</div>
+                    <div className="text-xs text-white/40">{i.date} · Paid {pkr(i.paid)} / {pkr(i.amount)}</div>
+                  </div>
+                  <StatusBadge status={i.status} />
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      )}
+
+      {!isAdmin && !isCashier && (
         <Card className="mt-6 p-5">
           <h3 className="text-sm font-medium text-white/80">My Upcoming Installations</h3>
           <div className="mt-4 space-y-2">

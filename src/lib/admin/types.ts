@@ -1,4 +1,12 @@
-export type Role = "admin" | "employee";
+export type Role = "admin" | "manager" | "cashier" | "technician" | "employee";
+
+/** Employee categories that map to a permission role. */
+export const EMPLOYEE_ROLES: { value: Exclude<Role, "employee">; label: string; desc: string }[] = [
+  { value: "admin", label: "Admin", desc: "Full access to everything" },
+  { value: "manager", label: "Manager", desc: "Operations, sales & reports (no settings)" },
+  { value: "cashier", label: "Cashier", desc: "POS sales, customers, suppliers & billing" },
+  { value: "technician", label: "Technician", desc: "Installations, materials & own jobs" },
+];
 
 export interface User {
   id: string;
@@ -35,6 +43,7 @@ export interface Employee {
   email: string;
   phone: string;
   title: string;
+  role?: "admin" | "manager" | "cashier" | "technician";
   active: boolean;
   assigned: number;
   completed: number;
@@ -63,6 +72,35 @@ export interface Category {
   image?: string;
   description?: string;
   order?: number;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  balance: number;
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface Purchase {
+  id: string;
+  ref: string;
+  supplierId?: string | null;
+  supplier?: string;
+  supplierInvoiceNo?: string;
+  items?: { productId?: string | null; name: string; qty: number; unitCost: number }[];
+  discount?: number;
+  taxRate?: number;
+  shipping?: number;
+  amount: number;
+  paid: number;
+  status: "unpaid" | "partial" | "paid";
+  date: string;
+  notes?: string;
 }
 
 export interface Material {
@@ -209,6 +247,10 @@ export interface Analytics {
     costCoverage: number;
     jobs: number;
     completed: number;
+    purchaseTotal: number;
+    purchasePaid: number;
+    payable: number;
+    grossProfit: number;
   };
   byStatus: Record<string, number>;
   months: { key: string; label: string; revenue: number; cost: number; profit: number }[];

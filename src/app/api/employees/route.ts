@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       {
         email: rest.email.toLowerCase(),
         name: rest.name,
-        role: "employee",
+        role: rest.role || "technician",
         title: rest.title,
         employeeId: doc._id,
         passwordHash,

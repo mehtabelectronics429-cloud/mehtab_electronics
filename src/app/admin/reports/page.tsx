@@ -29,6 +29,14 @@ export default function ReportsPage() {
         <StatCard label="Outstanding" value={pkr(t?.outstanding ?? 0)} icon="AlertCircle" accent="red" index={5} />
       </div>
 
+      {/* purchasing / payables */}
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Stock Purchased" value={pkr(t?.purchaseTotal ?? 0)} icon="ShoppingBag" accent="solar" index={0} />
+        <StatCard label="Paid to Suppliers" value={pkr(t?.purchasePaid ?? 0)} icon="Wallet" accent="cyan" index={1} />
+        <StatCard label="Supplier Payables" value={pkr(t?.payable ?? 0)} icon="AlertCircle" accent="red" index={2} />
+        <StatCard label="Gross Profit" value={pkr(t?.grossProfit ?? 0)} icon="TrendingUp" accent="energy" index={3} />
+      </div>
+
       {/* cost-coverage caveat so the numbers are honest */}
       {t != null && t.approvedInvoices > 0 && t.costCoverage < 1 && (
         <Card className="mt-4 border-amber-400/30 bg-amber-400/[0.06] p-3 text-xs text-amber-200/90">

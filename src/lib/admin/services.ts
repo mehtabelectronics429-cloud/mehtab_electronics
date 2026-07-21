@@ -90,6 +90,27 @@ export const api = {
   archiveCategory: (id: string) =>
     request<{ ok: boolean }>(`/api/categories/${id}`, { method: "DELETE" }),
 
+  purchases: (params?: ListParams) =>
+    request<Paginated<import("./types").Purchase>>(`/api/purchases${qs(params)}`),
+  createPurchase: (body: Record<string, unknown>) =>
+    request<import("./types").Purchase>("/api/purchases", { method: "POST", body: JSON.stringify(body) }),
+  payPurchase: (id: string, amount: number) =>
+    request<import("./types").Purchase>(`/api/purchases/${id}`, { method: "PATCH", body: JSON.stringify({ amount }) }),
+  archivePurchase: (id: string) =>
+    request<{ ok: boolean }>(`/api/purchases/${id}`, { method: "DELETE" }),
+
+  createSale: (body: Record<string, unknown>) =>
+    request<import("./types").Invoice & { balance: number }>("/api/pos", { method: "POST", body: JSON.stringify(body) }),
+
+  suppliers: (params?: ListParams) =>
+    request<Paginated<import("./types").Supplier>>(`/api/suppliers${qs(params)}`),
+  createSupplier: (body: Partial<import("./types").Supplier>) =>
+    request<import("./types").Supplier>("/api/suppliers", { method: "POST", body: JSON.stringify(body) }),
+  updateSupplier: (id: string, body: Partial<import("./types").Supplier>) =>
+    request<import("./types").Supplier>(`/api/suppliers/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  archiveSupplier: (id: string) =>
+    request<{ ok: boolean }>(`/api/suppliers/${id}`, { method: "DELETE" }),
+
   materials: (params?: ListParams) =>
     request<Paginated<import("./types").Material>>(`/api/materials${qs(params)}`),
   getMaterial: (id: string) => request<import("./types").Material>(`/api/materials/${id}`),
