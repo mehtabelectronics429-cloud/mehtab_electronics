@@ -13,6 +13,8 @@ export interface IProduct {
   stock: number;
   description: string;
   image?: string;
+  features?: string;
+  highlights?: string;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -30,11 +32,16 @@ const schema = new Schema<IProduct>(
     stock: { type: Number, default: 0, min: 0 },
     description: { type: String, default: "" },
     image: { type: String, default: "" },
+    features: { type: String, default: "" },
+    highlights: { type: String, default: "" },
     deletedAt: { type: Date, default: null, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 schema.index({ brand: "text", model: "text", sku: "text", category: "text" });
 
-export const Product: Model<IProduct> = registerModel<IProduct>("Product", schema);
+export const Product: Model<IProduct> = registerModel<IProduct>(
+  "Product",
+  schema,
+);

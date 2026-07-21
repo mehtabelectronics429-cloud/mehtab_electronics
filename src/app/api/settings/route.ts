@@ -1,8 +1,17 @@
 import { Settings } from "@/lib/db/models/Settings";
-import { requireCap, json, errorResponse, serializeDoc, ApiError } from "@/lib/api/http";
+import {
+  requireCap,
+  json,
+  errorResponse,
+  serializeDoc,
+  ApiError,
+} from "@/lib/api/http";
 import { settingsInput } from "@/lib/api/schemas";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET() {
   try {
@@ -25,7 +34,7 @@ export async function PUT(req: Request) {
     const doc = await Settings.findOneAndUpdate(
       { key: body.key, ...notDeleted },
       { key: body.key, value: body.value, deletedAt: null },
-      { upsert: true, returnDocument: 'after' }
+      { upsert: true, returnDocument: "after" },
     );
     return json(serializeDoc(doc));
   } catch (err) {

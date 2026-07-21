@@ -43,6 +43,8 @@ export const productInput = z.object({
   stock: z.coerce.number().int().min(0).optional(),
   description: z.string().optional(),
   image: z.string().url().optional().or(z.literal("")),
+  features: z.string().optional(),
+  highlights: z.string().optional(),
 });
 
 export const categoryInput = z.object({
@@ -141,7 +143,15 @@ export const installationInput = z.object({
   employeeIds: z.array(z.string().min(1)).optional(),
   type: z.string().min(2),
   status: z
-    .enum(["pending", "assigned", "in_progress", "submitted", "approved", "rejected", "completed"])
+    .enum([
+      "pending",
+      "assigned",
+      "in_progress",
+      "submitted",
+      "approved",
+      "rejected",
+      "completed",
+    ])
     .optional(),
   date: z.string().or(z.date()),
   amount: z.number().min(0).optional(),

@@ -6,12 +6,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Archive } from "lucide-react";
+import { Plus, Pencil, Archive, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
+import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
 import { api } from "@/lib/admin/services";
 import type { Material } from "@/lib/admin/types";
 
@@ -32,21 +33,37 @@ type Form = z.infer<typeof schema>;
 export default function MaterialsPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Material | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Material | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["materials", page],
-    queryFn: () => api.materials({ page, limit: 20 }),
+    queryKey: ["materials", page, q],
+    queryFn: () => api.materials({ page, limit: 20, q: q || undefined }),
   });
 
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<Form>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<Form>({
     resolver: zodResolver(schema),
   });
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: "", unit: "pcs", opening: 0, issued: 0, used: 0, returned: 0, damaged: 0, reorder: 0 });
+    reset({
+      name: "",
+      unit: "pcs",
+      opening: 0,
+      issued: 0,
+      used: 0,
+      returned: 0,
+      damaged: 0,
+      reorder: 0,
+    });
     setOpen(true);
   };
   const openEdit = (m: Material) => {
@@ -56,7 +73,8 @@ export default function MaterialsPage() {
   };
 
   const save = useMutation({
-    mutationFn: (form: Form) => (editing ? api.updateMaterial(editing.id, form) : api.createMaterial(form)),
+    mutationFn: (form: Form) =>
+      editing ? api.updateMaterial(editing.id, form) : api.createMaterial(form),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["materials"] });
       setOpen(false);
@@ -79,7 +97,8 @@ export default function MaterialsPage() {
       header: "Material",
       cell: (i) => (
         <span className="font-medium text-white">
-          {i.row.original.name} <span className="text-white/40">({i.row.original.unit})</span>
+          {i.row.original.name}{" "}
+          <span className="text-white/40">({i.row.original.unit})</span>
         </span>
       ),
     },
@@ -91,16 +110,22 @@ export default function MaterialsPage() {
     {
       id: "available",
       header: "Available",
-      cell: (i) => <span className="font-medium text-white">{avail(i.row.original)}</span>,
+      cell: (i) => (
+        <span className="font-medium text-white">{avail(i.row.original)}</span>
+      ),
     },
     {
       id: "status",
       header: "Status",
       cell: (i) =>
         avail(i.row.original) <= i.row.original.reorder ? (
-          <Badge className="border-red-400/30 bg-red-400/10 text-red-300">Low stock</Badge>
+          <Badge className="border-red-400/30 bg-red-400/10 text-red-300">
+            Low stock
+          </Badge>
         ) : (
-          <Badge className="border-emerald-400/30 bg-emerald-400/10 text-emerald-300">OK</Badge>
+          <Badge className="border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+            OK
+          </Badge>
         ),
     },
     {
@@ -120,7 +145,7 @@ export default function MaterialsPage() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              archive.mutate(i.row.original.id);
+              setPendingDelete(i.row.original);
             }}
             className="grid h-8 w-8 place-items-center rounded-lg text-white/50 hover:bg-red-500/10 hover:text-red-300"
           >
@@ -142,6 +167,20 @@ export default function MaterialsPage() {
           </Button>
         }
       />
+      <div className="mb-4 max-w-xs">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Input
+            value={q}
+            onChange={(e) => {
+              setPage(1);
+              setQ(e.target.value);
+            }}
+            placeholder="Search materials…"
+            className="pl-9"
+          />
+        </div>
+      </div>
       <DataTable
         columns={columns}
         data={data?.items ?? []}
@@ -151,11 +190,37 @@ export default function MaterialsPage() {
         totalPages={data?.totalPages}
         total={data?.total}
         onPageChange={setPage}
-        empty={{ title: "No materials tracked" }}
+        empty={{
+          title: "No materials tracked",
+          body: q
+            ? "Try a different keyword"
+            : "Track the first material to keep stock accurate.",
+        }}
       />
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit material" : "Add material"} wide>
-        <form onSubmit={handleSubmit((d) => save.mutate(d))} className="grid gap-4 sm:grid-cols-2">
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Archive material"
+        message={`Archive ${pendingDelete?.name}? It will be removed from active stock tracking.`}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          archive.mutate(pendingDelete.id, {
+            onSuccess: () => setPendingDelete(null),
+          });
+        }}
+      />
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editing ? "Edit material" : "Add material"}
+        wide
+      >
+        <form
+          onSubmit={handleSubmit((d) => save.mutate(d))}
+          className="grid gap-4 sm:grid-cols-2"
+        >
           <div>
             <Label>Name</Label>
             <Input {...register("name")} />
@@ -164,14 +229,27 @@ export default function MaterialsPage() {
             <Label>Unit</Label>
             <Input {...register("unit")} />
           </div>
-          {(["opening", "issued", "used", "returned", "damaged", "reorder"] as const).map((f) => (
+          {(
+            [
+              "opening",
+              "issued",
+              "used",
+              "returned",
+              "damaged",
+              "reorder",
+            ] as const
+          ).map((f) => (
             <div key={f}>
               <Label className="capitalize">{f}</Label>
               <Input type="number" {...register(f)} />
             </div>
           ))}
           <div className="sm:col-span-2 flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setOpen(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting || save.isPending}>

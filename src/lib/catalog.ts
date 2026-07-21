@@ -16,6 +16,8 @@ export type CatalogItem = {
   stock: number;
   description: string;
   image?: string;
+  features?: string;
+  highlights?: string;
 };
 
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -43,12 +45,24 @@ export function toMarketingProduct(item: CatalogItem): Product {
     const w = item.warranty.trim();
     specs.push(/warranty/i.test(w) ? w : `${w} warranty`);
   }
-  if (item.stock > 0) specs.push(item.stock <= 5 ? "Limited stock" : "In stock");
+  if (item.stock > 0)
+    specs.push(item.stock <= 5 ? "Limited stock" : "In stock");
   else specs.push("Inquire availability");
 
   let badge: string | undefined;
   if (item.stock > 0 && item.stock <= 5) badge = "Limited";
   else if (item.stock > 5) badge = "In stock";
+
+  const features = (item.features || "")
+    .split(/\n|,/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const highlights = (item.highlights || "")
+    .split(/\n|,/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
 
   return {
     id: item.id,
@@ -62,6 +76,8 @@ export function toMarketingProduct(item: CatalogItem): Product {
     specs: specs.slice(0, 4),
     image: item.image?.trim() || categoryImage(item.category),
     badge,
+    features,
+    highlights,
   };
 }
 
@@ -75,6 +91,8 @@ function serializeCatalog(doc: {
   stock?: number;
   description?: string;
   image?: string;
+  features?: string;
+  highlights?: string;
 }): CatalogItem {
   return {
     id: String(doc._id),
@@ -86,6 +104,8 @@ function serializeCatalog(doc: {
     stock: Number(doc.stock ?? 0),
     description: doc.description ?? "",
     image: doc.image,
+    features: doc.features ?? "",
+    highlights: doc.highlights ?? "",
   };
 }
 
@@ -100,9 +120,24 @@ export async function getCatalogProducts(opts?: {
     filter.category = opts.category;
   }
   const docs = await ProductModel.find(filter)
-    .select("category brand model sellingPrice warranty stock description image")
+    .select(
+      "category brand model sellingPrice warranty stock description image features highlights",
+    )
     .sort("-createdAt")
     .limit(opts?.limit ?? 200)
     .lean();
   return docs.map(serializeCatalog);
+}
+
+export async function getCatalogProductById(
+  id: string,
+): Promise<CatalogItem | null> {
+  await connectMongo();
+  const doc = await ProductModel.findOne({ _id: id, ...notDeleted })
+    .select(
+      "category brand model sellingPrice warranty stock description image features highlights",
+    )
+    .lean();
+  if (!doc) return null;
+  return serializeCatalog(doc);
 }

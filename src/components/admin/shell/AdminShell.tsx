@@ -13,12 +13,22 @@ import { NAV } from "@/lib/admin/nav";
 import { can } from "@/lib/admin/permissions";
 import { cn } from "@/lib/utils";
 
-function CommandMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+function CommandMenu({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const { user } = useAuth();
   const [q, setQ] = useState("");
   const items = user
-    ? NAV.filter((n) => can(user.role, n.cap) && n.label.toLowerCase().includes(q.toLowerCase()))
+    ? NAV.filter(
+        (n) =>
+          can(user.role, n.cap) &&
+          n.label.toLowerCase().includes(q.toLowerCase()),
+      )
     : [];
   useEffect(() => {
     if (!open) setQ("");
@@ -32,7 +42,10 @@ function CommandMenu({ open, onClose }: { open: boolean; onClose: () => void }) 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={onClose}
+          />
           <motion.div
             initial={{ opacity: 0, y: -16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -48,11 +61,15 @@ function CommandMenu({ open, onClose }: { open: boolean; onClose: () => void }) 
                 placeholder="Search pages…"
                 className="h-12 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"
               />
-              <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[0.6rem] text-white/40">ESC</kbd>
+              <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[0.6rem] text-white/40">
+                ESC
+              </kbd>
             </div>
             <div className="max-h-72 overflow-y-auto p-2">
               {items.length === 0 ? (
-                <div className="px-3 py-6 text-center text-sm text-white/40">No results</div>
+                <div className="px-3 py-6 text-center text-sm text-white/40">
+                  No results
+                </div>
               ) : (
                 items.map((it) => (
                   <button
@@ -63,7 +80,8 @@ function CommandMenu({ open, onClose }: { open: boolean; onClose: () => void }) 
                     }}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/70 hover:bg-white/5 hover:text-white"
                   >
-                    <Icon name={it.icon} className="h-4 w-4 text-white/40" /> {it.label}
+                    <Icon name={it.icon} className="h-4 w-4 text-white/40" />{" "}
+                    {it.label}
                   </button>
                 ))
               )}
@@ -75,7 +93,11 @@ function CommandMenu({ open, onClose }: { open: boolean; onClose: () => void }) 
   );
 }
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -116,22 +138,29 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="min-h-screen cursor-auto bg-[#06070d] text-white">
+    <div className="flex min-h-screen flex-col overflow-hidden bg-[#06070d] text-white">
       <Sidebar />
-      <div className={cn("transition-[padding] duration-300", collapsed ? "lg:pl-[76px]" : "lg:pl-64")}>
+      <div
+        className={cn(
+          "flex min-h-screen flex-1 flex-col transition-[padding] duration-300",
+          collapsed ? "lg:pl-[76px]" : "lg:pl-64",
+        )}
+      >
         <Topbar onSearch={() => setCmd(true)} />
-        <main className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={pathname}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </main>
       </div>
       <CommandMenu open={cmd} onClose={() => setCmd(false)} />

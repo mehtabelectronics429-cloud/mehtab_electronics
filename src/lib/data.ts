@@ -528,6 +528,8 @@ export type Product = {
   specs: string[];
   image: string;
   badge?: string;
+  features?: string[];
+  highlights?: string[];
 };
 
 export const PRODUCT_CATEGORIES = [

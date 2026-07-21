@@ -8,6 +8,9 @@ import { can } from "@/lib/admin/permissions";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function GET() {
   try {
     const user = await requireUser();
@@ -15,7 +18,12 @@ export async function GET() {
 
     const employeeFilter =
       !can(user.role, "installations.view.all") && user.employeeId
-        ? { $or: [{ employeeId: user.employeeId }, { employeeIds: user.employeeId }] }
+        ? {
+            $or: [
+              { employeeId: user.employeeId },
+              { employeeIds: user.employeeId },
+            ],
+          }
         : {};
 
     const today = new Date();
@@ -31,18 +39,34 @@ export async function GET() {
       pendingWhatsapp,
       activity,
     ] = await Promise.all([
-      Installation.countDocuments({ ...notDeleted, ...employeeFilter, date: { $gte: today } }),
+      Installation.countDocuments({
+        ...notDeleted,
+        ...employeeFilter,
+        date: { $gte: today },
+      }),
       Installation.countDocuments({
         ...notDeleted,
         ...employeeFilter,
         status: { $in: ["pending", "assigned", "in_progress"] },
       }),
-      Installation.countDocuments({ ...notDeleted, ...employeeFilter, status: "completed" }),
+      Installation.countDocuments({
+        ...notDeleted,
+        ...employeeFilter,
+        status: "completed",
+      }),
       Installation.countDocuments({ ...notDeleted, status: "submitted" }),
-      Invoice.find({ ...notDeleted }).select("amount cost paid status").lean(),
+      Invoice.find({ ...notDeleted })
+        .select("amount cost paid status")
+        .lean(),
       Product.countDocuments({ ...notDeleted, stock: { $lte: 5 } }),
-      WhatsAppMessage.countDocuments({ ...notDeleted, status: { $in: ["queued", "failed"] } }),
-      Activity.find({ ...notDeleted }).sort({ at: -1 }).limit(10).lean(),
+      WhatsAppMessage.countDocuments({
+        ...notDeleted,
+        status: { $in: ["queued", "failed"] },
+      }),
+      Activity.find({ ...notDeleted })
+        .sort({ at: -1 })
+        .limit(10)
+        .lean(),
     ]);
 
     const approved = invoices.filter((i) => i.status === "approved");
@@ -52,7 +76,10 @@ export async function GET() {
     const profit = revenue - cost;
     const margin = revenue > 0 ? profit / revenue : 0;
     const collected = invoices.reduce((s, i) => s + (i.paid || 0), 0);
-    const outstanding = invoices.reduce((s, i) => s + Math.max(0, (i.amount || 0) - (i.paid || 0)), 0);
+    const outstanding = invoices.reduce(
+      (s, i) => s + Math.max(0, (i.amount || 0) - (i.paid || 0)),
+      0,
+    );
 
     return json({
       kpis: {

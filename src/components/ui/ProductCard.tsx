@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { MessageCircle } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 import TiltCard from "./TiltCard";
 import SmartImage from "./SmartImage";
 import { productInquiry } from "@/lib/whatsapp";
@@ -25,10 +26,10 @@ export default function ProductCard({
         ease: [0.16, 1, 0.3, 1],
       }}
     >
-      <TiltCard intensity={7} className="group relative h-full">
-        <div className="animated-border flex h-full flex-col overflow-hidden rounded-[1.75rem] glass transition-shadow duration-500 hover:shadow-glow">
+      <TiltCard intensity={6} className="group relative h-full">
+        <div className="animated-border flex h-full flex-col overflow-hidden rounded-[1.6rem] glass transition-shadow duration-500 hover:shadow-glow">
           {/* floating image */}
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[1.4rem] bg-gradient-to-br from-steel to-obsidian [transform:translateZ(30px)]">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[1.2rem] bg-gradient-to-br from-steel to-obsidian [transform:translateZ(30px)]">
             <SmartImage
               src={product.image}
               alt={product.name}
@@ -45,7 +46,7 @@ export default function ProductCard({
             )}
           </div>
 
-          <div className="flex flex-1 flex-col p-6">
+          <div className="flex flex-1 flex-col p-5">
             <div className="flex items-start justify-between gap-3">
               <h3 className="font-display text-base leading-snug text-fg">
                 {product.name}
@@ -69,18 +70,22 @@ export default function ProductCard({
               ))}
             </div>
 
-            {/* {product.price && (
-              <p className="mt-5 font-mono text-sm tracking-wide text-cyan">{product.price}</p>
-            )} */}
-            {/* adjfkdjf */}
-            <a
-              href={productInquiry(product)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="sheen mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-3 text-sm font-medium text-[#052e16] shadow-[0_0_40px_-14px_rgba(37,211,102,0.9)] transition-transform duration-300 hover:scale-[1.03]"
-            >
-              <MessageCircle className="h-4 w-4" /> Inquire on WhatsApp
-            </a>
+            <div className="mt-4 flex items-center gap-2">
+              <Link
+                href={`/products/${product.category.toLowerCase().replace(/\s+/g, "-")}/${product.id}`}
+                className="inline-flex items-center gap-2 text-sm font-medium text-cyan transition-colors hover:text-electric"
+              >
+                View details <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <a
+                href={productInquiry(product)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-3.5 py-2 text-xs font-medium text-[#052e16] shadow-[0_0_40px_-14px_rgba(37,211,102,0.9)] transition-transform duration-300 hover:scale-[1.03]"
+              >
+                <MessageCircle className="h-4 w-4" /> Enquire
+              </a>
+            </div>
           </div>
         </div>
       </TiltCard>

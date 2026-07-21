@@ -1,11 +1,27 @@
 export type Role = "admin" | "manager" | "cashier" | "technician" | "employee";
 
 /** Employee categories that map to a permission role. */
-export const EMPLOYEE_ROLES: { value: Exclude<Role, "employee">; label: string; desc: string }[] = [
+export const EMPLOYEE_ROLES: {
+  value: Exclude<Role, "employee">;
+  label: string;
+  desc: string;
+}[] = [
   { value: "admin", label: "Admin", desc: "Full access to everything" },
-  { value: "manager", label: "Manager", desc: "Operations, sales & reports (no settings)" },
-  { value: "cashier", label: "Cashier", desc: "POS sales, customers, suppliers & billing" },
-  { value: "technician", label: "Technician", desc: "Installations, materials & own jobs" },
+  {
+    value: "manager",
+    label: "Manager",
+    desc: "Operations, sales & reports (no settings)",
+  },
+  {
+    value: "cashier",
+    label: "Cashier",
+    desc: "POS sales, customers, suppliers & billing",
+  },
+  {
+    value: "technician",
+    label: "Technician",
+    desc: "Installations, materials & own jobs",
+  },
 ];
 
 export interface User {
@@ -19,7 +35,13 @@ export interface User {
 }
 
 export type InstallationStatus =
-  | "pending" | "assigned" | "in_progress" | "submitted" | "approved" | "rejected" | "completed";
+  | "pending"
+  | "assigned"
+  | "in_progress"
+  | "submitted"
+  | "approved"
+  | "rejected"
+  | "completed";
 
 export type InvoiceStatus = "draft" | "pending" | "approved" | "rejected";
 
@@ -63,6 +85,8 @@ export interface Product {
   stock: number;
   description?: string;
   image?: string;
+  features?: string;
+  highlights?: string;
 }
 
 export interface Category {
@@ -92,7 +116,12 @@ export interface Purchase {
   supplierId?: string | null;
   supplier?: string;
   supplierInvoiceNo?: string;
-  items?: { productId?: string | null; name: string; qty: number; unitCost: number }[];
+  items?: {
+    productId?: string | null;
+    name: string;
+    qty: number;
+    unitCost: number;
+  }[];
   discount?: number;
   taxRate?: number;
   shipping?: number;
@@ -133,7 +162,13 @@ export interface Installation {
   amount: number;
   notes?: string;
   items?: InstallationItem[];
-  materials?: { materialId: string; name: string; unit: string; qty: number; used: number }[];
+  materials?: {
+    materialId: string;
+    name: string;
+    unit: string;
+    qty: number;
+    used: number;
+  }[];
 }
 
 export interface Invoice {
@@ -204,7 +239,14 @@ export interface ActivityItem {
   action: string;
   target: string;
   at: string;
-  kind: "install" | "invoice" | "payment" | "stock" | "customer" | "approval" | "whatsapp";
+  kind:
+    | "install"
+    | "invoice"
+    | "payment"
+    | "stock"
+    | "customer"
+    | "approval"
+    | "whatsapp";
 }
 
 export interface AppNotification {
@@ -213,7 +255,14 @@ export interface AppNotification {
   body: string;
   at: string;
   read: boolean;
-  kind: "approval" | "assigned" | "completed" | "stock" | "invoice" | "payment" | "rejected";
+  kind:
+    | "approval"
+    | "assigned"
+    | "completed"
+    | "stock"
+    | "invoice"
+    | "payment"
+    | "rejected";
 }
 
 export interface EmployeeAnalytics {
@@ -253,7 +302,13 @@ export interface Analytics {
     grossProfit: number;
   };
   byStatus: Record<string, number>;
-  months: { key: string; label: string; revenue: number; cost: number; profit: number }[];
+  months: {
+    key: string;
+    label: string;
+    revenue: number;
+    cost: number;
+    profit: number;
+  }[];
   employees: EmployeeAnalytics[];
 }
 

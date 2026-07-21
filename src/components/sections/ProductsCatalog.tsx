@@ -10,14 +10,19 @@ import { cn } from "@/lib/utils";
 
 export default function ProductsCatalog({ products }: { products: Product[] }) {
   const categories = useMemo(() => {
-    const unique = Array.from(new Set(products.map((p) => p.category).filter(Boolean))).sort();
+    const unique = Array.from(
+      new Set(products.map((p) => p.category).filter(Boolean)),
+    ).sort();
     return ["All", ...unique];
   }, [products]);
 
   const [active, setActive] = useState("All");
   const filtered = useMemo(
-    () => (active === "All" ? products : products.filter((p) => p.category === active)),
-    [active, products]
+    () =>
+      active === "All"
+        ? products
+        : products.filter((p) => p.category === active),
+    [active, products],
   );
 
   if (products.length === 0) {
@@ -25,11 +30,13 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
       <section className="relative mx-auto max-w-3xl px-6 py-24 text-center md:px-8">
         <p className="font-display text-2xl text-fg">Catalogue updating</p>
         <p className="mt-3 text-sm leading-relaxed text-fg/60">
-          New stock is being published from our warehouse. Reach out on WhatsApp for current
-          availability and a quote.
+          New stock is being published from our warehouse. Reach out on WhatsApp
+          for current availability and a quote.
         </p>
         <a
-          href={waLink("Hello,\n\nI would like to inquire about available products and pricing.")}
+          href={waLink(
+            "Hello,\n\nI would like to inquire about available products and pricing.",
+          )}
           target="_blank"
           rel="noopener noreferrer"
           className="sheen mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3 text-sm font-medium text-[#052e16]"
@@ -50,7 +57,9 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
             onClick={() => setActive(c)}
             className={cn(
               "relative rounded-full px-4 py-2 text-sm transition-colors duration-300",
-              c === active ? "text-obsidian" : "text-fg/65 glass hairline hover:text-fg"
+              c === active
+                ? "text-obsidian"
+                : "text-fg/65 glass hairline hover:text-fg",
             )}
           >
             {c === active && (
@@ -65,7 +74,7 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
         ))}
       </div>
 
-      <motion.div layout className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.div layout className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <AnimatePresence mode="popLayout">
           {filtered.map((p, i) => (
             <motion.div
@@ -83,7 +92,9 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
       </motion.div>
 
       {filtered.length === 0 && (
-        <p className="mt-10 text-center text-sm text-fg/50">No products in this category yet.</p>
+        <p className="mt-10 text-center text-sm text-fg/50">
+          No products in this category yet.
+        </p>
       )}
     </section>
   );

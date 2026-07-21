@@ -6,12 +6,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Archive } from "lucide-react";
+import { Plus, Pencil, Archive, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
+import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
 import { api } from "@/lib/admin/services";
 import type { Category } from "@/lib/admin/types";
 
@@ -26,15 +27,19 @@ type Form = z.infer<typeof schema>;
 export default function CategoriesPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["categories", page],
-    queryFn: () => api.categories({ page, limit: 50 }),
+    queryKey: ["categories", page, q],
+    queryFn: () => api.categories({ page, limit: 50, q: q || undefined }),
   });
 
-  const { register, handleSubmit, reset, getValues } = useForm<Form>({ resolver: zodResolver(schema) });
+  const { register, handleSubmit, reset, getValues } = useForm<Form>({
+    resolver: zodResolver(schema),
+  });
 
   const openCreate = () => {
     setEditing(null);
@@ -43,12 +48,18 @@ export default function CategoriesPage() {
   };
   const openEdit = (c: Category) => {
     setEditing(c);
-    reset({ name: c.name, image: c.image ?? "", description: c.description ?? "", order: c.order ?? 0 });
+    reset({
+      name: c.name,
+      image: c.image ?? "",
+      description: c.description ?? "",
+      order: c.order ?? 0,
+    });
     setOpen(true);
   };
 
   const save = useMutation({
-    mutationFn: (form: Form) => (editing ? api.updateCategory(editing.id, form) : api.createCategory(form)),
+    mutationFn: (form: Form) =>
+      editing ? api.updateCategory(editing.id, form) : api.createCategory(form),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["categories"] });
       setOpen(false);
@@ -73,7 +84,11 @@ export default function CategoriesPage() {
         <div className="flex items-center gap-3">
           {i.row.original.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={i.row.original.image} alt="" className="h-9 w-9 rounded-md object-cover" />
+            <img
+              src={i.row.original.image}
+              alt=""
+              className="h-9 w-9 rounded-md object-cover"
+            />
           ) : (
             <div className="h-9 w-9 rounded-md bg-white/10" />
           )}
@@ -84,21 +99,39 @@ export default function CategoriesPage() {
         </div>
       ),
     },
-    { accessorKey: "description", header: "Description", cell: (i) => <span className="text-white/60">{i.getValue<string>() || "—"}</span> },
-    { accessorKey: "order", header: "Order", cell: (i) => <span className="text-white/70">{i.getValue<number>() ?? 0}</span> },
+    {
+      accessorKey: "description",
+      header: "Description",
+      cell: (i) => (
+        <span className="text-white/60">{i.getValue<string>() || "—"}</span>
+      ),
+    },
+    {
+      accessorKey: "order",
+      header: "Order",
+      cell: (i) => (
+        <span className="text-white/70">{i.getValue<number>() ?? 0}</span>
+      ),
+    },
     {
       id: "actions",
       header: "",
       cell: (i) => (
         <div className="flex justify-end gap-1">
           <button
-            onClick={(e) => { e.stopPropagation(); openEdit(i.row.original); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(i.row.original);
+            }}
             className="grid h-8 w-8 place-items-center rounded-lg text-white/50 hover:bg-white/10"
           >
             <Pencil className="h-4 w-4" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); archive.mutate(i.row.original.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setPendingDelete(i.row.original);
+            }}
             className="grid h-8 w-8 place-items-center rounded-lg text-white/50 hover:bg-red-500/10 hover:text-red-300"
           >
             <Archive className="h-4 w-4" />
@@ -119,6 +152,20 @@ export default function CategoriesPage() {
           </Button>
         }
       />
+      <div className="mb-4">
+        <div className="relative max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Input
+            value={q}
+            onChange={(e) => {
+              setPage(1);
+              setQ(e.target.value);
+            }}
+            placeholder="Search categories…"
+            className="pl-9"
+          />
+        </div>
+      </div>
       <DataTable
         columns={columns}
         data={data?.items ?? []}
@@ -128,18 +175,46 @@ export default function CategoriesPage() {
         totalPages={data?.totalPages}
         total={data?.total}
         onPageChange={setPage}
-        empty={{ title: "No categories yet", subtitle: "Add your first category to organise products." }}
+        empty={{
+          title: "No categories yet",
+          body: q
+            ? "Try a different keyword"
+            : "Add your first category to organise products.",
+        }}
       />
 
-      <Modal open={open} onClose={() => setOpen(false)} title={editing ? "Edit category" : "Add category"}>
-        <form onSubmit={handleSubmit((d) => save.mutate(d))} className="grid gap-4">
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title="Archive category"
+        message={`Archive ${pendingDelete?.name}? Products in this category will no longer appear as active options.`}
+        onClose={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          archive.mutate(pendingDelete.id, {
+            onSuccess: () => setPendingDelete(null),
+          });
+        }}
+      />
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={editing ? "Edit category" : "Add category"}
+      >
+        <form
+          onSubmit={handleSubmit((d) => save.mutate(d))}
+          className="grid gap-4"
+        >
           <div>
             <Label>Name</Label>
             <Input {...register("name")} placeholder="e.g. Solar Panels" />
           </div>
           <div>
             <Label>Description</Label>
-            <Input {...register("description")} placeholder="Short line shown under the category" />
+            <Input
+              {...register("description")}
+              placeholder="Short line shown under the category"
+            />
           </div>
           <div>
             <Label>Display order</Label>
@@ -148,7 +223,10 @@ export default function CategoriesPage() {
           <div>
             <Label>Category image</Label>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Input {...register("image")} placeholder="https://… or /images/…" />
+              <Input
+                {...register("image")}
+                placeholder="https://… or /images/…"
+              />
               <Button
                 type="button"
                 variant="secondary"
@@ -163,13 +241,20 @@ export default function CategoriesPage() {
                     const formData = new FormData();
                     formData.set("file", file);
                     try {
-                      const res = await fetch("/api/products/upload", { method: "POST", body: formData });
+                      const res = await fetch("/api/products/upload", {
+                        method: "POST",
+                        body: formData,
+                      });
                       const d = await res.json();
                       if (!res.ok) throw new Error(d.error || "Upload failed");
                       reset({ ...getValues(), image: d.url });
                       toast.success("Image uploaded");
                     } catch (error) {
-                      toast.error(error instanceof Error ? error.message : "Upload failed");
+                      toast.error(
+                        error instanceof Error
+                          ? error.message
+                          : "Upload failed",
+                      );
                     }
                   };
                 }}
@@ -179,8 +264,16 @@ export default function CategoriesPage() {
             </div>
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? "Saving…" : "Save"}</Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={save.isPending}>
+              {save.isPending ? "Saving…" : "Save"}
+            </Button>
           </div>
         </form>
       </Modal>

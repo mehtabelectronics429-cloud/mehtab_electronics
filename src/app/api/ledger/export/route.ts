@@ -6,11 +6,17 @@ import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 /** Download ledger as CSV (optionally filtered by customerId). */
 export async function GET(req: Request) {
   try {
     const user = await requireUser();
-    if (!can(user.role, "ledger.view.all") && !can(user.role, "ledger.view.own")) {
+    if (
+      !can(user.role, "ledger.view.all") &&
+      !can(user.role, "ledger.view.own")
+    ) {
       throw new ApiError(403, "Forbidden");
     }
     await connectMongo();
@@ -21,12 +27,16 @@ export async function GET(req: Request) {
 
     const ownIds = await ownCustomerIdList(user);
     if (isOwnScope(ownIds)) {
-      if (customerId && !ownIds.includes(customerId)) throw new ApiError(403, "Forbidden");
+      if (customerId && !ownIds.includes(customerId))
+        throw new ApiError(403, "Forbidden");
       filter.customerId = customerId || { $in: ownIds };
     }
 
     const [entries, customer] = await Promise.all([
-      LedgerEntry.find(filter).populate("customerId", "name").sort({ date: 1 }).lean(),
+      LedgerEntry.find(filter)
+        .populate("customerId", "name")
+        .sort({ date: 1 })
+        .lean(),
       customerId ? Customer.findById(customerId).lean() : null,
     ]);
 
@@ -34,12 +44,21 @@ export async function GET(req: Request) {
       ["Date", "Customer", "Type", "Amount", "Status", "Note"].join(","),
       ...entries.map((e) => {
         const name =
-          e.customerId && typeof e.customerId === "object" && "name" in e.customerId
+          e.customerId &&
+          typeof e.customerId === "object" &&
+          "name" in e.customerId
             ? String((e.customerId as { name: string }).name)
             : "";
         const date = new Date(e.date).toISOString().slice(0, 10);
         const note = String(e.note || "").replace(/"/g, '""');
-        return [date, `"${name}"`, e.type, e.amount, e.status, `"${note}"`].join(",");
+        return [
+          date,
+          `"${name}"`,
+          e.type,
+          e.amount,
+          e.status,
+          `"${note}"`,
+        ].join(",");
       }),
     ];
 
