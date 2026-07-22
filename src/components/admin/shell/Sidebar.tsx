@@ -36,14 +36,14 @@ export default function Sidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-white/10 bg-[#080a12]/95 backdrop-blur-xl transition-[width,transform] duration-300",
+          "fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-white/10 bg-[var(--admin-bg-elevated)]/95 backdrop-blur-xl transition-[width,transform] duration-300",
           width,
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex h-16 items-center gap-2.5 px-4">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#0c0c10] ring-1 ring-white/10">
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--admin-panel)] ring-1 ring-white/10">
               <Image
                 src={LOGO_MARK}
                 alt="Mehtab Electronics"

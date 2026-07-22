@@ -15,6 +15,7 @@ import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
 import { queueWhatsAppEvent } from "@/lib/whatsapp/queue";
+import { logActivity } from "@/lib/db/logActivity";
 
 type Ctx = { params: { id: string } };
 
@@ -41,11 +42,18 @@ export async function GET(_req: Request, { params }: Ctx) {
 
 export async function PATCH(req: Request, { params }: Ctx) {
   try {
-    await requireCap("customers.manage");
+    const user = await requireCap("customers.manage");
     await connectMongo();
     const body = customerInput.partial().parse(await req.json());
     const doc = await Customer.findOneAndUpdate({ _id: params.id, ...notDeleted }, body, { returnDocument: 'after' });
     if (!doc) throw new ApiError(404, "Customer not found");
+    await logActivity({
+      actor: user.name,
+      actorId: user.id,
+      action: "updated customer",
+      target: doc.name,
+      kind: "customer",
+    });
     return json(serializeDoc(doc));
   } catch (err) {
     return errorResponse(err);

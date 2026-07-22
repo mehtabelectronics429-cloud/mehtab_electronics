@@ -7,6 +7,7 @@ import { posSaleInput } from "@/lib/api/schemas";
 import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
+import { logActivity } from "@/lib/db/logActivity";
 
 async function nextNumber() {
   const count = await Invoice.countDocuments({});
@@ -38,12 +39,27 @@ export async function POST(req: Request) {
       shipping: body.shipping,
     });
 
-    // Cost of goods (for accurate profit) from catalogue purchase prices.
+    // Validate stock and compute cost of goods from catalogue purchase prices.
     let cost = 0;
+    const stockChecks: { productId: string; name: string; qty: number; stock: number }[] = [];
     for (const it of body.items) {
       if (!it.productId) continue;
       const p = await Product.findOne({ _id: it.productId, ...notDeleted });
-      if (p) cost += (p.purchasePrice || 0) * it.qty;
+      if (!p) throw new ApiError(400, `Product not found for line "${it.description}"`);
+      if (p.stock < it.qty) {
+        throw new ApiError(
+          400,
+          `Insufficient stock for ${p.brand} ${p.model}`.trim() +
+            ` (available: ${p.stock}, requested: ${it.qty})`,
+        );
+      }
+      stockChecks.push({
+        productId: String(p._id),
+        name: `${p.brand} ${p.model}`.trim(),
+        qty: it.qty,
+        stock: p.stock,
+      });
+      cost += (p.purchasePrice || 0) * it.qty;
     }
 
     const paid = Math.min(totals.total, body.paid ?? totals.total);
@@ -66,9 +82,16 @@ export async function POST(req: Request) {
       date,
     });
 
-    // Decrement stock for catalogue items.
-    for (const it of body.items) {
-      if (it.productId) await Product.findByIdAndUpdate(it.productId, { $inc: { stock: -it.qty } });
+    // Decrement stock atomically — only if enough units remain.
+    for (const it of stockChecks) {
+      const updated = await Product.findOneAndUpdate(
+        { _id: it.productId, stock: { $gte: it.qty }, ...notDeleted },
+        { $inc: { stock: -it.qty } },
+        { returnDocument: "after" },
+      );
+      if (!updated) {
+        throw new ApiError(400, `Insufficient stock for ${it.name}`);
+      }
     }
 
     // Ledger: the sale, then the payment taken at the counter.
@@ -94,6 +117,14 @@ export async function POST(req: Request) {
         note: `POS payment for ${invoice.number}`,
       });
     }
+
+    await logActivity({
+      actor: user.name,
+      actorId: user.id,
+      action: "recorded a POS sale",
+      target: `${invoice.number} · ${customer.name}`,
+      kind: "invoice",
+    });
 
     return json({ ...serializeDoc(invoice), balance: totals.total - paid }, 201);
   } catch (err) {

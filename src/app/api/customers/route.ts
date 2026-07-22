@@ -13,6 +13,7 @@ import { can } from "@/lib/admin/permissions";
 import { customerInput } from "@/lib/api/schemas";
 import { connectMongo } from "@/lib/db/mongodb";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
+import { logActivity } from "@/lib/db/logActivity";
 
 export async function GET(req: Request) {
   try {
@@ -38,10 +39,17 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireCap("customers.manage");
+    const user = await requireCap("customers.manage");
     await connectMongo();
     const body = customerInput.parse(await req.json());
     const doc = await Customer.create(body);
+    await logActivity({
+      actor: user.name,
+      actorId: user.id,
+      action: "added customer",
+      target: doc.name,
+      kind: "customer",
+    });
     return json(serializeDoc(doc), 201);
   } catch (err) {
     return errorResponse(err);

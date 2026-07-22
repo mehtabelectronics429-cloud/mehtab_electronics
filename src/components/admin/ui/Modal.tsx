@@ -16,7 +16,7 @@ export default function Modal({ open, onClose, title, children, wide }: {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.97 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative z-10 w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border border-white/10 bg-[#0c0e16]/95 p-6 shadow-2xl backdrop-blur-xl`}
+            className={`relative z-10 w-full ${wide ? "max-w-2xl" : "max-w-md"} rounded-2xl border border-white/10 bg-[var(--admin-panel)]/95 p-6 shadow-2xl backdrop-blur-xl`}
           >
             <div className="mb-5 flex items-center justify-between">
               <h2 className="font-display text-lg font-semibold text-white">{title}</h2>

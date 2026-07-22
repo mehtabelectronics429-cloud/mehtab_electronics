@@ -14,8 +14,8 @@ import {
   Input,
   Label,
   Badge,
-  Select,
 } from "@/components/admin/ui/primitives";
+import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
@@ -147,10 +147,12 @@ function InstallationsInner() {
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { isSubmitting },
   } = useForm<Form>({
     resolver: zodResolver(schema),
   });
+  const customerId = watch("customerId") || "";
 
   const {
     register: registerCustomer,
@@ -475,14 +477,18 @@ function InstallationsInner() {
                 </div>
               </div>
             ) : (
-              <Select {...register("customerId")}>
-                <option value="">Select…</option>
-                {(customers?.items ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
+              <SearchableSelect
+                value={customerId}
+                onChange={(v) =>
+                  setValue("customerId", v, { shouldValidate: true })
+                }
+                placeholder="Select customer…"
+                options={(customers?.items ?? []).map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  searchText: `${c.name} ${c.phone || ""}`,
+                }))}
+              />
             )}
           </div>
           <div>
@@ -520,17 +526,20 @@ function InstallationsInner() {
                   key={idx}
                   className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[1.3fr_1.7fr_0.9fr_0.6fr_auto]"
                 >
-                  <Select
+                  <SearchableSelect
                     value={row.productId}
-                    onChange={(e) => pickProduct(idx, e.target.value)}
-                  >
-                    <option value="">Custom / type below…</option>
-                    {(products?.items ?? []).map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.brand} {p.model}
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(v) => pickProduct(idx, v)}
+                    placeholder="Custom / type below…"
+                    options={[
+                      { value: "", label: "Custom / type below…" },
+                      ...(products?.items ?? []).map((p) => ({
+                        value: p.id,
+                        label: `${p.brand} ${p.model}`.trim(),
+                        searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
+                      })),
+                    ]}
+                    allowClear={false}
+                  />
                   <Input
                     value={row.name}
                     onChange={(e) => setItem(idx, { name: e.target.value })}
@@ -638,24 +647,22 @@ function InstallationsInner() {
             <div className="space-y-2">
               {matRows.map((row, idx) => (
                 <div key={idx} className="flex gap-2">
-                  <Select
+                  <SearchableSelect
                     value={row.materialId}
-                    onChange={(e) =>
+                    onChange={(v) =>
                       setMatRows((rows) =>
                         rows.map((r, i) =>
-                          i === idx ? { ...r, materialId: e.target.value } : r,
+                          i === idx ? { ...r, materialId: v } : r,
                         ),
                       )
                     }
+                    placeholder="Select material…"
+                    options={(materials?.items ?? []).map((m) => ({
+                      value: m.id,
+                      label: `${m.name} (${m.unit})`,
+                    }))}
                     className="flex-1"
-                  >
-                    <option value="">Select material…</option>
-                    {(materials?.items ?? []).map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.unit})
-                      </option>
-                    ))}
-                  </Select>
+                  />
                   <Input
                     type="number"
                     className="w-24"

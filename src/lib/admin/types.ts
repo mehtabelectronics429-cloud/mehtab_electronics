@@ -130,6 +130,7 @@ export interface Purchase {
   status: "unpaid" | "partial" | "paid";
   date: string;
   notes?: string;
+  invoiceUrl?: string;
 }
 
 export interface Material {

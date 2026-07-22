@@ -17,15 +17,19 @@ cloudinary.config({
   secure: true,
 });
 
-export function uploadToCloudinary(file: Buffer, filename: string) {
+export function uploadToCloudinary(
+  file: Buffer,
+  filename: string,
+  opts?: { folder?: string; resourceType?: "image" | "raw" | "auto" },
+) {
   return new Promise<{ secure_url: string }>((resolve, reject) => {
     const publicId = filename.replace(/\.[^.]+$/, "");
     const stream = cloudinary.uploader.upload_stream(
       {
-        folder: "mehtab_electronics/products",
+        folder: opts?.folder || "mehtab_electronics/products",
         public_id: publicId,
         overwrite: true,
-        resource_type: "image",
+        resource_type: opts?.resourceType || "image",
       },
       (error, result) => {
         if (error) return reject(error);

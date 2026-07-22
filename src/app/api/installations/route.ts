@@ -19,6 +19,7 @@ import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { installationAssignedFilter } from "@/lib/api/scope";
+import { logActivity } from "@/lib/db/logActivity";
 
 async function nextRef() {
   const count = await Installation.countDocuments({});
@@ -219,6 +220,14 @@ export async function POST(req: Request) {
         note: `Invoice ${inv.number} for ${doc.ref}`,
       });
     }
+
+    await logActivity({
+      actor: user.name,
+      actorId: user.id,
+      action: "created installation",
+      target: `${doc.ref} · ${customer.name}`,
+      kind: "install",
+    });
 
     const populated = await Installation.findById(doc._id).populate(
       "customerId employeeId employeeIds invoiceId materials.materialId"

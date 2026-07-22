@@ -18,8 +18,8 @@ import {
   Card,
   Input,
   Label,
-  Select,
 } from "@/components/admin/ui/primitives";
+import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
@@ -62,13 +62,36 @@ export default function PosPage() {
       .slice(0, 24);
   }, [products, q]);
 
+  const stockOf = (productId: string | null) => {
+    if (!productId) return Infinity;
+    const p = (products?.items ?? []).find((x) => x.id === productId);
+    return p?.stock ?? 0;
+  };
+
+  const cartQtyOf = (productId: string, exceptIdx?: number) =>
+    cart.reduce(
+      (s, l, i) =>
+        l.productId === productId && i !== exceptIdx ? s + l.qty : s,
+      0,
+    );
+
   const addProduct = (id: string) => {
     const p = (products?.items ?? []).find((x) => x.id === id);
     if (!p) return;
+    if (p.stock <= 0) {
+      toast.error("Out of stock");
+      return;
+    }
     setCart((c) => {
       const idx = c.findIndex((l) => l.productId === id);
-      if (idx >= 0)
+      if (idx >= 0) {
+        const current = c[idx].qty;
+        if (current >= p.stock) {
+          toast.error(`Only ${p.stock} in stock`);
+          return c;
+        }
         return c.map((l, i) => (i === idx ? { ...l, qty: l.qty + 1 } : l));
+      }
       return [
         ...c,
         {
@@ -85,10 +108,38 @@ export default function PosPage() {
       ...c,
       { productId: null, description: "", unitPrice: 0, qty: 1 },
     ]);
-  const setLine = (idx: number, patch: Partial<CartLine>) =>
-    setCart((c) => c.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
+  const setLine = (idx: number, patch: Partial<CartLine>) => {
+    setCart((c) => {
+      const line = c[idx];
+      if (!line) return c;
+      if (patch.qty !== undefined && line.productId) {
+        const max = stockOf(line.productId);
+        if (patch.qty > max) {
+          toast.error(`Only ${max} in stock`);
+          patch = { ...patch, qty: max };
+        }
+      }
+      return c.map((l, i) => (i === idx ? { ...l, ...patch } : l));
+    });
+  };
   const removeLine = (idx: number) =>
     setCart((c) => c.filter((_, i) => i !== idx));
+
+  const bumpQty = (idx: number, delta: number) => {
+    const line = cart[idx];
+    if (!line) return;
+    const next = Math.max(0, line.qty + delta);
+    if (line.productId && delta > 0) {
+      const max = stockOf(line.productId);
+      if (line.qty >= max) {
+        toast.error(`Only ${max} in stock`);
+        return;
+      }
+      setLine(idx, { qty: Math.min(next, max) });
+      return;
+    }
+    setLine(idx, { qty: next });
+  };
 
   const totals = invoiceTotals({ items: cart, discount });
   const change = Math.max(0, (Number(received) || 0) - totals.total);
@@ -133,31 +184,42 @@ export default function PosPage() {
             />
           </div>
           <div className="mt-4 grid max-h-[62vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
-            {filtered.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => addProduct(p.id)}
-                className="rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition-colors hover:border-cyan/40 hover:bg-cyan/5"
-              >
-                <div className="line-clamp-2 text-sm font-medium text-white">
-                  {p.brand} {p.model}
-                </div>
-                <div className="mt-1 text-xs text-white/40">{p.category}</div>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-cyan">
-                    {pkr(p.sellingPrice)}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-[0.65rem]",
-                      p.stock <= 5 ? "text-red-300" : "text-white/40",
-                    )}
-                  >
-                    stock {p.stock}
-                  </span>
-                </div>
-              </button>
-            ))}
+            {filtered.map((p) => {
+              const inCart = cartQtyOf(p.id);
+              const out = p.stock <= 0;
+              const atLimit = !out && inCart >= p.stock;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => addProduct(p.id)}
+                  disabled={out || atLimit}
+                  className={cn(
+                    "rounded-xl border border-white/10 bg-white/[0.03] p-3 text-left transition-colors",
+                    out || atLimit
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:border-cyan/40 hover:bg-cyan/5",
+                  )}
+                >
+                  <div className="line-clamp-2 text-sm font-medium text-white">
+                    {p.brand} {p.model}
+                  </div>
+                  <div className="mt-1 text-xs text-white/40">{p.category}</div>
+                  <div className="mt-2 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-cyan">
+                      {pkr(p.sellingPrice)}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[0.65rem]",
+                        out || p.stock <= 5 ? "text-red-300" : "text-white/40",
+                      )}
+                    >
+                      {out ? "Out of stock" : `stock ${p.stock}`}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
             {!filtered.length && (
               <div className="col-span-full py-10 text-center text-sm text-white/40">
                 No products found.
@@ -180,17 +242,20 @@ export default function PosPage() {
 
           <div className="mb-3">
             <Label>Customer</Label>
-            <Select
+            <SearchableSelect
               value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-            >
-              <option value="">Walk-in customer</option>
-              {(customers?.items ?? []).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
+              onChange={setCustomerId}
+              placeholder="Walk-in customer"
+              options={[
+                { value: "", label: "Walk-in customer" },
+                ...(customers?.items ?? []).map((c) => ({
+                  value: c.id,
+                  label: c.name,
+                  searchText: `${c.name} ${c.phone || ""}`,
+                })),
+              ]}
+              allowClear={false}
+            />
           </div>
 
           <div className="flex-1 space-y-2 overflow-y-auto">
@@ -223,9 +288,7 @@ export default function PosPage() {
                 <div className="mt-2 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1">
                     <button
-                      onClick={() =>
-                        setLine(idx, { qty: Math.max(0, l.qty - 1) })
-                      }
+                      onClick={() => bumpQty(idx, -1)}
                       className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-white/70"
                     >
                       <Minus className="h-3 w-3" />
@@ -239,8 +302,11 @@ export default function PosPage() {
                       className="h-7 w-12 rounded-lg border border-white/10 bg-transparent text-center text-sm text-white"
                     />
                     <button
-                      onClick={() => setLine(idx, { qty: l.qty + 1 })}
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-white/70"
+                      onClick={() => bumpQty(idx, 1)}
+                      disabled={
+                        !!l.productId && l.qty >= stockOf(l.productId)
+                      }
+                      className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-white/70 disabled:opacity-40"
                     >
                       <Plus className="h-3 w-3" />
                     </button>

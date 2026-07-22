@@ -16,7 +16,11 @@ import {
   BellRing,
   Download,
   MessageCircle,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
 } from "lucide-react";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import {
@@ -55,6 +59,8 @@ export default function CustomersPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
   const [ledgerId, setLedgerId] = useState<string | null>(null);
+  const [expandedInv, setExpandedInv] = useState<string | null>(null);
+  const [expandedInst, setExpandedInst] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -373,7 +379,11 @@ export default function CustomersPage() {
 
       <Modal
         open={!!ledgerId}
-        onClose={() => setLedgerId(null)}
+        onClose={() => {
+          setLedgerId(null);
+          setExpandedInv(null);
+          setExpandedInst(null);
+        }}
         title={
           ledgerData?.customer?.name
             ? `Ledger · ${ledgerData.customer.name}`
@@ -399,7 +409,7 @@ export default function CustomersPage() {
               <div className="flex gap-2">
                 <Button
                   variant="secondary"
-                  onClick={() => api.downloadLedger(ledgerData.customer.id)}
+                  onClick={() => api.downloadLedger({ customerId: ledgerData.customer.id })}
                 >
                   <Download className="h-4 w-4" /> Download CSV
                 </Button>
@@ -445,8 +455,20 @@ export default function CustomersPage() {
                         <span className="ml-2 text-xs text-white/40">
                           {String(l.date).slice(0, 10)}
                         </span>
+                        {l.note ? (
+                          <div className="text-xs text-white/35">{l.note}</div>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-2">
+                        {l.invoiceId ? (
+                          <Link
+                            href={`/admin/billing/${l.invoiceId}`}
+                            className="text-xs text-cyan hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Invoice
+                          </Link>
+                        ) : null}
                         <span
                           className={
                             l.amount < 0 ? "text-emerald-300" : "text-white"
@@ -467,42 +489,175 @@ export default function CustomersPage() {
                 <h4 className="mb-2 text-xs uppercase tracking-wider text-white/40">
                   Installations
                 </h4>
-                <div className="max-h-40 space-y-1 overflow-y-auto">
-                  {ledgerData.installations.map((i) => (
-                    <div
-                      key={i.id}
-                      className="rounded-lg border border-white/10 px-3 py-2 text-sm"
-                    >
-                      <div className="flex justify-between">
-                        <span className="text-white">{i.ref}</span>
-                        <StatusBadge status={i.status} />
-                      </div>
-                      <div className="text-xs text-white/40">
-                        {i.type} · {i.employee} · {pkr(i.amount)}
-                      </div>
-                    </div>
-                  ))}
+                <div className="max-h-64 space-y-1 overflow-y-auto">
+                  {ledgerData.installations.length === 0 ? (
+                    <p className="text-sm text-white/40">No installations.</p>
+                  ) : (
+                    ledgerData.installations.map((i) => {
+                      const open = expandedInst === i.id;
+                      const items = i.items ?? [];
+                      const materials = i.materials ?? [];
+                      return (
+                        <div
+                          key={i.id}
+                          className="rounded-lg border border-white/10 text-sm"
+                        >
+                          <button
+                            type="button"
+                            className="flex w-full items-start justify-between gap-2 px-3 py-2 text-left hover:bg-white/[0.03]"
+                            onClick={() =>
+                              setExpandedInst(open ? null : i.id)
+                            }
+                          >
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                {open ? (
+                                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                                ) : (
+                                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                                )}
+                                <span className="text-white">{i.ref}</span>
+                              </div>
+                              <div className="pl-5 text-xs text-white/40">
+                                {i.type} · {i.employee} · {pkr(i.amount)}
+                              </div>
+                            </div>
+                            <StatusBadge status={i.status} />
+                          </button>
+                          {open && (
+                            <div className="space-y-2 border-t border-white/10 px-3 py-2">
+                              {items.length > 0 && (
+                                <div>
+                                  <div className="mb-1 text-[0.65rem] uppercase tracking-wider text-white/35">
+                                    Items
+                                  </div>
+                                  {items.map((it, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex justify-between gap-2 text-xs text-white/70"
+                                    >
+                                      <span>
+                                        {it.name} × {it.qty}
+                                      </span>
+                                      <span>
+                                        {pkr(it.qty * it.unitPrice)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {materials.length > 0 && (
+                                <div>
+                                  <div className="mb-1 text-[0.65rem] uppercase tracking-wider text-white/35">
+                                    Materials
+                                  </div>
+                                  {materials.map((m, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="text-xs text-white/70"
+                                    >
+                                      {m.name}
+                                      {m.unit ? ` (${m.unit})` : ""} · qty{" "}
+                                      {m.qty}
+                                      {m.used !== m.qty
+                                        ? ` · used ${m.used}`
+                                        : ""}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {!items.length && !materials.length && (
+                                <p className="text-xs text-white/40">
+                                  No line items recorded.
+                                </p>
+                              )}
+                              <Link
+                                href="/admin/installations"
+                                className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
+                              >
+                                <ExternalLink className="h-3 w-3" />{" "}
+                                Installations
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
               <div>
                 <h4 className="mb-2 text-xs uppercase tracking-wider text-white/40">
                   Invoices
                 </h4>
-                <div className="max-h-40 space-y-1 overflow-y-auto">
-                  {ledgerData.invoices.map((v) => (
-                    <div
-                      key={v.id}
-                      className="rounded-lg border border-white/10 px-3 py-2 text-sm"
-                    >
-                      <div className="flex justify-between">
-                        <span className="text-white">{v.number}</span>
-                        <StatusBadge status={v.status} />
-                      </div>
-                      <div className="text-xs text-white/40">
-                        {pkr(v.amount)} · paid {pkr(v.paid)}
-                      </div>
-                    </div>
-                  ))}
+                <div className="max-h-64 space-y-1 overflow-y-auto">
+                  {ledgerData.invoices.length === 0 ? (
+                    <p className="text-sm text-white/40">No invoices.</p>
+                  ) : (
+                    ledgerData.invoices.map((v) => {
+                      const open = expandedInv === v.id;
+                      const items = v.items ?? [];
+                      return (
+                        <div
+                          key={v.id}
+                          className="rounded-lg border border-white/10 text-sm"
+                        >
+                          <button
+                            type="button"
+                            className="flex w-full items-start justify-between gap-2 px-3 py-2 text-left hover:bg-white/[0.03]"
+                            onClick={() =>
+                              setExpandedInv(open ? null : v.id)
+                            }
+                          >
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                {open ? (
+                                  <ChevronDown className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                                ) : (
+                                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                                )}
+                                <span className="text-white">{v.number}</span>
+                              </div>
+                              <div className="pl-5 text-xs text-white/40">
+                                {pkr(v.amount)} · paid {pkr(v.paid)}
+                              </div>
+                            </div>
+                            <StatusBadge status={v.status} />
+                          </button>
+                          {open && (
+                            <div className="space-y-1.5 border-t border-white/10 px-3 py-2">
+                              {items.length === 0 ? (
+                                <p className="text-xs text-white/40">
+                                  No line items.
+                                </p>
+                              ) : (
+                                items.map((it, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex justify-between gap-2 text-xs text-white/70"
+                                  >
+                                    <span>
+                                      {it.description} × {it.qty}
+                                    </span>
+                                    <span>
+                                      {pkr(it.qty * it.unitPrice)}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                              <Link
+                                href={`/admin/billing/${v.id}`}
+                                className="inline-flex items-center gap-1 pt-1 text-xs text-cyan hover:underline"
+                              >
+                                <ExternalLink className="h-3 w-3" /> Open
+                                invoice
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>

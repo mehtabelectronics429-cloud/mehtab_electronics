@@ -45,7 +45,7 @@ export default function Topbar({ onSearch }: { onSearch: () => void }) {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-white/10 bg-[#06070d]/80 px-4 backdrop-blur-xl md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-3 border-b border-white/10 bg-[var(--admin-bg)]/80 px-4 backdrop-blur-xl md:px-6">
       <button
         onClick={() => setMobileOpen(true)}
         className="grid h-9 w-9 place-items-center rounded-lg text-white/60 hover:bg-white/5 lg:hidden"

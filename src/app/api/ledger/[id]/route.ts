@@ -15,6 +15,7 @@ import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
 import { queueWhatsAppEvent } from "@/lib/whatsapp/queue";
+import { logActivity } from "@/lib/db/logActivity";
 
 type Ctx = { params: { id: string } };
 
@@ -52,8 +53,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const existing = await LedgerEntry.findOne({ _id: params.id, ...notDeleted });
     if (!existing) throw new ApiError(404, "Ledger entry not found");
     const body = ledgerInput.partial().parse(await req.json());
-    if (body.status === "approved") await requireCap("ledger.approve");
-    else await requireCap("ledger.manage");
+    const user =
+      body.status === "approved"
+        ? await requireCap("ledger.approve")
+        : await requireCap("ledger.manage");
 
     const wasApproved = existing.status === "approved";
     if (body.date) body.date = new Date(body.date as string) as unknown as string;
@@ -62,6 +65,13 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
     if (!wasApproved && existing.status === "approved") {
       await Customer.findByIdAndUpdate(existing.customerId, { $inc: { balance: existing.amount } });
+      await logActivity({
+        actor: user.name,
+        actorId: user.id,
+        action: "approved ledger entry",
+        target: existing.note || `${existing.type} · ${existing.amount}`,
+        kind: "approval",
+      });
     }
 
     const populated = await LedgerEntry.findById(existing._id).populate("customerId");

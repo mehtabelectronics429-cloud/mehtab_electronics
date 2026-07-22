@@ -38,7 +38,7 @@ export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<H
       <select
         ref={ref}
         className={cn(
-          "admin-select h-10 w-full rounded-xl border border-white/10 bg-[#12151f] px-3 text-sm text-white outline-none transition focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15",
+          "admin-select h-10 w-full rounded-xl border border-white/10 bg-[var(--admin-input)] px-3 text-sm text-[var(--admin-fg)] outline-none transition focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15",
           className
         )}
         {...props}

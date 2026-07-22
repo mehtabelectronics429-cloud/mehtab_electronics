@@ -1,15 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2, Wallet } from "lucide-react";
+import { Plus, Trash2, Wallet, Upload, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
-import { Button, Input, Label, Select } from "@/components/admin/ui/primitives";
+import { Button, Input, Label } from "@/components/admin/ui/primitives";
+import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
@@ -36,7 +38,9 @@ const money = (n: number) =>
   });
 
 export default function PurchasesPage() {
+  const router = useRouter();
   const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<ItemRow[]>([
@@ -45,6 +49,8 @@ export default function PurchasesPage() {
   const [discount, setDiscount] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [paid, setPaid] = useState(0);
+  const [invoiceUrl, setInvoiceUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [payFor, setPayFor] = useState<Purchase | null>(null);
   const [payAmt, setPayAmt] = useState("");
 
@@ -67,8 +73,11 @@ export default function PurchasesPage() {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { isSubmitting },
   } = useForm<Form>({ resolver: zodResolver(schema) });
+  const supplierId = watch("supplierId") || "";
 
   const subtotal = rows.reduce((s, r) => s + (r.qty * r.unitCost || 0), 0);
   const total = useMemo(
@@ -103,7 +112,26 @@ export default function PurchasesPage() {
     setDiscount(0);
     setShipping(0);
     setPaid(0);
+    setInvoiceUrl("");
     setOpen(true);
+  };
+
+  const onInvoiceFile = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await api.uploadFile(
+        file,
+        "mehtab_electronics/purchase-invoices",
+      );
+      setInvoiceUrl(url);
+      toast.success("Invoice file ready");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
   const create = useMutation({
@@ -121,13 +149,15 @@ export default function PurchasesPage() {
         discount,
         shipping,
         paid,
+        invoiceUrl: invoiceUrl || undefined,
       }),
-    onSuccess: () => {
+    onSuccess: (doc) => {
       qc.invalidateQueries({ queryKey: ["purchases"] });
       qc.invalidateQueries({ queryKey: ["analytics"] });
       qc.invalidateQueries({ queryKey: ["suppliers"] });
       setOpen(false);
       toast.success("Purchase recorded  stock updated");
+      router.push(`/admin/purchases/${doc.id}`);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -189,19 +219,31 @@ export default function PurchasesPage() {
     {
       id: "act",
       header: "",
-      cell: (i) =>
-        i.row.original.amount - i.row.original.paid > 0 ? (
+      cell: (i) => (
+        <div className="flex items-center justify-end gap-2">
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setPayFor(i.row.original);
-              setPayAmt(String(i.row.original.amount - i.row.original.paid));
+              router.push(`/admin/purchases/${i.row.original.id}`);
             }}
-            className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs text-emerald-300"
+            className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/70 hover:bg-white/10"
           >
-            <Wallet className="h-3.5 w-3.5" /> Pay
+            <Eye className="h-3.5 w-3.5" /> View
           </button>
-        ) : null,
+          {i.row.original.amount - i.row.original.paid > 0 ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPayFor(i.row.original);
+                setPayAmt(String(i.row.original.amount - i.row.original.paid));
+              }}
+              className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-2.5 py-1 text-xs text-emerald-300"
+            >
+              <Wallet className="h-3.5 w-3.5" /> Pay
+            </button>
+          ) : null}
+        </div>
+      ),
     },
   ];
 
@@ -225,6 +267,7 @@ export default function PurchasesPage() {
         totalPages={data?.totalPages}
         total={data?.total}
         onPageChange={setPage}
+        onRowClick={(row) => router.push(`/admin/purchases/${row.id}`)}
         empty={{ title: "No purchases yet" }}
       />
 
@@ -241,14 +284,18 @@ export default function PurchasesPage() {
         >
           <div>
             <Label>Supplier</Label>
-            <Select {...register("supplierId")}>
-              <option value="">Select…</option>
-              {(suppliers?.items ?? []).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </Select>
+            <SearchableSelect
+              value={supplierId}
+              onChange={(v) =>
+                setValue("supplierId", v, { shouldValidate: true })
+              }
+              placeholder="Select supplier…"
+              options={(suppliers?.items ?? []).map((s) => ({
+                value: s.id,
+                label: s.name,
+                searchText: `${s.name} ${s.company || ""} ${s.phone || ""}`,
+              }))}
+            />
           </div>
           <div>
             <Label>Supplier invoice #</Label>
@@ -260,6 +307,40 @@ export default function PurchasesPage() {
           <div>
             <Label>Date</Label>
             <Input type="date" {...register("date")} />
+          </div>
+
+          <div className="sm:col-span-2">
+            <Label>Supplier invoice file</Label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,application/pdf"
+              className="hidden"
+              onChange={(e) => onInvoiceFile(e.target.files?.[0] ?? null)}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" />
+                {uploading ? "Uploading…" : invoiceUrl ? "Replace file" : "Upload invoice"}
+              </Button>
+              {invoiceUrl ? (
+                <a
+                  href={invoiceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs text-cyan hover:underline"
+                >
+                  Preview uploaded file
+                </a>
+              ) : (
+                <span className="text-xs text-white/40">PDF or image from supplier</span>
+              )}
+            </div>
           </div>
 
           <div className="sm:col-span-2">
@@ -284,17 +365,20 @@ export default function PurchasesPage() {
                   key={idx}
                   className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[1.3fr_1.7fr_0.9fr_0.6fr_auto]"
                 >
-                  <Select
+                  <SearchableSelect
                     value={row.productId}
-                    onChange={(e) => pickProduct(idx, e.target.value)}
-                  >
-                    <option value="">Custom / not in catalogue…</option>
-                    {(products?.items ?? []).map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.brand} {p.model}
-                      </option>
-                    ))}
-                  </Select>
+                    onChange={(v) => pickProduct(idx, v)}
+                    placeholder="Custom / not in catalogue…"
+                    options={[
+                      { value: "", label: "Custom / not in catalogue…" },
+                      ...(products?.items ?? []).map((p) => ({
+                        value: p.id,
+                        label: `${p.brand} ${p.model}`.trim(),
+                        searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
+                      })),
+                    ]}
+                    allowClear={false}
+                  />
                   <Input
                     value={row.name}
                     onChange={(e) => setRow(idx, { name: e.target.value })}

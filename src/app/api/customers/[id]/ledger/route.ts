@@ -35,6 +35,7 @@ export async function GET(_req: Request, { params }: Ctx) {
         .populate([
           { path: "employeeId", select: "name" },
           { path: "employeeIds", select: "name", strictPopulate: false },
+          { path: "materials.materialId", select: "name unit", strictPopulate: false },
         ])
         .sort({ date: -1 })
         .lean(),
@@ -68,6 +69,14 @@ export async function GET(_req: Request, { params }: Ctx) {
           i.employeeId && typeof i.employeeId === "object" && "name" in i.employeeId
             ? (i.employeeId as { name: string }).name
             : "";
+        const materials =
+          (i.materials as {
+            materialId?: { name?: string; unit?: string; _id?: unknown } | string;
+            qty?: number;
+            used?: number;
+          }[]) || [];
+        const items =
+          (i.items as { name?: string; qty?: number; unitPrice?: number }[]) || [];
         return {
           id: String(i._id),
           ref: i.ref,
@@ -76,6 +85,23 @@ export async function GET(_req: Request, { params }: Ctx) {
           amount: i.amount,
           date: i.date,
           employee: (team.length ? team : lead ? [lead] : []).join(", "),
+          items: items.map((it) => ({
+            name: it.name || "",
+            qty: it.qty || 0,
+            unitPrice: it.unitPrice || 0,
+          })),
+          materials: materials.map((m) => ({
+            name:
+              typeof m.materialId === "object" && m.materialId
+                ? m.materialId.name || ""
+                : "",
+            unit:
+              typeof m.materialId === "object" && m.materialId
+                ? m.materialId.unit || ""
+                : "",
+            qty: m.qty || 0,
+            used: m.used || 0,
+          })),
         };
       }),
       invoices: invoices.map((v) => ({
@@ -85,6 +111,13 @@ export async function GET(_req: Request, { params }: Ctx) {
         paid: v.paid,
         status: v.status,
         date: v.date,
+        items: ((v.items as { description?: string; qty?: number; unitPrice?: number }[]) || []).map(
+          (it) => ({
+            description: it.description || "",
+            qty: it.qty || 0,
+            unitPrice: it.unitPrice || 0,
+          }),
+        ),
       })),
     });
   } catch (err) {

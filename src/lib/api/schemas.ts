@@ -73,6 +73,7 @@ export const purchaseInput = z.object({
   date: z.string().or(z.date()),
   notes: z.string().optional(),
   ref: z.string().optional(),
+  invoiceUrl: z.string().url().optional().or(z.literal("")),
 });
 
 /** Record a payment against a purchase (to the supplier). */

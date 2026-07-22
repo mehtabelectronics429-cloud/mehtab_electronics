@@ -6,6 +6,7 @@ import { purchaseInput } from "@/lib/api/schemas";
 import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
+import { logActivity } from "@/lib/db/logActivity";
 
 async function nextRef() {
   const count = await Purchase.countDocuments({});
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireCap("purchases.manage");
+    const user = await requireCap("purchases.manage");
     await connectMongo();
     const body = purchaseInput.parse(await req.json());
 
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
       status,
       date: new Date(body.date),
       notes: body.notes || "",
+      invoiceUrl: body.invoiceUrl || "",
     });
 
     // Receiving stock: increment product stock and refresh the latest purchase cost.
@@ -81,6 +83,14 @@ export async function POST(req: Request) {
 
     // Increase what we owe this supplier by the unpaid balance.
     await Supplier.findByIdAndUpdate(supplier._id, { $inc: { balance: totals.total - paid } });
+
+    await logActivity({
+      actor: user.name,
+      actorId: user.id,
+      action: "created purchase",
+      target: `${doc.ref} · ${supplier.name}`,
+      kind: "stock",
+    });
 
     const populated = await Purchase.findById(doc._id).populate("supplierId");
     return json(mapPurchase(serializeDoc(populated!)), 201);

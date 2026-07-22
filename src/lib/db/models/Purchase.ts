@@ -26,6 +26,8 @@ export interface IPurchase {
   status: PurchaseStatus;
   date: Date;
   notes: string;
+  /** Cloudinary URL of the supplier invoice/bill scan. */
+  invoiceUrl: string;
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -55,6 +57,7 @@ const schema = new Schema<IPurchase>(
     status: { type: String, enum: ["unpaid", "partial", "paid"], default: "unpaid", index: true },
     date: { type: Date, required: true, index: true },
     notes: { type: String, default: "" },
+    invoiceUrl: { type: String, default: "" },
     deletedAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }

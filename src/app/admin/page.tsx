@@ -14,7 +14,6 @@ import { useAuth } from "@/lib/admin/auth";
 import { can } from "@/lib/admin/permissions";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
-import * as db from "@/lib/admin/mock-data";
 import { formatDistanceToNow } from "date-fns";
 
 const KIND_ICON: Record<string, string> = {
@@ -205,7 +204,7 @@ export default function DashboardPage() {
 
   const empStats = isCashier ? cashierStats : technicianStats;
 
-  const activity = data?.activity?.length ? data.activity : db.ACTIVITY;
+  const activity = data?.activity ?? [];
 
   return (
     <div>
@@ -268,34 +267,40 @@ export default function DashboardPage() {
                   Recent Activity
                 </h3>
                 <div className="mt-4 space-y-1">
-                  {activity.map((a, i) => (
-                    <motion.div
-                      key={a.id}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-white/5"
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/5 text-cyan ring-1 ring-white/10">
-                        <Icon
-                          name={KIND_ICON[a.kind] ?? "Dot"}
-                          className="h-4 w-4"
-                        />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-white/80">
-                          <b className="font-medium text-white">{a.actor}</b>{" "}
-                          {a.action}{" "}
-                          <b className="font-medium text-white">{a.target}</b>
-                        </p>
-                        <p className="text-xs text-white/40">
-                          {formatDistanceToNow(new Date(a.at), {
-                            addSuffix: true,
-                          })}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
+                  {activity.length === 0 ? (
+                    <p className="py-6 text-center text-sm text-white/40">
+                      No recent activity yet.
+                    </p>
+                  ) : (
+                    activity.map((a, i) => (
+                      <motion.div
+                        key={a.id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-white/5"
+                      >
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/5 text-cyan ring-1 ring-white/10">
+                          <Icon
+                            name={KIND_ICON[a.kind] ?? "Dot"}
+                            className="h-4 w-4"
+                          />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm text-white/80">
+                            <b className="font-medium text-white">{a.actor}</b>{" "}
+                            {a.action}{" "}
+                            <b className="font-medium text-white">{a.target}</b>
+                          </p>
+                          <p className="text-xs text-white/40">
+                            {formatDistanceToNow(new Date(a.at), {
+                              addSuffix: true,
+                            })}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
                 </div>
               </Card>
             </div>

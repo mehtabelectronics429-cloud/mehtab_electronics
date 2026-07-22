@@ -50,7 +50,7 @@ function CommandMenu({
             initial={{ opacity: 0, y: -16, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -16, scale: 0.98 }}
-            className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#0c0e16]/95 shadow-2xl backdrop-blur-xl"
+            className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[var(--admin-panel)]/95 shadow-2xl backdrop-blur-xl"
           >
             <div className="flex items-center gap-3 border-b border-white/10 px-4">
               <Search className="h-4 w-4 text-white/40" />
@@ -131,14 +131,14 @@ export default function AdminShell({
 
   if (loading || !user) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#06070d]">
+      <div className="grid min-h-screen place-items-center bg-[var(--admin-bg)]">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan/30 border-t-cyan" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[#06070d] text-white">
+    <div className="h-screen overflow-hidden bg-[var(--admin-bg)] text-[var(--admin-fg)]">
       {/* Fixed sidebar (out of flow); the content column is offset by its width. */}
       <Sidebar />
       <div

@@ -22,8 +22,24 @@ export async function GET(req: Request) {
     await connectMongo();
     const url = new URL(req.url);
     const customerId = url.searchParams.get("customerId");
+    const from = url.searchParams.get("from");
+    const to = url.searchParams.get("to");
     const filter: Record<string, unknown> = { ...notDeleted };
     if (customerId) filter.customerId = customerId;
+    if (from || to) {
+      const date: Record<string, Date> = {};
+      if (from) {
+        const d = new Date(from);
+        d.setHours(0, 0, 0, 0);
+        date.$gte = d;
+      }
+      if (to) {
+        const d = new Date(to);
+        d.setHours(23, 59, 59, 999);
+        date.$lte = d;
+      }
+      filter.date = date;
+    }
 
     const ownIds = await ownCustomerIdList(user);
     if (isOwnScope(ownIds)) {
@@ -63,7 +79,7 @@ export async function GET(req: Request) {
     ];
 
     const filename = customer
-      ? `ledger-${customer.name.replace(/\s+/g, "-").toLowerCase()}.csv`
+      ? `ledger-${customer.name.replace(/\s+/g, "-").toLowerCase()}${from || to ? `-${from || "start"}-to-${to || "end"}` : ""}.csv`
       : "ledger-export.csv";
 
     return new Response(rows.join("\n"), {

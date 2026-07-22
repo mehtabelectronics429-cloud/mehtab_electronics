@@ -10,7 +10,8 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { Plus, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
-import { Button, Input, Label, Select } from "@/components/admin/ui/primitives";
+import { Button, Input, Label } from "@/components/admin/ui/primitives";
+import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
@@ -49,12 +50,13 @@ export default function BillingPage() {
     enabled: open,
   });
 
-  const { register, handleSubmit, reset, watch, formState: { isSubmitting } } = useForm<Form>({
+  const { register, handleSubmit, reset, watch, setValue, formState: { isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
   });
 
   const wAmount = Number(watch("amount") || 0);
   const wCost = Number(watch("cost") || 0);
+  const customerId = watch("customerId") || "";
   const wProfit = wAmount - wCost;
   const wMargin = wAmount > 0 ? (wProfit / wAmount) * 100 : 0;
 
@@ -180,14 +182,18 @@ export default function BillingPage() {
         <form onSubmit={handleSubmit((d) => create.mutate(d))} className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label>Customer</Label>
-            <Select {...register("customerId")}>
-              <option value="">Select…</option>
-              {(customers?.items ?? []).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
+            <SearchableSelect
+              value={customerId}
+              onChange={(v) =>
+                setValue("customerId", v, { shouldValidate: true })
+              }
+              placeholder="Select customer…"
+              options={(customers?.items ?? []).map((c) => ({
+                value: c.id,
+                label: c.name,
+                searchText: `${c.name} ${c.phone || ""}`,
+              }))}
+            />
           </div>
           <div>
             <Label>Date</Label>

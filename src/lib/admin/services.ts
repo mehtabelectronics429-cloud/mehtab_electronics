@@ -73,8 +73,12 @@ export const api = {
     request<{
       customer: import("./types").Customer;
       ledger: import("./types").LedgerEntry[];
-      installations: import("./types").Installation[];
-      invoices: import("./types").Invoice[];
+      installations: (import("./types").Installation & {
+        items?: { name: string; qty: number; unitPrice: number }[];
+      })[];
+      invoices: (import("./types").Invoice & {
+        items?: { description: string; qty: number; unitPrice: number }[];
+      })[];
     }>(`/api/customers/${id}/ledger`),
   remindCustomer: (
     id: string,
@@ -151,6 +155,8 @@ export const api = {
     request<Paginated<import("./types").Purchase>>(
       `/api/purchases${qs(params)}`,
     ),
+  getPurchase: (id: string) =>
+    request<import("./types").Purchase>(`/api/purchases/${id}`),
   createPurchase: (body: Record<string, unknown>) =>
     request<import("./types").Purchase>("/api/purchases", {
       method: "POST",
@@ -161,8 +167,29 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ amount }),
     }),
+  updatePurchaseInvoice: (id: string, invoiceUrl: string) =>
+    request<import("./types").Purchase>(`/api/purchases/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ invoiceUrl }),
+    }),
   archivePurchase: (id: string) =>
     request<{ ok: boolean }>(`/api/purchases/${id}`, { method: "DELETE" }),
+  uploadFile: async (file: File, folder?: string) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    if (folder) fd.append("folder", folder);
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: fd,
+      credentials: "include",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok)
+      throw new Error(
+        (data as { error?: string }).error || res.statusText || "Upload failed",
+      );
+    return data as { url: string };
+  },
 
   createSale: (body: Record<string, unknown>) =>
     request<import("./types").Invoice & { balance: number }>("/api/pos", {
@@ -277,9 +304,53 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ event, channel }),
     }),
-  downloadLedger: (customerId?: string) => {
-    const q = customerId ? `?customerId=${encodeURIComponent(customerId)}` : "";
-    window.open(`/api/ledger/export${q}`, "_blank");
+  downloadLedger: (opts?: {
+    customerId?: string;
+    from?: string;
+    to?: string;
+  }) => {
+    const sp = new URLSearchParams();
+    if (opts?.customerId) sp.set("customerId", opts.customerId);
+    if (opts?.from) sp.set("from", opts.from);
+    if (opts?.to) sp.set("to", opts.to);
+    const q = sp.toString();
+    window.open(`/api/ledger/export${q ? `?${q}` : ""}`, "_blank");
+  },
+  ledgerReport: (params: {
+    customerId: string;
+    from?: string;
+    to?: string;
+  }) => {
+    const sp = new URLSearchParams();
+    sp.set("customerId", params.customerId);
+    if (params.from) sp.set("from", params.from);
+    if (params.to) sp.set("to", params.to);
+    return request<{
+      customer: {
+        id: string;
+        name: string;
+        phone?: string;
+        whatsapp?: string;
+        address?: string;
+        balance: number;
+      };
+      from: string | null;
+      to: string | null;
+      entries: {
+        id: string;
+        date: string;
+        type: string;
+        amount: number;
+        status: string;
+        note: string;
+      }[];
+      totals: {
+        debits: number;
+        credits: number;
+        net: number;
+        count: number;
+      };
+    }>(`/api/ledger/report?${sp.toString()}`);
   },
 
   whatsapp: (params?: ListParams) =>

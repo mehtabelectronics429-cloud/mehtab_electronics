@@ -10,6 +10,7 @@ import { Plus, Pencil, Archive, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
+import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
@@ -76,10 +77,13 @@ export default function ProductsPage() {
     handleSubmit,
     reset,
     getValues,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<Form>({
     resolver: zodResolver(schema),
   });
+  const categoryValue = watch("category") || "";
 
   const openCreate = () => {
     setEditing(null);
@@ -280,17 +284,17 @@ export default function ProductsPage() {
         >
           <div>
             <Label>Category</Label>
-            <select
-              {...register("category")}
-              className="admin-select w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-cyan/40"
-            >
-              <option value="">Select a category…</option>
-              {categoryOptions.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+            <SearchableSelect
+              value={categoryValue}
+              onChange={(v) =>
+                setValue("category", v, { shouldValidate: true })
+              }
+              placeholder="Select a category…"
+              options={categoryOptions.map((c) => ({
+                value: c,
+                label: c,
+              }))}
+            />
             {categoryOptions.length === 0 && (
               <p className="mt-1 text-xs text-amber-300">
                 No categories yet add them under Categories first.
