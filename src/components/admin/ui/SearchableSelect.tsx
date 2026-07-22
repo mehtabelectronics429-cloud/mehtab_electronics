@@ -114,17 +114,23 @@ export function SearchableSelect({
         onClick={() => !disabled && setOpen((o) => !o)}
         onKeyDown={onKeyDown}
         className={cn(
-          "admin-select flex h-10 w-full items-center gap-2 rounded-xl border border-white/10 bg-[var(--admin-input)] px-3 text-left text-sm text-[var(--admin-fg)] outline-none transition focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15 disabled:opacity-50",
+          "admin-select flex h-10 w-full items-center gap-2 rounded-xl border px-3 text-left text-sm outline-none transition focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15 disabled:opacity-50",
+          "border-slate-200 bg-white text-slate-900 dark:border-white/10 dark:bg-[#12151f] dark:text-white",
         )}
       >
-        <span className={cn("min-w-0 flex-1 truncate", !selected && "text-white/35")}>
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate",
+            !selected && "text-slate-400 dark:text-white/35",
+          )}
+        >
           {selected?.label || placeholder}
         </span>
         {allowClear && value ? (
           <span
             role="button"
             tabIndex={-1}
-            className="grid h-5 w-5 place-items-center rounded text-white/40 hover:bg-white/10 hover:text-white"
+            className="grid h-5 w-5 place-items-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:text-white/40 dark:hover:bg-white/10 dark:hover:text-white"
             onClick={(e) => {
               e.stopPropagation();
               onChange("");
@@ -133,20 +139,20 @@ export function SearchableSelect({
             <X className="h-3.5 w-3.5" />
           </span>
         ) : null}
-        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-white/40" />
+        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-white/40" />
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-white/10 bg-[var(--admin-input)] shadow-xl shadow-black/20">
-          <div className="relative border-b border-white/10 p-2">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35" />
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-black/10 dark:border-white/10 dark:bg-[#12151f] dark:shadow-black/40">
+          <div className="relative border-b border-slate-200 p-2 dark:border-white/10">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 dark:text-white/35" />
             <input
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={onKeyDown}
               placeholder="Search…"
-              className="h-9 w-full rounded-lg border border-white/10 bg-white/[0.04] pl-8 pr-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-cyan/40"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan/40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white dark:placeholder:text-white/35"
             />
           </div>
           <ul
@@ -155,7 +161,7 @@ export function SearchableSelect({
             className="max-h-56 overflow-y-auto py-1"
           >
             {filtered.length === 0 ? (
-              <li className="px-3 py-6 text-center text-xs text-white/40">
+              <li className="px-3 py-6 text-center text-xs text-slate-400 dark:text-white/40">
                 {emptyLabel}
               </li>
             ) : (
@@ -167,7 +173,9 @@ export function SearchableSelect({
                     aria-selected={o.value === value}
                     className={cn(
                       "flex w-full px-3 py-2 text-left text-sm transition",
-                      i === highlight ? "bg-cyan/15 text-white" : "text-white/80 hover:bg-white/5",
+                      i === highlight
+                        ? "bg-cyan/15 text-slate-900 dark:text-white"
+                        : "text-slate-700 hover:bg-slate-100 dark:text-white/80 dark:hover:bg-white/5",
                       o.value === value && "text-cyan",
                     )}
                     onMouseEnter={() => setHighlight(i)}

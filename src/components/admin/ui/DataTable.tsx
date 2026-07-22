@@ -71,7 +71,7 @@ export default function DataTable<T>({
                   <th
                     key={h.id}
                     onClick={h.column.getToggleSortingHandler()}
-                    className="cursor-pointer select-none px-4 py-3 text-left text-[0.7rem] font-medium uppercase tracking-wider text-white/40 hover:text-white/70"
+                    className="cursor-pointer select-none bg-slate-100 px-4 py-3 text-left text-[0.7rem] font-semibold uppercase tracking-wider text-black hover:bg-slate-200/80 dark:bg-transparent dark:font-medium dark:text-white/40 dark:hover:bg-transparent dark:hover:text-white/70"
                   >
                     <span className="inline-flex items-center gap-1">
                       {flexRender(h.column.columnDef.header, h.getContext())}
