@@ -87,6 +87,7 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.35 }}
+              className="h-full"
             >
               <ProductCard product={p} index={i} />
             </motion.div>
