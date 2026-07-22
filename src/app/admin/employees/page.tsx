@@ -56,7 +56,7 @@ export default function EmployeesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["employees", page, q],
-    queryFn: () => api.employees({ page, limit: 20, q: q || undefined }),
+    queryFn: () => api.employees({ page, limit: 10, q: q || undefined }),
   });
 
   const { data: analytics } = useQuery({
@@ -348,7 +348,7 @@ export default function EmployeesPage() {
             <Select {...register("role")}>
               {EMPLOYEE_ROLES.map((r) => (
                 <option key={r.value} value={r.value}>
-                  {r.label} — {r.desc}
+                  {r.label} {r.desc}
                 </option>
               ))}
             </Select>

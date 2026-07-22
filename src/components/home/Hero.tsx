@@ -14,8 +14,14 @@ export default function Hero() {
     <section className="relative flex min-h-[100svh] items-center overflow-hidden">
       {/* full-bleed photographic backdrop */}
       <div aria-hidden className="absolute inset-0 -z-10">
-        <SmartImage src={HERO_IMG} alt="" className="h-full w-full" imgClassName="object-cover" priority />
-        {/* dark scrim — heavy on the left where the text sits, lighter on the right */}
+        <SmartImage
+          src={HERO_IMG}
+          alt=""
+          className="h-full w-full"
+          imgClassName="object-cover"
+          priority
+        />
+        {/* dark scrim  heavy on the left where the text sits, lighter on the right */}
         <div className="absolute inset-0 bg-gradient-to-r from-bg via-bg/85 to-bg/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-bg/60" />
       </div>
@@ -37,7 +43,11 @@ export default function Hero() {
               <motion.span
                 initial={{ opacity: 0, y: 60 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.85, delay: 0.15 + i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                transition={{
+                  duration: 0.85,
+                  delay: 0.15 + i * 0.1,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
                 className="block"
               >
                 {line === "Protect what" ? (
@@ -58,8 +68,8 @@ export default function Hero() {
           transition={{ duration: 0.7, delay: 0.55 }}
           className="lead mt-7 max-w-xl"
         >
-          Solar system installation, CCTV networks and wholesale supply — trusted by homeowners,
-          farmers and businesses across Punjab since day one.
+          Solar system installation, CCTV networks and wholesale supply trusted
+          by homeowners, farmers and businesses across Punjab since day one.
         </motion.p>
 
         <motion.div

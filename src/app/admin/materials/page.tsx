@@ -40,7 +40,7 @@ export default function MaterialsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["materials", page, q],
-    queryFn: () => api.materials({ page, limit: 20, q: q || undefined }),
+    queryFn: () => api.materials({ page, limit: 10, q: q || undefined }),
   });
 
   const {
@@ -160,7 +160,7 @@ export default function MaterialsPage() {
     <div>
       <PageHeader
         title="Materials"
-        subtitle="Track installation materials — issued, used, returned and damaged."
+        subtitle="Track installation materials  issued, used, returned and damaged."
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4" /> Add Material

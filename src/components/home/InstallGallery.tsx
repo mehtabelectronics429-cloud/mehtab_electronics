@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import FeaturedGallery, { type GalleryImage } from "@/components/ui/FeaturedGallery";
+import FeaturedGallery, {
+  type GalleryImage,
+} from "@/components/ui/FeaturedGallery";
 import { SOLAR_PANELS, INVERTERS, BATTERIES, CAMERA } from "@/lib/assets";
 
-// 1 big + 4 small — a clean featured block of real jobs.
+// 1 big + 4 small  a clean featured block of real jobs.
 const IMAGES: GalleryImage[] = [
   { src: SOLAR_PANELS[1], sub: "Solar", caption: "Commercial rooftop array" },
   { src: INVERTERS[0], sub: "Inverter", caption: "Hybrid inverter bank" },

@@ -167,7 +167,7 @@ export default function ReportsPage() {
         <Card className="mt-4 border-amber-400/30 bg-amber-400/[0.06] p-3 text-xs text-amber-200/90">
           Profit is exact for invoices that have a cost recorded. Currently{" "}
           <b>{pct(t.costCoverage)}</b> of approved invoices have a cost entered
-          — add cost on the remaining invoices in Billing for fully accurate
+          add cost on the remaining invoices in Billing for fully accurate
           profit.
         </Card>
       )}

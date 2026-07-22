@@ -1,5 +1,5 @@
 /**
- * Invoice letterhead — matches the printed Mehtab Electronics invoice.
+ * Invoice letterhead  matches the printed Mehtab Electronics invoice.
  * These are business/registration details specific to the invoice document
  * (separate from the marketing-site COMPANY info).
  */

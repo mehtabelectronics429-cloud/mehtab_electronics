@@ -3,7 +3,7 @@
  *
  * Clicking "send" fires the WhatsApp deep link (`whatsapp://send?phone=…&text=…`)
  * which the OS hands straight to the installed WhatsApp app (desktop or mobile)
- * with the recipient + template message pre-filled — the operator just taps Send.
+ * with the recipient + template message pre-filled  the operator just taps Send.
  * If the app isn't installed we fall back to wa.me (web), and if even that is
  * blocked we copy the link to the clipboard.
  */
@@ -13,7 +13,8 @@ export function toWhatsAppAppUrl(waUrl: string): string | null {
   try {
     const u = new URL(waUrl);
     const fromPath = u.pathname.replace(/\D/g, "");
-    const phone = fromPath || (u.searchParams.get("phone") || "").replace(/\D/g, "");
+    const phone =
+      fromPath || (u.searchParams.get("phone") || "").replace(/\D/g, "");
     const text = u.searchParams.get("text") || "";
     const q = new URLSearchParams();
     if (phone) q.set("phone", phone);
@@ -26,7 +27,10 @@ export function toWhatsAppAppUrl(waUrl: string): string | null {
 
 export function copyToClipboard(text: string): Promise<boolean> {
   if (typeof navigator !== "undefined" && navigator.clipboard) {
-    return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+    return navigator.clipboard
+      .writeText(text)
+      .then(() => true)
+      .catch(() => false);
   }
   return Promise.resolve(false);
 }
@@ -66,7 +70,7 @@ export function openWhatsAppUrl(waUrl: string | null | undefined): boolean {
     document.removeEventListener("visibilitychange", onHide);
     window.removeEventListener("blur", onHide);
     if (!handedOff && !document.hidden) {
-      // App didn't open (likely not installed) — use WhatsApp Web as a fallback.
+      // App didn't open (likely not installed)  use WhatsApp Web as a fallback.
       const win = window.open(waUrl, "_blank");
       if (!win) void copyToClipboard(waUrl);
     }
@@ -83,16 +87,21 @@ export type WhatsAppSendResult = {
   businessApiReady?: boolean;
 };
 
-export function toastForWhatsAppResult(result: WhatsAppSendResult, tickJobs?: () => void) {
+export function toastForWhatsAppResult(
+  result: WhatsAppSendResult,
+  tickJobs?: () => void,
+) {
   const fellBack =
-    result.requestedChannel === "business" && result.channel === "direct" && !result.businessApiReady;
+    result.requestedChannel === "business" &&
+    result.channel === "direct" &&
+    !result.businessApiReady;
 
   if (result.channel === "direct" && result.waUrl) {
     openWhatsAppUrl(result.waUrl);
     if (fellBack) {
-      return "Business API not configured — opening the WhatsApp app with the template. Tap Send.";
+      return "Business API not configured  opening the WhatsApp app with the template. Tap Send.";
     }
-    return "Opening the WhatsApp app with the message — tap Send to deliver.";
+    return "Opening the WhatsApp app with the message  tap Send to deliver.";
   }
 
   if (result.jobId) tickJobs?.();

@@ -72,7 +72,7 @@ export default function LoadCalculator() {
       `\nDaily usage: ${dailyKwh.toFixed(1)} kWh\n` +
       `Peak load: ${peakKw.toFixed(1)} kW\n` +
       `Recommended: ${recommended} kW solar system\n\n` +
-      `My appliances:\n${picked || "—"}\n\nPlease send me a quote.`
+      `My appliances:\n${picked || ""}\n\nPlease send me a quote.`
     );
   }, [qty, name, city, dailyKwh, peakKw, recommended]);
 
@@ -88,7 +88,7 @@ export default function LoadCalculator() {
             <span className="text-accent">for Pakistani</span> homes.
           </h2>
           <p className="lead mt-6 max-w-md">
-            Tell us what you run at home — fans, AC, fridge, lights. We estimate
+            Tell us what you run at home fans, AC, fridge, lights. We estimate
             your daily usage and recommend the right solar system size. Send the
             result on WhatsApp and we&apos;ll follow up with a quote.
           </p>
@@ -96,7 +96,7 @@ export default function LoadCalculator() {
           <p className="mt-6 max-w-md rounded-md border border-brand/25 bg-brand/[0.06] p-4 text-xs leading-relaxed text-fg/70">
             <b className="text-brand">Note:</b> Iron, water pump, washing
             machine and similar appliances only run for a few minutes at a time
-            — we count them at reduced load so your system size stays realistic,
+            we count them at reduced load so your system size stays realistic,
             not oversized.
           </p>
         </div>

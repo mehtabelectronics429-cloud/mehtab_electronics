@@ -7,7 +7,7 @@ import { getCatalogProducts, toMarketingProduct } from "@/lib/catalog";
 import { PRODUCTS as DEFAULT_PRODUCTS, type Product } from "@/lib/data";
 
 /**
- * Home "shop" band — categories and featured products, both pulled live from the
+ * Home "shop" band  categories and featured products, both pulled live from the
  * admin dashboard (Mongo). Falls back to seeded defaults so the section is never
  * empty before the admin adds content.
  */
@@ -51,15 +51,26 @@ export default async function HomeCatalog() {
               className="group relative overflow-hidden rounded-lg border border-line/15 shadow-card"
             >
               <div className="relative aspect-[4/3]">
-                <SmartImage src={c.image} alt={c.name} className="h-full w-full" imgClassName="transition-transform duration-700 group-hover:scale-105" />
+                <SmartImage
+                  src={c.image}
+                  alt={c.name}
+                  className="h-full w-full"
+                  imgClassName="transition-transform duration-700 group-hover:scale-105"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
               </div>
               <div className="absolute inset-x-0 bottom-0 p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-display text-lg uppercase tracking-wide text-white">{c.name}</span>
+                  <span className="font-display text-lg uppercase tracking-wide text-white">
+                    {c.name}
+                  </span>
                   <ArrowUpRight className="h-4 w-4 text-brand transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </div>
-                {c.description && <div className="mt-1 text-xs text-white/60">{c.description}</div>}
+                {c.description && (
+                  <div className="mt-1 text-xs text-white/60">
+                    {c.description}
+                  </div>
+                )}
               </div>
             </Link>
           ))}

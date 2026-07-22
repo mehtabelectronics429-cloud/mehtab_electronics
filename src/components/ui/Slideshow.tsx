@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 type Slide = { src: string; caption?: string; sub?: string };
 
 /**
- * Lightweight crossfade slideshow — pure CSS opacity transitions (no heavy
+ * Lightweight crossfade slideshow  pure CSS opacity transitions (no heavy
  * carousel lib), autoplay with pause-on-hover, arrows + dots, keyboard-free
  * and reduced-motion friendly.
  */
@@ -33,7 +33,11 @@ export default function Slideshow({
 
   useEffect(() => {
     if (!autoplay || paused || n <= 1) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
     timer.current = setInterval(() => setI((v) => (v + 1) % n), interval);
     return () => clearInterval(timer.current);
   }, [autoplay, paused, n, interval]);
@@ -42,7 +46,11 @@ export default function Slideshow({
 
   return (
     <div
-      className={cn("group relative overflow-hidden rounded-lg border border-line/15 shadow-card", aspect, className)}
+      className={cn(
+        "group relative overflow-hidden rounded-lg border border-line/15 shadow-card",
+        aspect,
+        className,
+      )}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -51,17 +59,30 @@ export default function Slideshow({
           key={s.src + idx}
           className={cn(
             "absolute inset-0 transition-opacity duration-700 ease-out",
-            idx === i ? "opacity-100" : "opacity-0"
+            idx === i ? "opacity-100" : "opacity-0",
           )}
           aria-hidden={idx !== i}
         >
-          <SmartImage src={s.src} alt={s.caption ?? ""} className="h-full w-full" priority={idx === 0} />
+          <SmartImage
+            src={s.src}
+            alt={s.caption ?? ""}
+            className="h-full w-full"
+            priority={idx === 0}
+          />
           {(s.caption || s.sub) && (
             <>
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
-                {s.sub && <div className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-brand">{s.sub}</div>}
-                {s.caption && <div className="mt-1 font-display text-lg uppercase tracking-wide text-white md:text-xl">{s.caption}</div>}
+                {s.sub && (
+                  <div className="font-mono text-[0.6rem] uppercase tracking-[0.18em] text-brand">
+                    {s.sub}
+                  </div>
+                )}
+                {s.caption && (
+                  <div className="mt-1 font-display text-lg uppercase tracking-wide text-white md:text-xl">
+                    {s.caption}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -92,7 +113,9 @@ export default function Slideshow({
                 aria-label={`Go to slide ${idx + 1}`}
                 className={cn(
                   "h-1.5 rounded-full transition-all duration-300",
-                  idx === i ? "w-6 bg-brand" : "w-1.5 bg-white/50 hover:bg-white/80"
+                  idx === i
+                    ? "w-6 bg-brand"
+                    : "w-1.5 bg-white/50 hover:bg-white/80",
                 )}
               />
             ))}

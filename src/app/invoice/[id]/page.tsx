@@ -15,21 +15,26 @@ import type { Invoice as InvoiceT } from "@/lib/admin/types";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Invoice — Mehtab Electronics",
+  title: "Invoice  Mehtab Electronics",
   robots: { index: false, follow: false },
 };
 
 async function getInvoice(id: string): Promise<InvoiceT | null> {
-  // A malformed id is simply "not found" — never a crash.
+  // A malformed id is simply "not found"  never a crash.
   if (!mongoose.Types.ObjectId.isValid(id)) return null;
 
-  // NOTE: no try/catch here on purpose — a real DB/connection failure should
+  // NOTE: no try/catch here on purpose  a real DB/connection failure should
   // surface (500 + logs) rather than be masked as a misleading 404.
   await connectMongo();
   const doc = await Invoice.findOne({ _id: id, ...notDeleted }).lean();
   if (!doc) return null;
 
-  let c: { name?: string; phone?: string; whatsapp?: string; address?: string } | null = null;
+  let c: {
+    name?: string;
+    phone?: string;
+    whatsapp?: string;
+    address?: string;
+  } | null = null;
   if (doc.customerId) {
     c = (await Customer.findById(doc.customerId).lean()) as typeof c;
   }
@@ -37,8 +42,15 @@ async function getInvoice(id: string): Promise<InvoiceT | null> {
   return {
     id: String(doc._id),
     number: doc.number,
-    date: doc.date instanceof Date ? doc.date.toISOString().slice(0, 10) : String(doc.date),
-    items: (doc.items ?? []).map((i) => ({ description: i.description, qty: i.qty, unitPrice: i.unitPrice })),
+    date:
+      doc.date instanceof Date
+        ? doc.date.toISOString().slice(0, 10)
+        : String(doc.date),
+    items: (doc.items ?? []).map((i) => ({
+      description: i.description,
+      qty: i.qty,
+      unitPrice: i.unitPrice,
+    })),
     discount: doc.discount ?? 0,
     taxRate: doc.taxRate ?? 0,
     shipping: doc.shipping ?? 0,
@@ -51,7 +63,11 @@ async function getInvoice(id: string): Promise<InvoiceT | null> {
   };
 }
 
-export default async function PublicInvoicePage({ params }: { params: { id: string } }) {
+export default async function PublicInvoicePage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const invoice = await getInvoice(params.id);
   if (!invoice) notFound();
 
@@ -59,7 +75,10 @@ export default async function PublicInvoicePage({ params }: { params: { id: stri
     <main className="min-h-screen px-4 pt-28 pb-16">
       <div className="mx-auto max-w-3xl">
         <div className="mb-4 flex flex-wrap justify-end gap-2">
-          <ShareInvoiceButton filename={`Invoice-${invoice.number}.pdf`} label="Share PDF" />
+          <ShareInvoiceButton
+            filename={`Invoice-${invoice.number}.pdf`}
+            label="Share PDF"
+          />
           <InvoicePrintButton />
         </div>
         <div className="rounded-xl bg-neutral-200/50 p-3 md:p-4">

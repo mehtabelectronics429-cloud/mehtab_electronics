@@ -14,7 +14,10 @@ export type WhatsAppChannel = "direct" | "business";
 
 /** Map UI / stored labels back to event keys. */
 const LABEL_TO_EVENT = Object.fromEntries(
-  (Object.keys(WHATSAPP_TEMPLATES) as WhatsAppEvent[]).map((k) => [WHATSAPP_TEMPLATES[k].label, k])
+  (Object.keys(WHATSAPP_TEMPLATES) as WhatsAppEvent[]).map((k) => [
+    WHATSAPP_TEMPLATES[k].label,
+    k,
+  ]),
 ) as Record<string, WhatsAppEvent>;
 
 export function resolveWhatsAppEvent(input: string): WhatsAppEvent | null {
@@ -37,7 +40,7 @@ async function whatsappSettings() {
 }
 
 /**
- * Default channel from Settings (direct | business). Defaults to direct —
+ * Default channel from Settings (direct | business). Defaults to direct
  * no Business API required.
  */
 export async function getWhatsAppSendMode(): Promise<WhatsAppChannel> {
@@ -58,7 +61,11 @@ export async function getAdminWhatsAppNumber(): Promise<string> {
   return COMPANY.whatsapp;
 }
 
-export function buildEventMessage(event: WhatsAppEvent, ctx: TemplateContext, bodyOverride?: string) {
+export function buildEventMessage(
+  event: WhatsAppEvent,
+  ctx: TemplateContext,
+  bodyOverride?: string,
+) {
   return {
     event,
     template: templateLabel(event),
@@ -73,6 +80,8 @@ export function buildDirectWaUrl(toPhone: string, body: string) {
 
 export function businessApiConfigured() {
   return Boolean(
-    process.env.WHATSAPP_API_URL && process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID
+    process.env.WHATSAPP_API_URL &&
+    process.env.WHATSAPP_API_TOKEN &&
+    process.env.WHATSAPP_PHONE_NUMBER_ID,
   );
 }

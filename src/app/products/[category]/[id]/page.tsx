@@ -20,9 +20,9 @@ export async function generateMetadata({
   params: { id: string };
 }): Promise<Metadata> {
   const item = await getCatalogProductById(params.id);
-  if (!item) return { title: "Product — Mehtab Electronics" };
+  if (!item) return { title: "Product  Mehtab Electronics" };
   return {
-    title: `${item.brand} ${item.model} — Mehtab Electronics`,
+    title: `${item.brand} ${item.model}  Mehtab Electronics`,
     description: item.description,
   };
 }

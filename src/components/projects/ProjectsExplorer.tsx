@@ -20,8 +20,11 @@ export default function ProjectsExplorer() {
   useEffect(() => setMounted(true), []);
 
   const shown = useMemo(
-    () => (filter === "All" ? PROJECTS_DATA : PROJECTS_DATA.filter((p) => p.category === filter)),
-    [filter]
+    () =>
+      filter === "All"
+        ? PROJECTS_DATA
+        : PROJECTS_DATA.filter((p) => p.category === filter),
+    [filter],
   );
 
   // lock background scroll while the modal is open
@@ -42,7 +45,9 @@ export default function ProjectsExplorer() {
             onClick={() => setFilter(f)}
             className={cn(
               "rounded-md border px-4 py-2 font-mono text-[0.68rem] font-bold uppercase tracking-[0.14em] transition-colors",
-              f === filter ? "border-brand bg-brand text-on-brand" : "border-line/15 bg-surface/40 text-fg/60 hover:text-fg"
+              f === filter
+                ? "border-brand bg-brand text-on-brand"
+                : "border-line/15 bg-surface/40 text-fg/60 hover:text-fg",
             )}
           >
             {f}
@@ -67,7 +72,7 @@ export default function ProjectsExplorer() {
               onClick={() => setActive(p)}
               className={cn(
                 "group relative overflow-hidden rounded-lg border border-line/15 text-left shadow-card",
-                i === 0 && "col-span-2 row-span-2"
+                i === 0 && "col-span-2 row-span-2",
               )}
             >
               <SmartImage
@@ -81,43 +86,69 @@ export default function ProjectsExplorer() {
               <span className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-md bg-black/50 text-white opacity-0 backdrop-blur transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-4 w-4" />
               </span>
-              <div className={cn("absolute inset-x-0 bottom-0 p-3", i === 0 && "p-5")}>
+              <div
+                className={cn(
+                  "absolute inset-x-0 bottom-0 p-3",
+                  i === 0 && "p-5",
+                )}
+              >
                 <div className="flex items-center gap-2">
                   <span className="rounded-sm bg-brand px-1.5 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-[0.14em] text-on-brand">
                     {p.category}
                   </span>
-                  <span className="font-mono text-[0.55rem] uppercase tracking-[0.16em] text-white/70">{p.images.length} photos</span>
+                  <span className="font-mono text-[0.55rem] uppercase tracking-[0.16em] text-white/70">
+                    {p.images.length} photos
+                  </span>
                 </div>
-                <div className={cn("mt-1.5 font-display uppercase tracking-wide text-white", i === 0 ? "text-lg md:text-2xl" : "text-xs md:text-sm")}>
+                <div
+                  className={cn(
+                    "mt-1.5 font-display uppercase tracking-wide text-white",
+                    i === 0 ? "text-lg md:text-2xl" : "text-xs md:text-sm",
+                  )}
+                >
                   {p.title}
                 </div>
-                {i === 0 && <div className="mt-1 text-xs text-white/70">{p.location}</div>}
+                {i === 0 && (
+                  <div className="mt-1 text-xs text-white/70">{p.location}</div>
+                )}
               </div>
             </motion.button>
           ))}
         </AnimatePresence>
       </motion.div>
 
-      {/* detail modal — portaled to <body> so `fixed` escapes the transformed page wrapper */}
+      {/* detail modal  portaled to <body> so `fixed` escapes the transformed page wrapper */}
       {mounted &&
         createPortal(
           <AnimatePresence>
-            {active && <ProjectModal project={active} onClose={() => setActive(null)} />}
+            {active && (
+              <ProjectModal project={active} onClose={() => setActive(null)} />
+            )}
           </AnimatePresence>,
-          document.body
+          document.body,
         )}
     </section>
   );
 }
 
-function ProjectModal({ project, onClose }: { project: Project; onClose: () => void }) {
+function ProjectModal({
+  project,
+  onClose,
+}: {
+  project: Project;
+  onClose: () => void;
+}) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const slides = project.images.map((src) => ({ src, sub: project.category, caption: project.title }));
+  const slides = project.images.map((src) => ({
+    src,
+    sub: project.category,
+    caption: project.title,
+  }));
 
   return (
     <motion.div
@@ -157,7 +188,9 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
               <span className="rounded-sm bg-brand px-2 py-0.5 font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em] text-on-brand">
                 {project.category}
               </span>
-              <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-fg/45">{project.year}</span>
+              <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-fg/45">
+                {project.year}
+              </span>
             </div>
             <h3 className="mt-3 font-display text-2xl uppercase leading-none tracking-wide text-fg md:text-3xl">
               {project.title}
@@ -169,19 +202,29 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
               {project.spec}
             </div>
 
-            <p className="mt-5 text-sm leading-relaxed text-fg/70">{project.summary}</p>
+            <p className="mt-5 text-sm leading-relaxed text-fg/70">
+              {project.summary}
+            </p>
 
             <ul className="mt-5 space-y-2.5">
               {project.details.map((d) => (
-                <li key={d} className="flex items-start gap-2.5 text-sm text-fg/75">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand" strokeWidth={2.5} />
+                <li
+                  key={d}
+                  className="flex items-start gap-2.5 text-sm text-fg/75"
+                >
+                  <Check
+                    className="mt-0.5 h-4 w-4 shrink-0 text-brand"
+                    strokeWidth={2.5}
+                  />
                   {d}
                 </li>
               ))}
             </ul>
 
             <a
-              href={waLink(`Hello Mehtab Electronics! I saw the "${project.title}" project (${project.location}) and I'd like something similar.`)}
+              href={waLink(
+                `Hello Mehtab Electronics! I saw the "${project.title}" project (${project.location}) and I'd like something similar.`,
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-brand mt-7"

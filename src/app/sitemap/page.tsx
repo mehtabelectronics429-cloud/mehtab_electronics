@@ -6,7 +6,7 @@ import { SITE_URL, SITE_MAP, type SiteNode } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Sitemap",
   description:
-    "Full sitemap of Mehtab Electronics — solar services, CCTV, products, projects, about and contact pages.",
+    "Full sitemap of Mehtab Electronics  solar services, CCTV, products, projects, about and contact pages.",
   alternates: { canonical: "/sitemap" },
 };
 
@@ -53,7 +53,8 @@ export default function SitemapPage() {
       <div className="mono-label">Site index</div>
       <h1 className="mt-4 display-lg text-fg">Sitemap</h1>
       <p className="lead mt-4 max-w-xl">
-        Every page on the Mehtab Electronics website, grouped under the main sections.
+        Every page on the Mehtab Electronics website, grouped under the main
+        sections.
       </p>
 
       {/* main site link */}
@@ -66,7 +67,9 @@ export default function SitemapPage() {
         </span>
         <div>
           <div className="mono-label !text-fg/45">Main site</div>
-          <div className="font-display text-lg uppercase tracking-wide text-fg">{domain}</div>
+          <div className="font-display text-lg uppercase tracking-wide text-fg">
+            {domain}
+          </div>
         </div>
       </a>
 

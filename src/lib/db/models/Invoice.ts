@@ -24,7 +24,7 @@ export interface IInvoice {
   shipping: number;
   /** Total / balance due = subtotal - discount + tax + shipping. */
   amount: number;
-  /** Cost of goods / materials for this job — used for accurate profit (profit = amount - cost). */
+  /** Cost of goods / materials for this job  used for accurate profit (profit = amount - cost). */
   cost: number;
   paid: number;
   status: InvoiceStatus;
@@ -38,10 +38,29 @@ export interface IInvoice {
 const schema = new Schema<IInvoice>(
   {
     number: { type: String, required: true, unique: true, index: true },
-    customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: true, index: true },
-    employeeId: { type: Schema.Types.ObjectId, ref: "Employee", default: null, index: true },
-    installationId: { type: Schema.Types.ObjectId, ref: "Installation", default: null },
-    source: { type: String, enum: ["installation", "pos", "manual"], default: "manual", index: true },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
+      index: true,
+    },
+    employeeId: {
+      type: Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
+      index: true,
+    },
+    installationId: {
+      type: Schema.Types.ObjectId,
+      ref: "Installation",
+      default: null,
+    },
+    source: {
+      type: String,
+      enum: ["installation", "pos", "manual"],
+      default: "manual",
+      index: true,
+    },
     items: {
       type: [
         new Schema<IInvoiceItem>(
@@ -50,7 +69,7 @@ const schema = new Schema<IInvoice>(
             qty: { type: Number, default: 1, min: 0 },
             unitPrice: { type: Number, default: 0, min: 0 },
           },
-          { _id: false }
+          { _id: false },
         ),
       ],
       default: [],
@@ -61,12 +80,20 @@ const schema = new Schema<IInvoice>(
     amount: { type: Number, required: true, min: 0 },
     cost: { type: Number, default: 0, min: 0 },
     paid: { type: Number, default: 0, min: 0 },
-    status: { type: String, enum: ["draft", "pending", "approved", "rejected"], default: "draft", index: true },
+    status: {
+      type: String,
+      enum: ["draft", "pending", "approved", "rejected"],
+      default: "draft",
+      index: true,
+    },
     date: { type: Date, required: true, index: true },
     notes: { type: String, default: "" },
     deletedAt: { type: Date, default: null, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export const Invoice: Model<IInvoice> = registerModel<IInvoice>("Invoice", schema);
+export const Invoice: Model<IInvoice> = registerModel<IInvoice>(
+  "Invoice",
+  schema,
+);

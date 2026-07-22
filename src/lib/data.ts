@@ -18,7 +18,8 @@ export const COMPANY = {
   address: "Mehtab Electronics, Narowal, Punjab, Pakistan",
   hours: "Mon–Sat · 9:00 AM – 8:00 PM",
   mapEmbed:
-    "https://www.google.com/maps?q=Narowal,Punjab,Pakistan&output=embed",
+    // "https://www.google.com/maps?q=Narowal,Punjab,Pakistan&output=embed",
+    " https://maps.app.goo.gl/JEUj4rBGYHmtRXu1A?g_st=iwb",
   founded: 1996,
   // The two people who run the shop (shown in the contact section)
   contacts: [
@@ -128,13 +129,13 @@ export const SCENES = [
     id: 3,
     eyebrow: "03 · Conversion",
     title: "Inverters that deliver",
-    body: "Hybrid inverters turn DC solar power into stable AC — sized precisely to your setup.",
+    body: "Hybrid inverters turn DC solar power into stable AC  sized precisely to your setup.",
   },
   {
     id: 4,
     eyebrow: "04 · Vision",
     title: "Eyes that never blink",
-    body: "4K security cameras cover every entry point — live on your phone, day and night.",
+    body: "4K security cameras cover every entry point  live on your phone, day and night.",
   },
 ];
 
@@ -201,7 +202,7 @@ export const SPECIALTIES: Specialty[] = [
     tag: "01 · Energy",
     title: "Solar System Installation",
     blurb:
-      "On-grid, off-grid and hybrid solar systems — from 3 kW homes to 50 kW commercial. Designed around your load, installed clean.",
+      "On-grid, off-grid and hybrid solar systems  from 3 kW homes to 50 kW commercial. Designed around your load, installed clean.",
     image: SOLAR_PANELS[0],
     features: [
       "Tier-1 panels & inverters",
@@ -334,7 +335,7 @@ export const TESTIMONIALS = [
   },
   {
     quote:
-      "The AMC team is proactive — they call us before something fails. Uptime has been effectively perfect for two years.",
+      "The AMC team is proactive  they call us before something fails. Uptime has been effectively perfect for two years.",
     name: "Sana Malik",
     role: "Operations Lead · Retail Chain",
   },
@@ -357,7 +358,7 @@ export const FAQS = [
   },
   {
     q: "What types of cameras do you install?",
-    a: "We install 4K IP dome, bullet and PTZ cameras from Hikvision and Dahua — with NVR recording, mobile app access and professional cabling.",
+    a: "We install 4K IP dome, bullet and PTZ cameras from Hikvision and Dahua  with NVR recording, mobile app access and professional cabling.",
   },
   {
     q: "How long does a typical installation take?",
@@ -365,7 +366,7 @@ export const FAQS = [
   },
   {
     q: "Do you offer financing?",
-    a: "Yes — we partner with several banks for solar financing and offer flexible installment plans on complete solar packages.",
+    a: "Yes  we partner with several banks for solar financing and offer flexible installment plans on complete solar packages.",
   },
   {
     q: "Is there ongoing support after installation?",
@@ -427,7 +428,7 @@ export const TEAM = [
     image: AhmedImg,
     focus: "PV & inverters",
     description:
-      "Designs solar systems and oversees technical execution — from load analysis to inverter commissioning.",
+      "Designs solar systems and oversees technical execution  from load analysis to inverter commissioning.",
   },
   {
     name: "Rashid",
@@ -482,7 +483,7 @@ export const PACKAGES = [
     tag: "Bundle",
     accent: "electric",
     price: "custom",
-    blurb: "Power your property and protect it — one team, one quote.",
+    blurb: "Power your property and protect it  one team, one quote.",
     features: [
       "Custom solar array sizing",
       "Hybrid inverter setup",
@@ -498,7 +499,7 @@ export const SCENE_STRIPS = [
   {
     eyebrow: "Signal",
     title: "Every corner, covered",
-    body: "Overlapping camera fields eliminate blind spots — mapped before a single bracket is drilled.",
+    body: "Overlapping camera fields eliminate blind spots  mapped before a single bracket is drilled.",
     image: CAMERA,
     accent: "cyan",
   },
@@ -610,7 +611,7 @@ export const PRODUCTS: Product[] = [
     category: "Batteries",
     model: "TUB-200",
     description:
-      "Deep-cycle tubular battery — reliable, economical backup for homes and shops.",
+      "Deep-cycle tubular battery  reliable, economical backup for homes and shops.",
     specs: ["200 Ah", "Deep-cycle", "Tubular", "Low maintenance"],
     image: BATTERIES[1],
   },
@@ -641,7 +642,7 @@ export const BENEFITS = [
   {
     icon: "BadgeCheck",
     title: "Certified engineers",
-    body: "Every install designed and commissioned by qualified engineers — not subcontracted guesswork.",
+    body: "Every install designed and commissioned by qualified engineers  not subcontracted guesswork.",
   },
   {
     icon: "Wallet",
@@ -656,7 +657,7 @@ export const BENEFITS = [
   {
     icon: "Headphones",
     title: "One support line",
-    body: "Solar and security — one team, one number, full accountability.",
+    body: "Solar and security  one team, one number, full accountability.",
   },
   {
     icon: "Gauge",
@@ -699,7 +700,7 @@ export const VALUES = [
   {
     icon: "HeartHandshake",
     title: "Radical accountability",
-    body: "One partner for the whole system means there's never anyone else to blame — only us to trust.",
+    body: "One partner for the whole system means there's never anyone else to blame  only us to trust.",
   },
   {
     icon: "Leaf",
@@ -709,7 +710,7 @@ export const VALUES = [
   {
     icon: "Sparkles",
     title: "Obsessive craft",
-    body: "Clean cabling, labelled panels, tidy conduits — the details you'll never see are the ones we sweat.",
+    body: "Clean cabling, labelled panels, tidy conduits  the details you'll never see are the ones we sweat.",
   },
 ];
 
@@ -737,7 +738,7 @@ export const TIMELINE = [
   {
     year: "Today",
     title: "Solar · CCTV · Supply",
-    body: "Trusted across Punjab for solar systems, CCTV networks and genuine wholesale equipment — since 1996.",
+    body: "Trusted across Punjab for solar systems, CCTV networks and genuine wholesale equipment  since 1996.",
   },
 ];
 

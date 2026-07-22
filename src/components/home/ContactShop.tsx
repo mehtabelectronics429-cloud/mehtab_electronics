@@ -18,7 +18,7 @@ export default function ContactShop() {
           </h2>
           <p className="lead mt-6 max-w-md">
             Walk into our shop for hands-on demos, dealer pricing or a chat with
-            our team. Prefer to talk first? Call or WhatsApp — we respond fast.
+            our team. Prefer to talk first? Call or WhatsApp we respond fast.
           </p>
 
           <div className="mt-8 space-y-3">
@@ -50,7 +50,7 @@ export default function ContactShop() {
         {/* right: map */}
         <div className="relative overflow-hidden rounded-lg border border-line/15 shadow-glow-brand">
           <iframe
-            title="Mehtab Electronics — Narowal"
+            title="Mehtab Electronics  Narowal"
             src={COMPANY.mapEmbed}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

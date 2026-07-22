@@ -138,16 +138,18 @@ export default function AdminShell({
   }
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden bg-[#06070d] text-white">
+    <div className="h-screen overflow-hidden bg-[#06070d] text-white">
+      {/* Fixed sidebar (out of flow); the content column is offset by its width. */}
       <Sidebar />
       <div
         className={cn(
-          "flex min-h-screen flex-1 flex-col transition-[padding] duration-300",
+          "flex h-screen flex-col transition-[padding] duration-300",
           collapsed ? "lg:pl-[76px]" : "lg:pl-64",
         )}
       >
+        {/* Topbar stays pinned; only <main> scrolls. */}
         <Topbar onSearch={() => setCmd(true)} />
-        <main className="flex-1 overflow-y-auto">
+        <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
             <AnimatePresence mode="wait">
               <motion.div

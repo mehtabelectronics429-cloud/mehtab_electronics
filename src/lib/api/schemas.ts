@@ -27,7 +27,7 @@ export const employeeInput = z.object({
   password: z.string().min(6).optional(),
 });
 
-// Create requires password — enforced in route
+// Create requires password  enforced in route
 export const employeeCreateInput = employeeInput.extend({
   password: z.string().min(6),
 });

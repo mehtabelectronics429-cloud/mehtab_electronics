@@ -16,7 +16,11 @@ const EXPLORE = [
   { label: "Sitemap", href: "/sitemap" },
 ];
 
-const PARTNERS = ["Inverex — Authorized", "Solis — Authorized", "itel — Authorized Dealer"];
+const PARTNERS = [
+  "Inverex  Authorized",
+  "Solis  Authorized",
+  "itel  Authorized Dealer",
+];
 
 export default function Footer() {
   return (
@@ -27,15 +31,18 @@ export default function Footer() {
           <div>
             <Logo markSize={42} />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-fg/50">
-              Solar systems, CCTV networks and wholesale supply — engineered across Punjab from our
-              Narowal base.
+              Solar systems, CCTV networks and wholesale supply engineered
+              across Punjab from our Narowal base.
             </p>
           </div>
 
           <FooterCol title="Explore">
             {EXPLORE.map((l) => (
               <li key={l.label}>
-                <Link href={l.href} className="text-sm text-fg/60 transition-colors hover:text-brand">
+                <Link
+                  href={l.href}
+                  className="text-sm text-fg/60 transition-colors hover:text-brand"
+                >
                   {l.label}
                 </Link>
               </li>
@@ -53,7 +60,10 @@ export default function Footer() {
           <FooterCol title="Contact">
             {COMPANY.contacts.map((c) => (
               <li key={c.phone}>
-                <a href={c.phoneHref} className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand">
+                <a
+                  href={c.phoneHref}
+                  className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand"
+                >
                   <Phone className="h-3.5 w-3.5 text-brand" /> {c.phone}
                 </a>
               </li>
@@ -69,19 +79,24 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href={`mailto:${COMPANY.email}`} className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand">
+              <a
+                href={`mailto:${COMPANY.email}`}
+                className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand"
+              >
                 <Mail className="h-3.5 w-3.5 text-brand" /> {COMPANY.email}
               </a>
             </li>
             <li className="flex items-start gap-2 text-sm text-fg/60">
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" /> Narowal, Punjab, Pakistan
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />{" "}
+              Narowal, Punjab, Pakistan
             </li>
           </FooterCol>
         </div>
 
         <div className="mt-14 flex flex-col items-center justify-between gap-3 border-t border-line/15 pt-7 md:flex-row">
           <p className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-fg/40">
-            © {new Date().getFullYear()} {COMPANY.name} — Mudassar Sherazi &amp; M. Qasim
+            © {new Date().getFullYear()} {COMPANY.name} Mudassar Sherazi &amp;
+            M. Qasim
           </p>
           <p className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-fg/40">
             Serving all Punjab
@@ -92,10 +107,18 @@ export default function Footer() {
   );
 }
 
-function FooterCol({ title, children }: { title: string; children: React.ReactNode }) {
+function FooterCol({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <h4 className="font-mono text-[0.62rem] font-bold uppercase tracking-[0.2em] text-brand">{title}</h4>
+      <h4 className="font-mono text-[0.62rem] font-bold uppercase tracking-[0.2em] text-brand">
+        {title}
+      </h4>
       <ul className="mt-4 space-y-2.5">{children}</ul>
     </div>
   );

@@ -16,8 +16,8 @@
   --muted: 90 90 98;
   --line: 12 12 14;
 
-  /* Signature accent (yellow/gold) — deeper in light for readable text/contrast */
-  --brand: 161 98 7; /* amber-700 #A16207 — legible as text on white */
+  /* Signature accent (yellow/gold)  deeper in light for readable text/contrast */
+  --brand: 161 98 7; /* amber-700 #A16207  legible as text on white */
   --brand2: 133 77 14; /* amber-800 #854D0E */
   --on-brand: 255 255 255; /* text/icons sitting on a brand fill (mid-dark gold) */
 
@@ -44,7 +44,7 @@
   --muted: 148 148 158;
   --line: 255 255 255;
 
-  /* Gold on the dark shell — a touch deeper than neon yellow */
+  /* Gold on the dark shell  a touch deeper than neon yellow */
   --brand: 234 179 8; /* #EAB308 (yellow-500) */
   --brand2: 202 138 4; /* #CA8A04 (yellow-600) */
   --on-brand: 9 9 11; /* near-black text on the gold fill */
@@ -70,7 +70,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-synthesis: none; /* never fake-bold Anton/Archivo — keeps glyph edges crisp */
+  font-synthesis: none; /* never fake-bold Anton/Archivo  keeps glyph edges crisp */
 }
 
 /* Crisper display type: kill sub-pixel fuzz on the big Anton headlines */
@@ -324,10 +324,18 @@ body {
 
 /* Print: show only the invoice sheet (used for print / save-as-PDF). */
 @media print {
-  body * { visibility: hidden !important; }
-  #invoice-sheet, #invoice-sheet * { visibility: visible !important; }
+  body * {
+    visibility: hidden !important;
+  }
+  #invoice-sheet,
+  #invoice-sheet * {
+    visibility: visible !important;
+  }
   #invoice-sheet {
-    position: absolute; inset: 0 auto auto 0; width: 100%; margin: 0;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    margin: 0;
     box-shadow: none !important;
   }
 }

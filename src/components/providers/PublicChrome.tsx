@@ -8,9 +8,13 @@ import SiteBackground from "@/components/ui/SiteBackground";
 import Navbar from "@/components/sections/Navbar";
 import Footer from "@/components/sections/Footer";
 
-export default function PublicChrome({ children }: { children: React.ReactNode }) {
+export default function PublicChrome({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
-  // The admin app renders its own chrome — keep the marketing site out of it.
+  // The admin app renders its own chrome  keep the marketing site out of it.
   if (pathname?.startsWith("/admin")) return <>{children}</>;
 
   return (

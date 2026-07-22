@@ -40,13 +40,13 @@ export default function ShareInvoiceButton({
         try {
           await nav.share({ files: [file], title: filename, text: shareText });
         } catch (err) {
-          // user cancelled the share sheet — not an error
+          // user cancelled the share sheet  not an error
           if ((err as Error)?.name !== "AbortError") throw err;
         }
       } else {
         downloadFile(file);
         toast(
-          "PDF downloaded — attach it in WhatsApp (file sharing isn't supported on this device/browser).",
+          "PDF downloaded  attach it in WhatsApp (file sharing isn't supported on this device/browser).",
           {
             icon: "📎",
             duration: 6000,

@@ -36,7 +36,7 @@ export default function ProductCard({
               className="absolute inset-0 h-full w-full transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#04060B]/70 via-transparent to-transparent" />
-            <span className="absolute left-4 top-4 rounded-full glass hairline px-3 py-1 text-[0.62rem] uppercase tracking-widest text-cyan">
+            <span className="absolute left-4 top-4 rounded-full glass hairline px-3 py-1 text-[0.62rem] uppercase tracking-widest text-black">
               {product.category}
             </span>
             {product.badge && (
@@ -55,9 +55,9 @@ export default function ProductCard({
             <p className="mt-1 font-mono text-[0.7rem] uppercase tracking-widest text-fg/40">
               {product.model}
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-fg/60">
-              {product.description}
-            </p>
+            {/* <p className="mt-3 text-sm leading-relaxed text-fg/60">
+              {product.description?.slice(0, 100)}...
+            </p> */}
 
             <div className="mt-4 flex flex-wrap gap-1.5">
               {product.specs.map((s) => (
@@ -75,7 +75,7 @@ export default function ProductCard({
                 href={`/products/${product.category.toLowerCase().replace(/\s+/g, "-")}/${product.id}`}
                 className="inline-flex items-center gap-2 text-sm font-medium text-cyan transition-colors hover:text-electric"
               >
-                View details <ArrowUpRight className="h-4 w-4" />
+                Details <ArrowUpRight className="h-4 w-4" />
               </Link>
               <a
                 href={productInquiry(product)}

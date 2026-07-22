@@ -7,7 +7,7 @@ export interface IEmployee {
   email: string;
   phone: string;
   title: string;
-  /** Permission category — mirrored to the login Profile.role. */
+  /** Permission category  mirrored to the login Profile.role. */
   role: "admin" | "manager" | "cashier" | "technician";
   active: boolean;
   assigned: number;
@@ -22,10 +22,21 @@ export interface IEmployee {
 const schema = new Schema<IEmployee>(
   {
     name: { type: String, required: true, trim: true, index: true },
-    email: { type: String, required: true, lowercase: true, trim: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      unique: true,
+    },
     phone: { type: String, required: true, trim: true },
     title: { type: String, required: true, trim: true },
-    role: { type: String, enum: ["admin", "manager", "cashier", "technician"], default: "technician", index: true },
+    role: {
+      type: String,
+      enum: ["admin", "manager", "cashier", "technician"],
+      default: "technician",
+      index: true,
+    },
     active: { type: Boolean, default: true, index: true },
     assigned: { type: Number, default: 0 },
     completed: { type: Number, default: 0 },
@@ -33,7 +44,10 @@ const schema = new Schema<IEmployee>(
     joinedAt: { type: Date, default: Date.now },
     deletedAt: { type: Date, default: null, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export const Employee: Model<IEmployee> = registerModel<IEmployee>("Employee", schema);
+export const Employee: Model<IEmployee> = registerModel<IEmployee>(
+  "Employee",
+  schema,
+);

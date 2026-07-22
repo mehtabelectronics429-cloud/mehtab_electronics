@@ -1,7 +1,7 @@
 /**
  * Real Mehtab Electronics site photography (installed jobs), stored in
  * /public/images/site. Categorised for use across the marketing pages.
- * These are the company's actual installations — prefer them over stock.
+ * These are the company's actual installations  prefer them over stock.
  */
 
 const P = "/images/site";
@@ -53,12 +53,28 @@ export const ALL_SOLAR = [...SOLAR_PANELS, ...INVERTERS];
 
 /** Authorized-partner / supplier brand logos (real marks) for the logo marquee. */
 export const PARTNER_LOGOS = [
-  { name: "Inverex", role: "Authorized Solar Partner", src: "/images/logos/inverex.png" },
-  { name: "Solis", role: "Authorized Inverter Dealer", src: "/images/logos/solis.png" },
+  {
+    name: "Inverex",
+    role: "Authorized Solar Partner",
+    src: "/images/logos/inverex.png",
+  },
+  {
+    name: "Solis",
+    role: "Authorized Inverter Dealer",
+    src: "/images/logos/solis.png",
+  },
   { name: "itel", role: "Authorized Dealer", src: "/images/logos/itel.svg" },
   { name: "LONGi", role: "Trusted Supplier", src: "/images/logos/longi.png" },
-  { name: "JinKO Solar", role: "Trusted Supplier", src: "/images/logos/jinko.png" },
-  { name: "Hikvision", role: "CCTV Partner", src: "/images/logos/hikvision.png" },
+  {
+    name: "JinKO Solar",
+    role: "Trusted Supplier",
+    src: "/images/logos/jinko.png",
+  },
+  {
+    name: "Hikvision",
+    role: "CCTV Partner",
+    src: "/images/logos/hikvision.png",
+  },
 ];
 
 /** Hand-picked heroes. */

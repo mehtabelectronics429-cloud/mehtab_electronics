@@ -57,12 +57,21 @@ export default function InvoiceDetailPage() {
     const fullyPaid = newPaid >= totals.total;
     patch.mutate(
       { paid: newPaid, ...(fullyPaid ? { status: "approved" } : {}) },
-      { onSuccess: () => { setPayment(""); toast.success(fullyPaid ? "Marked fully paid" : "Payment recorded"); } }
+      {
+        onSuccess: () => {
+          setPayment("");
+          toast.success(fullyPaid ? "Marked fully paid" : "Payment recorded");
+        },
+      },
     );
   };
 
   const sendWhatsApp = () => {
-    const phone = (invoice.customerWhatsapp || invoice.customerPhone || "").replace(/\D/g, "");
+    const phone = (
+      invoice.customerWhatsapp ||
+      invoice.customerPhone ||
+      ""
+    ).replace(/\D/g, "");
     if (!phone) return toast.error("No customer WhatsApp number on file");
     const intl = phone.startsWith("92") ? phone : phone.replace(/^0/, "92");
     const link = `${window.location.origin}/invoice/${id}`;
@@ -72,7 +81,7 @@ export default function InvoiceDetailPage() {
       `Total: Rs ${totals.total.toLocaleString("en-PK")}\n` +
       (paid > 0 ? `Paid: Rs ${paid.toLocaleString("en-PK")}\n` : "") +
       `Balance Due: Rs ${balance.toLocaleString("en-PK")}\n\n` +
-      `View / download your invoice (PDF): ${link}\n\nJazakAllah — Mehtab Electronics`;
+      `View / download your invoice (PDF): ${link}\n\nJazakAllah  Mehtab Electronics`;
     openWhatsAppUrl(`https://wa.me/${intl}?text=${encodeURIComponent(msg)}`);
     toast.success("Opening WhatsApp with the invoice link…");
   };
@@ -81,10 +90,17 @@ export default function InvoiceDetailPage() {
     <div>
       <PageHeader
         title={`Invoice ${invoice.number}`}
-        subtitle={<span className="inline-flex items-center gap-2">{invoice.customer} <StatusBadge status={invoice.status} /></span>}
+        subtitle={
+          <span className="inline-flex items-center gap-2">
+            {invoice.customer} <StatusBadge status={invoice.status} />
+          </span>
+        }
         actions={
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => router.push("/admin/billing")}>
+            <Button
+              variant="secondary"
+              onClick={() => router.push("/admin/billing")}
+            >
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
             <Button variant="secondary" onClick={() => window.print()}>
@@ -95,7 +111,7 @@ export default function InvoiceDetailPage() {
             </Button>
             <ShareInvoiceButton
               filename={`Invoice-${invoice.number}.pdf`}
-              shareText={`Invoice ${invoice.number} — Mehtab Electronics. Total Rs ${totals.total.toLocaleString("en-PK")}, Balance Due Rs ${balance.toLocaleString("en-PK")}.`}
+              shareText={`Invoice ${invoice.number}  Mehtab Electronics. Total Rs ${totals.total.toLocaleString("en-PK")}, Balance Due Rs ${balance.toLocaleString("en-PK")}.`}
             />
           </div>
         }
@@ -104,16 +120,28 @@ export default function InvoiceDetailPage() {
       {/* payment controls */}
       <div className="mb-5 grid gap-4 lg:grid-cols-3">
         <Card className="p-4">
-          <div className="text-xs uppercase tracking-wider text-white/40">Total</div>
-          <div className="mt-1 text-lg font-semibold text-white">{pkr(totals.total)}</div>
+          <div className="text-xs uppercase tracking-wider text-white/40">
+            Total
+          </div>
+          <div className="mt-1 text-lg font-semibold text-white">
+            {pkr(totals.total)}
+          </div>
         </Card>
         <Card className="p-4">
-          <div className="text-xs uppercase tracking-wider text-white/40">Paid</div>
-          <div className="mt-1 text-lg font-semibold text-emerald-300">{pkr(paid)}</div>
+          <div className="text-xs uppercase tracking-wider text-white/40">
+            Paid
+          </div>
+          <div className="mt-1 text-lg font-semibold text-emerald-300">
+            {pkr(paid)}
+          </div>
         </Card>
         <Card className="p-4">
-          <div className="text-xs uppercase tracking-wider text-white/40">Balance due</div>
-          <div className="mt-1 text-lg font-semibold text-amber-300">{pkr(balance)}</div>
+          <div className="text-xs uppercase tracking-wider text-white/40">
+            Balance due
+          </div>
+          <div className="mt-1 text-lg font-semibold text-amber-300">
+            {pkr(balance)}
+          </div>
         </Card>
       </div>
 
@@ -121,12 +149,25 @@ export default function InvoiceDetailPage() {
         <Card className="mb-5 flex flex-wrap items-end gap-3 p-4">
           <div className="flex-1 min-w-[180px]">
             <Label>Record a payment (partial or full)</Label>
-            <Input type="number" value={payment} onChange={(e) => setPayment(e.target.value)} placeholder={`Up to ${balance}`} />
+            <Input
+              type="number"
+              value={payment}
+              onChange={(e) => setPayment(e.target.value)}
+              placeholder={`Up to ${balance}`}
+            />
           </div>
           <Button onClick={recordPayment} disabled={patch.isPending}>
             <Wallet className="h-4 w-4" /> Record payment
           </Button>
-          <Button variant="secondary" onClick={() => patch.mutate({ paid: totals.total, status: "approved" }, { onSuccess: () => toast.success("Marked fully paid") })}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              patch.mutate(
+                { paid: totals.total, status: "approved" },
+                { onSuccess: () => toast.success("Marked fully paid") },
+              )
+            }
+          >
             <Check className="h-4 w-4" /> Mark fully paid
           </Button>
         </Card>

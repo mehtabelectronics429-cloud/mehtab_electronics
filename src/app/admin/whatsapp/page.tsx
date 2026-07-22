@@ -7,10 +7,19 @@ import { Send, RotateCw } from "lucide-react";
 import toast from "react-hot-toast";
 import Icon from "@/components/ui/Icon";
 import { PageHeader } from "@/components/admin/ui/feedback";
-import { Card, Badge, Button, Input, Label } from "@/components/admin/ui/primitives";
+import {
+  Card,
+  Badge,
+  Button,
+  Input,
+  Label,
+} from "@/components/admin/ui/primitives";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
-import { toastForWhatsAppResult, openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
+import {
+  toastForWhatsAppResult,
+  openWhatsAppUrl,
+} from "@/lib/admin/whatsapp-client";
 import { cn } from "@/lib/utils";
 
 const S: Record<string, string> = {
@@ -81,10 +90,10 @@ export default function WhatsAppPage() {
   });
 
   const templates = (data?.templates ?? []).map((t) =>
-    typeof t === "string" ? { event: t, label: t } : t
+    typeof t === "string" ? { event: t, label: t } : t,
   );
   const history = data?.items ?? [];
-  const fromPhone = data?.fromPhone || "—";
+  const fromPhone = data?.fromPhone || "";
   const sendMode = data?.sendMode || "direct";
   const businessReady = !!data?.businessApiReady;
 
@@ -103,22 +112,36 @@ export default function WhatsAppPage() {
           Default mode: <span className="text-white/70">{sendMode}</span>
           {" · "}
           Business API:{" "}
-          <span className={businessReady ? "text-emerald-300" : "text-amber-300"}>
-            {businessReady ? "configured" : "not configured (direct will be used)"}
+          <span
+            className={businessReady ? "text-emerald-300" : "text-amber-300"}
+          >
+            {businessReady
+              ? "configured"
+              : "not configured (direct will be used)"}
           </span>
         </div>
       </Card>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {templates.map((t, i) => (
-          <motion.div key={t.event} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+          <motion.div
+            key={t.event}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+          >
             <Card className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#25D366]/15 text-[#25D366] ring-1 ring-[#25D366]/20">
-                  <Icon name={TEMPLATE_ICONS[t.label] || "MessageSquare"} className="h-5 w-5" />
+                  <Icon
+                    name={TEMPLATE_ICONS[t.label] || "MessageSquare"}
+                    className="h-5 w-5"
+                  />
                 </span>
                 <div>
                   <span className="block text-sm text-white">{t.label}</span>
-                  <span className="text-[0.65rem] text-white/35">{t.event}</span>
+                  <span className="text-[0.65rem] text-white/35">
+                    {t.event}
+                  </span>
                 </div>
               </div>
               <button
@@ -139,7 +162,9 @@ export default function WhatsAppPage() {
       </div>
 
       <Card className="mt-6 p-5">
-        <h3 className="mb-4 text-sm font-medium text-white/80">Message history</h3>
+        <h3 className="mb-4 text-sm font-medium text-white/80">
+          Message history
+        </h3>
         {isLoading ? (
           <div className="text-sm text-white/40">Loading…</div>
         ) : history.length === 0 ? (
@@ -153,10 +178,13 @@ export default function WhatsAppPage() {
               >
                 <div>
                   <div className="text-sm text-white">
-                    {h.to || h.toName} · <span className="text-white/50">{h.template}</span>
+                    {h.to || h.toName} ·{" "}
+                    <span className="text-white/50">{h.template}</span>
                   </div>
                   <div className="text-xs text-white/40">
-                    {(h as { channel?: string }).channel === "business" ? "Business API" : "Direct"}
+                    {(h as { channel?: string }).channel === "business"
+                      ? "Business API"
+                      : "Direct"}
                     {" · "}
                     From {h.from || h.fromPhone || fromPhone}
                     {h.at ? ` · ${new Date(h.at).toLocaleString()}` : ""}
@@ -165,7 +193,9 @@ export default function WhatsAppPage() {
                 <div className="flex items-center gap-2">
                   {(h as { waUrl?: string }).waUrl && (
                     <button
-                      onClick={() => openWhatsAppUrl((h as { waUrl?: string }).waUrl)}
+                      onClick={() =>
+                        openWhatsAppUrl((h as { waUrl?: string }).waUrl)
+                      }
                       className="text-xs text-[#25D366] hover:underline"
                     >
                       Open
@@ -189,7 +219,11 @@ export default function WhatsAppPage() {
         )}
       </Card>
 
-      <Modal open={open} onClose={() => setOpen(false)} title={`Send · ${label}`}>
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={`Send · ${label}`}
+      >
         <div className="space-y-4">
           <div>
             <Label>Send via</Label>
@@ -201,11 +235,13 @@ export default function WhatsAppPage() {
                   "rounded-xl border px-3 py-2.5 text-left text-xs transition-colors",
                   channel === "direct"
                     ? "border-[#25D366]/40 bg-[#25D366]/15 text-[#25D366]"
-                    : "border-white/10 bg-white/5 text-white/55 hover:text-white"
+                    : "border-white/10 bg-white/5 text-white/55 hover:text-white",
                 )}
               >
                 <div className="font-medium">Direct WhatsApp</div>
-                <div className="mt-0.5 opacity-70">Opens the WhatsApp app with the message</div>
+                <div className="mt-0.5 opacity-70">
+                  Opens the WhatsApp app with the message
+                </div>
               </button>
               <button
                 type="button"
@@ -214,7 +250,7 @@ export default function WhatsAppPage() {
                   "rounded-xl border px-3 py-2.5 text-left text-xs transition-colors",
                   channel === "business"
                     ? "border-cyan/40 bg-cyan/15 text-cyan"
-                    : "border-white/10 bg-white/5 text-white/55 hover:text-white"
+                    : "border-white/10 bg-white/5 text-white/55 hover:text-white",
                 )}
               >
                 <div className="font-medium">Business API</div>
@@ -226,15 +262,27 @@ export default function WhatsAppPage() {
           </div>
           <div>
             <Label>Recipient name</Label>
-            <Input value={toName} onChange={(e) => setToName(e.target.value)} placeholder="Customer name" />
+            <Input
+              value={toName}
+              onChange={(e) => setToName(e.target.value)}
+              placeholder="Customer name"
+            />
           </div>
           <div>
             <Label>Customer WhatsApp</Label>
-            <Input value={toPhone} onChange={(e) => setToPhone(e.target.value)} placeholder="+92…" />
+            <Input
+              value={toPhone}
+              onChange={(e) => setToPhone(e.target.value)}
+              placeholder="+92…"
+            />
           </div>
           <div>
             <Label>Custom body (optional)</Label>
-            <Input value={body} onChange={(e) => setBody(e.target.value)} placeholder="Leave blank to use event template" />
+            <Input
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Leave blank to use event template"
+            />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setOpen(false)}>
@@ -244,7 +292,11 @@ export default function WhatsAppPage() {
               disabled={!toName || !toPhone || send.isPending}
               onClick={onSend}
             >
-              {send.isPending ? "Sending…" : channel === "direct" ? "Open in WhatsApp app" : "Queue Business API"}
+              {send.isPending
+                ? "Sending…"
+                : channel === "direct"
+                  ? "Open in WhatsApp app"
+                  : "Queue Business API"}
             </Button>
           </div>
         </div>

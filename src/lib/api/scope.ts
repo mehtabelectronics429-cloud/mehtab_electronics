@@ -9,7 +9,9 @@ function asObjectId(id: string) {
 }
 
 /** Customer IDs an employee has worked for (via installations). */
-export async function customerIdsForEmployee(employeeId: string): Promise<Types.ObjectId[]> {
+export async function customerIdsForEmployee(
+  employeeId: string,
+): Promise<Types.ObjectId[]> {
   const oid = asObjectId(employeeId);
   const ids = await Installation.distinct("customerId", {
     ...notDeleted,
@@ -21,9 +23,11 @@ export async function customerIdsForEmployee(employeeId: string): Promise<Types.
 /**
  * Own-customer scope for list APIs.
  * `null` = unrestricted (admin / full customer view).
- * Always use `ownIds !== null` — never `if (ownIds)` (empty array is truthy and matches nothing).
+ * Always use `ownIds !== null`  never `if (ownIds)` (empty array is truthy and matches nothing).
  */
-export async function ownCustomerIdList(user: SessionUser): Promise<string[] | null> {
+export async function ownCustomerIdList(
+  user: SessionUser,
+): Promise<string[] | null> {
   if (
     can(user.role, "ledger.view.all") ||
     can(user.role, "customers.view") ||
@@ -42,7 +46,7 @@ export function isOwnScope(ownIds: string[] | null): ownIds is string[] {
 
 /** Mongo filter for ledger lists (employee sees own entries + customers they installed for). */
 export async function ledgerScopeFilter(
-  user: SessionUser
+  user: SessionUser,
 ): Promise<Record<string, unknown> | null> {
   if (can(user.role, "ledger.view.all") || can(user.role, "customers.view")) {
     return null;
@@ -68,12 +72,14 @@ export function installationAssignedFilter(employeeId: string) {
 
 export function isEmployeeOnInstallation(
   employeeId: string,
-  doc: { employeeId?: unknown; employeeIds?: unknown[] }
+  doc: { employeeId?: unknown; employeeIds?: unknown[] },
 ) {
-  const lead = String((doc.employeeId as { _id?: unknown })?._id || doc.employeeId || "");
+  const lead = String(
+    (doc.employeeId as { _id?: unknown })?._id || doc.employeeId || "",
+  );
   if (lead === employeeId) return true;
   const team = (doc.employeeIds || []).map((e) =>
-    String((e as { _id?: unknown })?._id || e)
+    String((e as { _id?: unknown })?._id || e),
   );
   return team.includes(employeeId);
 }

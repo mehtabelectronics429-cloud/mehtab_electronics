@@ -24,13 +24,13 @@ const CATEGORIES: Record<
     name: "Solar Panels",
     eyebrow: "Products · Solar",
     blurb:
-      "Tier-1 mono-PERC and N-type modules from Longi and JinKO — sized for homes, farms and commercial roofs.",
+      "Tier-1 mono-PERC and N-type modules from Longi and JinKO  sized for homes, farms and commercial roofs.",
   },
   inverters: {
     name: "Inverters",
     eyebrow: "Products · Inverters",
     blurb:
-      "Hybrid and on-grid inverters from Inverex, itel and Solis — dual MPPT, battery-ready and net-metering compliant.",
+      "Hybrid and on-grid inverters from Inverex, itel and Solis  dual MPPT, battery-ready and net-metering compliant.",
   },
   batteries: {
     name: "Batteries",
@@ -42,7 +42,7 @@ const CATEGORIES: Record<
     name: "Cameras",
     eyebrow: "Products · Security",
     blurb:
-      "HD and 4K IP cameras — bullet, dome and PTZ — with night vision, mobile viewing and NVR storage.",
+      "HD and 4K IP cameras  bullet, dome and PTZ  with night vision, mobile viewing and NVR storage.",
   },
 };
 
@@ -52,8 +52,8 @@ export function generateMetadata({
   params: { category: string };
 }): Metadata {
   const c = CATEGORIES[params.category];
-  if (!c) return { title: "Products — Mehtab Electronics" };
-  return { title: `${c.name} — Mehtab Electronics`, description: c.blurb };
+  if (!c) return { title: "Products  Mehtab Electronics" };
+  return { title: `${c.name}  Mehtab Electronics`, description: c.blurb };
 }
 
 async function productsForCategory(name: string): Promise<Product[]> {

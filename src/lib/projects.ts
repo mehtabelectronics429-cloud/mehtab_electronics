@@ -28,7 +28,7 @@ export const PROJECTS_DATA: Project[] = [
     spec: "10 kW · On-grid hybrid",
     year: "2024",
     summary:
-      "A complete 10 kW on-grid hybrid system for a family home — Tier-1 panels, hybrid inverter and battery backup with net-metering.",
+      "A complete 10 kW on-grid hybrid system for a family home  Tier-1 panels, hybrid inverter and battery backup with net-metering.",
     details: [
       "18 × Longi 585W mono-PERC panels on a custom rooftop structure",
       "Inverex hybrid inverter with WiFi monitoring",
@@ -113,7 +113,7 @@ export const PROJECTS_DATA: Project[] = [
     spec: "6 kW · Hybrid",
     year: "2024",
     summary:
-      "An itel hybrid inverter paired with a metered distribution board — a typical clean Mehtab install.",
+      "An itel hybrid inverter paired with a metered distribution board  a typical clean Mehtab install.",
     details: [
       "itel Hybrid Inverter with touch display",
       "Metered DB showing live voltage",

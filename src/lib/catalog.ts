@@ -72,7 +72,7 @@ export function toMarketingProduct(item: CatalogItem): Product {
     price: item.sellingPrice > 0 ? pkr(item.sellingPrice) : undefined,
     description:
       item.description?.trim() ||
-      `${name} — tap WhatsApp for pricing and installation details.`,
+      `${name}  tap WhatsApp for pricing and installation details.`,
     specs: specs.slice(0, 4),
     image: item.image?.trim() || categoryImage(item.category),
     badge,

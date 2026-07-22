@@ -40,7 +40,7 @@ export default function BillingPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["invoices", page, status],
-    queryFn: () => api.invoices({ page, limit: 20, status }),
+    queryFn: () => api.invoices({ page, limit: 10, status }),
   });
 
   const { data: customers } = useQuery({

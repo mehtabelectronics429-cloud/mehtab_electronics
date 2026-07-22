@@ -18,7 +18,11 @@ export default function Logo({
   wordmark?: boolean;
 }) {
   return (
-    <Link href="/" className={cn("flex items-center gap-2.5", className)} aria-label="Mehtab Electronics — home">
+    <Link
+      href="/"
+      className={cn("flex items-center gap-2.5", className)}
+      aria-label="Mehtab Electronics  home"
+    >
       <span
         className="grid shrink-0 place-items-center overflow-hidden rounded-md bg-[#0c0c10] ring-1 ring-white/10"
         style={{ width: markSize, height: markSize }}

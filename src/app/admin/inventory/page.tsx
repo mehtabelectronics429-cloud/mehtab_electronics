@@ -14,7 +14,7 @@ export default function InventoryPage() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useQuery({
     queryKey: ["inventory", page],
-    queryFn: () => api.products({ page, limit: 20, sort: "stock" }),
+    queryFn: () => api.products({ page, limit: 10, sort: "stock" }),
   });
 
   const low = useMemo(() => (data?.items ?? []).filter((p) => p.stock <= 5).length, [data]);

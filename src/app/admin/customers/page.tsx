@@ -59,7 +59,7 @@ export default function CustomersPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["customers", page, q],
-    queryFn: () => api.customers({ page, limit: 20, q: q || undefined }),
+    queryFn: () => api.customers({ page, limit: 10, q: q || undefined }),
   });
 
   const { data: ledgerData, isLoading: ledgerLoading } = useQuery({

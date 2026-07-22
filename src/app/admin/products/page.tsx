@@ -293,7 +293,7 @@ export default function ProductsPage() {
             </select>
             {categoryOptions.length === 0 && (
               <p className="mt-1 text-xs text-amber-300">
-                No categories yet — add them under Categories first.
+                No categories yet add them under Categories first.
               </p>
             )}
             {errors.category && (

@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // The admin dashboard and API are private — keep them out of search.
+        // The admin dashboard and API are private  keep them out of search.
         disallow: ["/admin", "/api"],
       },
     ],

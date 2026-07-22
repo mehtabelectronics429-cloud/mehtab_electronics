@@ -38,7 +38,7 @@ export default function SuppliersPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["suppliers", page, q],
-    queryFn: () => api.suppliers({ page, limit: 20, q: q || undefined }),
+    queryFn: () => api.suppliers({ page, limit: 10, q: q || undefined }),
   });
 
   const {
@@ -112,12 +112,12 @@ export default function SuppliersPage() {
     {
       accessorKey: "phone",
       header: "Phone",
-      cell: (i) => i.getValue<string>() || "—",
+      cell: (i) => i.getValue<string>() || "",
     },
     {
       accessorKey: "email",
       header: "Email",
-      cell: (i) => i.getValue<string>() || "—",
+      cell: (i) => i.getValue<string>() || "",
     },
     {
       accessorKey: "balance",

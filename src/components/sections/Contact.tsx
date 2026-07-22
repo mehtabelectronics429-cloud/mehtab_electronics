@@ -64,13 +64,13 @@ export default function Contact({
                     <span className="text-gradient">powerful</span>.
                   </>
                 }
-                intro="Book a free site survey. Tell us about your building and goals — our engineers will design a system that fits."
+                intro="Book a free site survey. Tell us about your building and goals  our engineers will design a system that fits."
               />
             ) : (
               <div>
                 <span className="eyebrow">Reach us directly</span>
                 <p className="lead mt-5 max-w-md">
-                  Prefer to talk? Call, email or drop by — or use the form and
+                  Prefer to talk? Call, email or drop by or use the form and
                   we&apos;ll reply within one business day.
                 </p>
               </div>

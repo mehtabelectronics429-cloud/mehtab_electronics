@@ -16,7 +16,7 @@ export interface IInstallationMaterial {
   used: number;
 }
 
-/** A product/line used in the installation — from the catalogue or free-form. */
+/** A product/line used in the installation  from the catalogue or free-form. */
 export interface IInstallationItem {
   productId: Types.ObjectId | null;
   name: string;
@@ -28,7 +28,7 @@ export interface IInstallation {
   _id: Types.ObjectId;
   ref: string;
   customerId: Types.ObjectId;
-  /** @deprecated prefer employeeIds — kept as lead technician for older records */
+  /** @deprecated prefer employeeIds  kept as lead technician for older records */
   employeeId: Types.ObjectId | null;
   employeeIds: Types.ObjectId[];
   invoiceId: Types.ObjectId | null;
@@ -46,11 +46,15 @@ export interface IInstallation {
 
 const materialLine = new Schema<IInstallationMaterial>(
   {
-    materialId: { type: Schema.Types.ObjectId, ref: "Material", required: true },
+    materialId: {
+      type: Schema.Types.ObjectId,
+      ref: "Material",
+      required: true,
+    },
     qty: { type: Number, default: 0, min: 0 },
     used: { type: Number, default: 0, min: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const itemLine = new Schema<IInstallationItem>(
@@ -60,24 +64,47 @@ const itemLine = new Schema<IInstallationItem>(
     unitPrice: { type: Number, default: 0, min: 0 },
     qty: { type: Number, default: 1, min: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const schema = new Schema<IInstallation>(
   {
     ref: { type: String, required: true, unique: true, index: true },
-    customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: true, index: true },
-    employeeId: { type: Schema.Types.ObjectId, ref: "Employee", default: null, index: true },
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: "Customer",
+      required: true,
+      index: true,
+    },
+    employeeId: {
+      type: Schema.Types.ObjectId,
+      ref: "Employee",
+      default: null,
+      index: true,
+    },
     employeeIds: {
       type: [{ type: Schema.Types.ObjectId, ref: "Employee" }],
       default: [],
       index: true,
     },
-    invoiceId: { type: Schema.Types.ObjectId, ref: "Invoice", default: null, index: true },
+    invoiceId: {
+      type: Schema.Types.ObjectId,
+      ref: "Invoice",
+      default: null,
+      index: true,
+    },
     type: { type: String, required: true, trim: true },
     status: {
       type: String,
-      enum: ["pending", "assigned", "in_progress", "submitted", "approved", "rejected", "completed"],
+      enum: [
+        "pending",
+        "assigned",
+        "in_progress",
+        "submitted",
+        "approved",
+        "rejected",
+        "completed",
+      ],
       default: "pending",
       index: true,
     },
@@ -88,10 +115,10 @@ const schema = new Schema<IInstallation>(
     materials: { type: [materialLine], default: [] },
     deletedAt: { type: Date, default: null, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Installation: Model<IInstallation> = registerModel<IInstallation>(
   "Installation",
-  schema
+  schema,
 );

@@ -103,7 +103,7 @@ export default function CategoriesPage() {
       accessorKey: "description",
       header: "Description",
       cell: (i) => (
-        <span className="text-white/60">{i.getValue<string>() || "—"}</span>
+        <span className="text-white/60">{i.getValue<string>() || ""}</span>
       ),
     },
     {

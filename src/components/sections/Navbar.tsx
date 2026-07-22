@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, ChevronDown } from "lucide-react";
+import {
+  Menu,
+  X,
+  Phone,
+  ChevronDown,
+  SunIcon,
+  CameraIcon,
+  BatteryFull,
+  ChartBarStackedIcon,
+} from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -13,7 +22,8 @@ import Logo from "@/components/ui/Logo";
 type NavItem = {
   label: string;
   href: string;
-  children?: { label: string; href: string; desc?: string }[];
+  icon?: any;
+  children?: { label: string; href: string; desc?: string; icon?: any }[];
 };
 
 const NAV: NavItem[] = [
@@ -23,11 +33,13 @@ const NAV: NavItem[] = [
     href: "/services",
     children: [
       {
+        icon: <SunIcon size={30} />,
         label: "Solar Systems",
         href: "/services/solar",
         desc: "On-grid, off-grid & hybrid installs",
       },
       {
+        icon: <CameraIcon size={30} />,
         label: "CCTV & Security",
         href: "/services/cctv",
         desc: "HD/4K camera networks",
@@ -39,21 +51,29 @@ const NAV: NavItem[] = [
     href: "/products",
     children: [
       {
+        icon: <SunIcon size={30} />,
         label: "Solar Panels",
         href: "/products/solar-panels",
         desc: "Tier-1 mono-PERC modules",
       },
       {
+        icon: <ChartBarStackedIcon size={30} />,
         label: "Inverters",
         href: "/products/inverters",
         desc: "Hybrid & on-grid inverters",
       },
       {
+        icon: <BatteryFull size={30} />,
         label: "Batteries",
         href: "/products/batteries",
         desc: "Lithium & tubular backup",
       },
-      { label: "Cameras", href: "/products/cameras", desc: "IP & analog CCTV" },
+      {
+        icon: <CameraIcon size={30} />,
+        label: "Cameras",
+        href: "/products/cameras",
+        desc: "IP & analog CCTV",
+      },
     ],
   },
   { label: "Projects", href: "/projects" },
@@ -108,11 +128,12 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "relative font-mono text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300",
+                    "flex relative font-mono text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300",
                     active ? "text-brand" : "text-fg/60 hover:text-fg",
                   )}
                 >
-                  {item.label}
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
                 </Link>
               );
             }
@@ -132,20 +153,23 @@ export default function Navbar() {
                 <div className="invisible absolute left-1/2 top-full z-10 w-64 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                   <div className="overflow-hidden rounded-lg border border-line/15 bg-surface/95 p-2 shadow-card-lg backdrop-blur-xl">
                     {item.children.map((c) => (
-                      <Link
-                        key={c.href}
-                        href={c.href}
-                        className="block rounded-md px-3 py-2.5 transition-colors hover:bg-brand/10"
-                      >
-                        <div className="font-display text-sm uppercase tracking-wide text-fg">
-                          {c.label}
-                        </div>
-                        {c.desc && (
-                          <div className="mt-0.5 text-xs text-fg/50">
-                            {c.desc}
+                      <div className="flex items-center gap-2 p-1 rounded-md transition-colors hover:bg-brand/10">
+                        <span>{c.icon}</span>
+                        <Link
+                          key={c.href}
+                          href={c.href}
+                          className="block rounded-md  transition-colors hover:bg-brand/10"
+                        >
+                          <div className="flex font-display text-sm uppercase tracking-wide text-fg">
+                            <span> {c.label} </span>
                           </div>
-                        )}
-                      </Link>
+                          {c.desc && (
+                            <div className="mt-0.5 text-xs text-fg/50">
+                              {c.desc}
+                            </div>
+                          )}
+                        </Link>
+                      </div>
                     ))}
                   </div>
                 </div>
