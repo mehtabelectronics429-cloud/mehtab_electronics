@@ -448,16 +448,19 @@ html:not(.dark) .admin-root .admin-select optgroup {
   color: rgb(var(--fg) / 0.5);
 }
 
-/* Print: show only the invoice sheet (used for print / save-as-PDF). */
+/* Print: show only the invoice / quotation sheet (used for print / save-as-PDF). */
 @media print {
   body * {
     visibility: hidden !important;
   }
   #invoice-sheet,
-  #invoice-sheet * {
+  #invoice-sheet *,
+  #quotation-sheet,
+  #quotation-sheet * {
     visibility: visible !important;
   }
-  #invoice-sheet {
+  #invoice-sheet,
+  #quotation-sheet {
     position: absolute;
     inset: 0 auto auto 0;
     width: 100%;
