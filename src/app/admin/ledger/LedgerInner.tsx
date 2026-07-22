@@ -17,6 +17,7 @@ import { PageHeader } from "@/components/admin/ui/feedback";
 import { Badge, Button, Card, Input, Label } from "@/components/admin/ui/primitives";
 import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
+import LedgerDocument from "@/components/admin/LedgerDocument";
 import { api } from "@/lib/admin/services";
 import { useAuth } from "@/lib/admin/auth";
 import { can } from "@/lib/admin/permissions";
@@ -29,7 +30,14 @@ import {
 import {
   downloadFile,
   generateLedgerReportPdf,
+  type LedgerReportData,
 } from "@/lib/admin/ledger-pdf";
+
+function waitForPaint() {
+  return new Promise<void>((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
 
 export default function LedgerPageInner() {
   const { user } = useAuth();
@@ -48,6 +56,7 @@ export default function LedgerPageInner() {
   const [reportBusy, setReportBusy] = useState<"csv" | "pdf" | "wa" | null>(
     null,
   );
+  const [sheetData, setSheetData] = useState<LedgerReportData | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["ledger", page, urlCustomerId],
@@ -104,6 +113,10 @@ export default function LedgerPageInner() {
         from: from || undefined,
         to: to || undefined,
       });
+      setSheetData(report);
+      await waitForPaint();
+      // Allow Next/Image + fonts a beat before html2canvas capture.
+      await new Promise((r) => setTimeout(r, 120));
       const file = await generateLedgerReportPdf(report);
       downloadFile(file);
 
@@ -112,14 +125,10 @@ export default function LedgerPageInner() {
         return;
       }
 
-      // WhatsApp: open chat with summary; PDF already downloaded to attach.
-      const phone = (report.customer.whatsapp || report.customer.phone || "")
-        .replace(/\D/g, "");
-      if (!phone) {
-        toast.error("No WhatsApp/phone on file — PDF was downloaded");
-        return;
-      }
-      const intl = phone.startsWith("92") ? phone : phone.replace(/^0/, "92");
+      // Prefer native share sheet with the PDF attached when available.
+      const nav = navigator as Navigator & {
+        canShare?: (d?: ShareData) => boolean;
+      };
       const range =
         report.from || report.to
           ? `${report.from || "…"} to ${report.to || "…"}`
@@ -130,9 +139,33 @@ export default function LedgerPageInner() {
         `Entries: ${report.totals.count}\n` +
         `Debits: ${pkr(report.totals.debits)}\n` +
         `Credits: ${pkr(report.totals.credits)}\n` +
-        `Current balance: ${pkr(report.customer.balance)}\n\n` +
-        `Please find the PDF statement attached (downloaded on our side — attach the file when sending).`;
-      const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(text)}`;
+        `Current balance: ${pkr(report.customer.balance)}`;
+
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        try {
+          await nav.share({
+            files: [file],
+            title: file.name,
+            text,
+          });
+          toast.success("Share sheet opened");
+          return;
+        } catch (err) {
+          if ((err as Error)?.name === "AbortError") return;
+        }
+      }
+
+      const phone = (report.customer.whatsapp || report.customer.phone || "")
+        .replace(/\D/g, "");
+      if (!phone) {
+        toast.error("No WhatsApp/phone on file — PDF was downloaded");
+        return;
+      }
+      const intl = phone.startsWith("92") ? phone : phone.replace(/^0/, "92");
+      const waUrl = `https://wa.me/${intl}?text=${encodeURIComponent(
+        text +
+          "\n\nPlease find the PDF statement attached (downloaded — attach the file when sending).",
+      )}`;
       openWhatsAppUrl(waUrl);
       toast.success("PDF downloaded — WhatsApp opened with statement summary");
     } catch (e) {
@@ -324,6 +357,16 @@ export default function LedgerPageInner() {
         onPageChange={setPage}
         empty={{ title: "No ledger entries" }}
       />
+
+      {/* Off-screen branded sheet for PDF capture (mirrors invoice letterhead). */}
+      {sheetData && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed left-[-10000px] top-0 z-[-1] w-[794px]"
+        >
+          <LedgerDocument data={sheetData} />
+        </div>
+      )}
     </div>
   );
 }

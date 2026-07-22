@@ -98,7 +98,7 @@ export default async function ProductCategoryPage({
         </Link>
 
         {products.length ? (
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
             {products.map((p, i) => (
               <ProductCard key={p.id} product={p} index={i} />
             ))}

@@ -81,11 +81,6 @@ export default async function ProductDetailPage({
               <p className="mt-3 text-sm leading-7 text-fg/65">
                 {product.description}
               </p>
-              {product.price && (
-                <p className="mt-4 text-lg font-semibold text-cyan">
-                  {product.price}
-                </p>
-              )}
               <a
                 href={waLink(
                   `Hello, I would like pricing and details for ${product.name}.`,

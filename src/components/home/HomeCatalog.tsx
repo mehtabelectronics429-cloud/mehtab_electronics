@@ -81,7 +81,7 @@ export default async function HomeCatalog() {
           <>
             <div className="mt-20 mono-label">Featured products</div>
             <h3 className="mt-4 display-md text-fg">Popular right now.</h3>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
               {featured.map((p, i) => (
                 <ProductCard key={p.id} product={p} index={i} />
               ))}

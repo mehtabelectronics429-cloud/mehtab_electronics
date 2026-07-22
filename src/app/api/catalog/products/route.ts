@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 
     const docs = await Product.find(filter)
       .select(
-        "category brand model sellingPrice warranty stock description createdAt",
+        "category brand model warranty stock description image features highlights createdAt",
       )
       .sort("-createdAt")
       .limit(limit)
@@ -32,10 +32,12 @@ export async function GET(req: Request) {
       category: d.category,
       brand: d.brand,
       model: d.model,
-      sellingPrice: d.sellingPrice,
       warranty: d.warranty ?? "",
       stock: d.stock ?? 0,
       description: d.description ?? "",
+      image: d.image ?? "",
+      features: d.features ?? "",
+      highlights: d.highlights ?? "",
     }));
 
     return json({ items, total: items.length });

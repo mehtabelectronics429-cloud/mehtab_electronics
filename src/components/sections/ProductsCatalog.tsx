@@ -76,7 +76,7 @@ export default function ProductsCatalog({ products }: { products: Product[] }) {
 
       <motion.div
         layout
-        className="grid gap-7 md:grid-cols-3 sm:grid-cols-2 xl:grid-cols-5"
+        className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4 lg:gap-7"
       >
         <AnimatePresence mode="popLayout">
           {filtered.map((p, i) => (

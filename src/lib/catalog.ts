@@ -1,7 +1,6 @@
 import { connectMongo } from "@/lib/db/mongodb";
 import { Product as ProductModel } from "@/lib/db/models/Product";
 import { notDeleted } from "@/lib/db/soft-delete";
-import { pkr } from "@/lib/admin/format";
 import type { Product } from "@/lib/data";
 import { SOLAR_PANELS, INVERTERS, BATTERIES, CAMERA } from "@/lib/assets";
 
@@ -69,7 +68,8 @@ export function toMarketingProduct(item: CatalogItem): Product {
     name,
     category: item.category,
     model: item.model,
-    price: item.sellingPrice > 0 ? pkr(item.sellingPrice) : undefined,
+    // Public site never shows catalogue prices — enquire via WhatsApp.
+    price: undefined,
     description:
       item.description?.trim() ||
       `${name}  tap WhatsApp for pricing and installation details.`,
