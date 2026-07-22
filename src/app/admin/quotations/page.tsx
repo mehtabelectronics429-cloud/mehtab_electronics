@@ -194,10 +194,10 @@ export default function QuotationsPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1.05fr]">
+      <div className="space-y-4">
         <Card className="space-y-4 p-4">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="sm:col-span-2 lg:col-span-2">
               <Label>Customer (optional pick)</Label>
               <SearchableSelect
                 value={customerId}
@@ -226,7 +226,7 @@ export default function QuotationsPage() {
                 placeholder="03xx…"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-2">
               <Label>Address</Label>
               <Input
                 value={customerAddress}
@@ -234,7 +234,7 @@ export default function QuotationsPage() {
                 placeholder="Site / billing address"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-2">
               <Label>Job / quote title</Label>
               <Input
                 value={title}
@@ -357,7 +357,7 @@ export default function QuotationsPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Label>Discount</Label>
               <Input
@@ -382,6 +382,16 @@ export default function QuotationsPage() {
                 onChange={(e) => setTaxRate(Number(e.target.value) || 0)}
               />
             </div>
+            <div className="flex items-end">
+              <div className="w-full rounded-xl border border-cyan/20 bg-cyan/5 px-4 py-2">
+                <div className="text-[0.65rem] uppercase tracking-wider text-white/40">
+                  Quote total
+                </div>
+                <div className="text-lg font-semibold text-white">
+                  {pkr(totals.total)}
+                </div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -392,18 +402,9 @@ export default function QuotationsPage() {
               rows={3}
             />
           </div>
-
-          <div className="rounded-xl border border-cyan/20 bg-cyan/5 px-4 py-3">
-            <div className="text-[0.65rem] uppercase tracking-wider text-white/40">
-              Quote total
-            </div>
-            <div className="text-lg font-semibold text-white">
-              {pkr(totals.total)}
-            </div>
-          </div>
         </Card>
 
-        <div className="overflow-x-auto rounded-xl bg-neutral-200/60 p-3 print:bg-transparent print:p-0">
+        <div className="w-full overflow-x-auto rounded-xl bg-neutral-200/60 p-4 print:bg-transparent print:p-0">
           <QuotationDocument data={quoteData} />
         </div>
       </div>
