@@ -7,6 +7,8 @@ export interface IProduct {
   brand: string;
   model: string;
   sku: string;
+  /** Optional barcode / EAN — used by POS scanners. Falls back to SKU when empty. */
+  barcode: string;
   purchasePrice: number;
   sellingPrice: number;
   warranty: string;
@@ -26,6 +28,7 @@ const schema = new Schema<IProduct>(
     brand: { type: String, required: true, trim: true },
     model: { type: String, required: true, trim: true },
     sku: { type: String, required: true, trim: true, unique: true },
+    barcode: { type: String, default: "", trim: true, index: true },
     purchasePrice: { type: Number, required: true, min: 0 },
     sellingPrice: { type: Number, required: true, min: 0 },
     warranty: { type: String, default: "" },
@@ -39,7 +42,7 @@ const schema = new Schema<IProduct>(
   { timestamps: true },
 );
 
-schema.index({ brand: "text", model: "text", sku: "text", category: "text" });
+schema.index({ brand: "text", model: "text", sku: "text", barcode: "text", category: "text" });
 
 export const Product: Model<IProduct> = registerModel<IProduct>(
   "Product",

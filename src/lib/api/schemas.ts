@@ -37,6 +37,7 @@ export const productInput = z.object({
   brand: z.string().min(1),
   model: z.string().min(1),
   sku: z.string().min(1),
+  barcode: z.string().optional(),
   purchasePrice: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
   warranty: z.string().optional(),

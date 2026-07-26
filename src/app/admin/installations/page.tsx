@@ -135,10 +135,22 @@ function InstallationsInner() {
     if (!productId)
       return setItem(idx, { productId: "", name: "", unitPrice: 0 });
     const p = (products?.items ?? []).find((x) => x.id === productId);
-    setItem(idx, {
-      productId,
-      name: p ? `${p.brand} ${p.model}`.trim() : "",
-      unitPrice: p ? p.sellingPrice : 0,
+    const name = p ? `${p.brand} ${p.model}`.trim() : "";
+    const unitPrice = p ? p.sellingPrice : 0;
+    setItemRows((rows) => {
+      const existing = rows.findIndex(
+        (r, i) => i !== idx && r.productId === productId,
+      );
+      if (existing >= 0) {
+        return rows
+          .map((r, i) =>
+            i === existing ? { ...r, qty: r.qty + 1 } : r,
+          )
+          .filter((_, i) => i !== idx);
+      }
+      return rows.map((r, i) =>
+        i === idx ? { ...r, productId, name, unitPrice } : r,
+      );
     });
   };
 

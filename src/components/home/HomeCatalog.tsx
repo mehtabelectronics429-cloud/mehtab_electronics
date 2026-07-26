@@ -4,12 +4,10 @@ import SmartImage from "@/components/ui/SmartImage";
 import ProductCard from "@/components/ui/ProductCard";
 import { getCategories } from "@/lib/categories";
 import { getCatalogProducts, toMarketingProduct } from "@/lib/catalog";
-import { PRODUCTS as DEFAULT_PRODUCTS, type Product } from "@/lib/data";
+import type { Product } from "@/lib/data";
 
 /**
- * Home "shop" band  categories and featured products, both pulled live from the
- * admin dashboard (Mongo). Falls back to seeded defaults so the section is never
- * empty before the admin adds content.
+ * Home "shop" band — categories and featured products from the admin dashboard.
  */
 export default async function HomeCatalog() {
   const categories = await getCategories();
@@ -19,9 +17,8 @@ export default async function HomeCatalog() {
     const catalog = await getCatalogProducts({ limit: 8 });
     products = catalog.map(toMarketingProduct);
   } catch {
-    /* fall through to defaults */
+    /* empty catalogue is fine */
   }
-  if (products.length === 0) products = DEFAULT_PRODUCTS;
   const featured = products.slice(0, 6);
 
   return (

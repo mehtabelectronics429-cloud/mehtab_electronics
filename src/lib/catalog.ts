@@ -3,6 +3,7 @@ import { Product as ProductModel } from "@/lib/db/models/Product";
 import { notDeleted } from "@/lib/db/soft-delete";
 import type { Product } from "@/lib/data";
 import { SOLAR_PANELS, INVERTERS, BATTERIES, CAMERA } from "@/lib/assets";
+import { Types } from "mongoose";
 
 /** Safe public catalog fields (never expose purchasePrice). */
 export type CatalogItem = {
@@ -140,4 +141,57 @@ export async function getCatalogProductById(
     .lean();
   if (!doc) return null;
   return serializeCatalog(doc);
+}
+
+/** Related products in the same category (excludes current). */
+export async function getRelatedCatalogProducts(
+  category: string,
+  excludeId: string,
+  limit = 4,
+): Promise<CatalogItem[]> {
+  await connectMongo();
+  const docs = await ProductModel.find({
+    ...notDeleted,
+    category,
+    ...(Types.ObjectId.isValid(excludeId)
+      ? { _id: { $ne: new Types.ObjectId(excludeId) } }
+      : {}),
+  })
+    .select(
+      "category brand model sellingPrice warranty stock description image features highlights",
+    )
+    .sort("-createdAt")
+    .limit(limit)
+    .lean();
+  return docs.map(serializeCatalog);
+}
+
+/** Public site search across brand, model, category, description. */
+export async function searchCatalogProducts(
+  q: string,
+  limit = 48,
+): Promise<CatalogItem[]> {
+  const term = q.trim();
+  if (!term) return [];
+  await connectMongo();
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const rx = new RegExp(escaped, "i");
+  const docs = await ProductModel.find({
+    ...notDeleted,
+    $or: [
+      { brand: rx },
+      { model: rx },
+      { category: rx },
+      { description: rx },
+      { sku: rx },
+      { barcode: rx },
+    ],
+  })
+    .select(
+      "category brand model sellingPrice warranty stock description image features highlights",
+    )
+    .sort("-createdAt")
+    .limit(limit)
+    .lean();
+  return docs.map(serializeCatalog);
 }

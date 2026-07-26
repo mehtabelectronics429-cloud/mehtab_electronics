@@ -10,63 +10,33 @@ import {
   toMarketingProduct,
   categoryImage,
 } from "@/lib/catalog";
-import { PRODUCTS as DEFAULT_PRODUCTS, type Product } from "@/lib/data";
+import { getCategoryBySlug } from "@/lib/categories";
+import type { Product } from "@/lib/data";
 import { waLink } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
-/** Public category slugs → catalogue category name + copy. */
-const CATEGORIES: Record<
-  string,
-  { name: string; eyebrow: string; blurb: string }
-> = {
-  "solar-panels": {
-    name: "Solar Panels",
-    eyebrow: "Products · Solar",
-    blurb:
-      "Tier-1 mono-PERC and N-type modules from Longi and JinKO  sized for homes, farms and commercial roofs.",
-  },
-  inverters: {
-    name: "Inverters",
-    eyebrow: "Products · Inverters",
-    blurb:
-      "Hybrid and on-grid inverters from Inverex, itel and Solis  dual MPPT, battery-ready and net-metering compliant.",
-  },
-  batteries: {
-    name: "Batteries",
-    eyebrow: "Products · Backup",
-    blurb:
-      "Lithium (LiFePO4) and deep-cycle tubular batteries for reliable backup and daily solar storage.",
-  },
-  cameras: {
-    name: "Cameras",
-    eyebrow: "Products · Security",
-    blurb:
-      "HD and 4K IP cameras  bullet, dome and PTZ  with night vision, mobile viewing and NVR storage.",
-  },
-};
-
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
   params: { category: string };
-}): Metadata {
-  const c = CATEGORIES[params.category];
+}): Promise<Metadata> {
+  const c = await getCategoryBySlug(params.category);
   if (!c) return { title: "Products  Mehtab Electronics" };
-  return { title: `${c.name}  Mehtab Electronics`, description: c.blurb };
+  return {
+    title: `${c.name}  Mehtab Electronics`,
+    description: c.description || `${c.name} from Mehtab Electronics.`,
+  };
 }
 
 async function productsForCategory(name: string): Promise<Product[]> {
-  // Prefer live catalogue from the admin dashboard; fall back to seeded defaults.
   try {
     const catalog = await getCatalogProducts({ category: name });
-    if (catalog.length) return catalog.map(toMarketingProduct);
+    return catalog.map(toMarketingProduct);
   } catch (err) {
     console.error("catalog load failed", err);
+    return [];
   }
-  return DEFAULT_PRODUCTS.filter(
-    (p) => p.category.toLowerCase() === name.toLowerCase(),
-  );
 }
 
 export default async function ProductCategoryPage({
@@ -74,7 +44,7 @@ export default async function ProductCategoryPage({
 }: {
   params: { category: string };
 }) {
-  const cfg = CATEGORIES[params.category];
+  const cfg = await getCategoryBySlug(params.category);
   if (!cfg) notFound();
 
   const products = await productsForCategory(cfg.name);
@@ -83,10 +53,13 @@ export default async function ProductCategoryPage({
     <main>
       <PageHero
         crumb={cfg.name}
-        eyebrow={cfg.eyebrow}
+        eyebrow={`Products · ${cfg.name}`}
         title={<>{cfg.name}</>}
-        subtitle={cfg.blurb}
-        image={categoryImage(cfg.name)}
+        subtitle={
+          cfg.description ||
+          `Browse ${cfg.name.toLowerCase()} from Mehtab Electronics.`
+        }
+        image={cfg.image || categoryImage(cfg.name)}
       />
 
       <section className="relative mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-24">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   Trash2,
   ShoppingCart,
   Receipt,
+  ScanBarcode,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
@@ -34,6 +35,7 @@ type CartLine = {
 
 export default function PosPage() {
   const router = useRouter();
+  const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerId, setCustomerId] = useState("");
@@ -55,7 +57,7 @@ export default function PosPage() {
     const s = q.toLowerCase();
     return items
       .filter((p) =>
-        `${p.brand} ${p.model} ${p.sku} ${p.category}`
+        `${p.brand} ${p.model} ${p.sku} ${p.barcode || ""} ${p.category}`
           .toLowerCase()
           .includes(s),
       )
@@ -103,6 +105,35 @@ export default function PosPage() {
       ];
     });
   };
+
+  /** Exact barcode / SKU match from a hardware scanner (Enter after scan). */
+  const applyBarcodeScan = (raw: string) => {
+    const code = raw.trim();
+    if (!code) return false;
+    const items = products?.items ?? [];
+    const lower = code.toLowerCase();
+    const match = items.find((p) => {
+      const barcode = (p.barcode || "").trim().toLowerCase();
+      const sku = (p.sku || "").trim().toLowerCase();
+      return (barcode && barcode === lower) || sku === lower;
+    });
+    if (!match) {
+      toast.error(`No product for barcode/SKU: ${code}`);
+      return false;
+    }
+    addProduct(match.id);
+    setQ("");
+    toast.success(`Added ${match.brand} ${match.model}`.trim());
+    requestAnimationFrame(() => searchRef.current?.focus());
+    return true;
+  };
+
+  const onSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    applyBarcodeScan(q);
+  };
+
   const addCustom = () =>
     setCart((c) => [
       ...c,
@@ -168,7 +199,7 @@ export default function PosPage() {
     <div>
       <PageHeader
         title="Point of Sale"
-        subtitle="Ring up a counter sale  stock, invoice and ledger update automatically."
+        subtitle="Scan a barcode into search (Enter) or tap products — stock, invoice and ledger update automatically."
       />
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -177,12 +208,19 @@ export default function PosPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
             <Input
+              ref={searchRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search products by name, SKU, category…"
-              className="pl-9"
+              onKeyDown={onSearchKeyDown}
+              placeholder="Scan barcode / SKU + Enter, or search name…"
+              className="pl-9 pr-10"
+              autoFocus
             />
+            <ScanBarcode className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
           </div>
+          <p className="mt-1.5 text-[0.65rem] text-white/35">
+            Barcode scanners type into this field and press Enter — matches barcode or SKU exactly.
+          </p>
           <div className="mt-4 grid max-h-[62vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
             {filtered.map((p) => {
               const inCart = cartQtyOf(p.id);
@@ -203,7 +241,10 @@ export default function PosPage() {
                   <div className="line-clamp-2 text-sm font-medium text-white">
                     {p.brand} {p.model}
                   </div>
-                  <div className="mt-1 text-xs text-white/40">{p.category}</div>
+                  <div className="mt-1 text-xs text-white/40">
+                    {p.category}
+                    {p.sku ? ` · ${p.sku}` : ""}
+                  </div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-sm font-semibold text-cyan">
                       {pkr(p.sellingPrice)}

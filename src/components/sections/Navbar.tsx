@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -11,71 +11,46 @@ import {
   ChevronDown,
   SunIcon,
   CameraIcon,
-  BatteryFull,
-  ChartBarStackedIcon,
+  Search,
+  Package,
 } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import Logo from "@/components/ui/Logo";
 
+type NavChild = {
+  label: string;
+  href: string;
+  desc?: string;
+  icon?: ReactNode;
+};
 type NavItem = {
   label: string;
   href: string;
-  icon?: any;
-  children?: { label: string; href: string; desc?: string; icon?: any }[];
+  icon?: ReactNode;
+  children?: NavChild[];
 };
 
-const NAV: NavItem[] = [
+const SERVICES: NavChild[] = [
+  {
+    icon: <SunIcon size={30} />,
+    label: "Solar Systems",
+    href: "/services/solar",
+    desc: "On-grid, off-grid & hybrid installs",
+  },
+  {
+    icon: <CameraIcon size={30} />,
+    label: "CCTV & Security",
+    href: "/services/cctv",
+    desc: "HD/4K camera networks",
+  },
+];
+
+const STATIC_NAV: NavItem[] = [
   { label: "Home", href: "/" },
-  {
-    label: "Services",
-    href: "/services",
-    children: [
-      {
-        icon: <SunIcon size={30} />,
-        label: "Solar Systems",
-        href: "/services/solar",
-        desc: "On-grid, off-grid & hybrid installs",
-      },
-      {
-        icon: <CameraIcon size={30} />,
-        label: "CCTV & Security",
-        href: "/services/cctv",
-        desc: "HD/4K camera networks",
-      },
-    ],
-  },
-  {
-    label: "Products",
-    href: "/products",
-    children: [
-      {
-        icon: <SunIcon size={30} />,
-        label: "Solar Panels",
-        href: "/products/solar-panels",
-        desc: "Tier-1 mono-PERC modules",
-      },
-      {
-        icon: <ChartBarStackedIcon size={30} />,
-        label: "Inverters",
-        href: "/products/inverters",
-        desc: "Hybrid & on-grid inverters",
-      },
-      {
-        icon: <BatteryFull size={30} />,
-        label: "Batteries",
-        href: "/products/batteries",
-        desc: "Lithium & tubular backup",
-      },
-      {
-        icon: <CameraIcon size={30} />,
-        label: "Cameras",
-        href: "/products/cameras",
-        desc: "IP & analog CCTV",
-      },
-    ],
-  },
+  { label: "Services", href: "/services", children: SERVICES },
+  { label: "Products", href: "/products", children: [] },
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -85,7 +60,11 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const [categories, setCategories] = useState<NavChild[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -97,11 +76,58 @@ export default function Navbar() {
   useEffect(() => {
     setOpen(false);
     setOpenGroup(null);
+    setSearchOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/catalog/categories");
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          items?: { name: string; slug: string; description?: string }[];
+        };
+        if (cancelled) return;
+        setCategories(
+          (data.items ?? []).map((c) => ({
+            label: c.name,
+            href: `/products/${c.slug}`,
+            desc: c.description || undefined,
+            icon: <Package size={28} />,
+          })),
+        );
+      } catch {
+        /* keep empty */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const NAV = useMemo(
+    () =>
+      STATIC_NAV.map((item) =>
+        item.label === "Products"
+          ? { ...item, children: categories.length ? categories : undefined }
+          : item,
+      ),
+    [categories],
+  );
 
   const isActive = (item: NavItem) =>
     pathname === item.href ||
     (item.href !== "/" && pathname?.startsWith(item.href));
+
+  const submitSearch = (e: FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    router.push(`/search?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+    setQuery("");
+  };
 
   return (
     <motion.header
@@ -118,7 +144,6 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
         <Logo markSize={38} />
 
-        {/* desktop nav */}
         <div className="hidden items-center gap-7 lg:flex">
           {NAV.map((item) => {
             const active = isActive(item);
@@ -128,11 +153,10 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex relative font-mono text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300",
+                    "relative flex font-mono text-[0.72rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300",
                     active ? "text-brand" : "text-fg/60 hover:text-fg",
                   )}
                 >
-                  <span>{item.icon}</span>
                   <span>{item.label}</span>
                 </Link>
               );
@@ -149,19 +173,17 @@ export default function Navbar() {
                   {item.label}
                   <ChevronDown className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" />
                 </Link>
-                {/* dropdown */}
                 <div className="invisible absolute left-1/2 top-full z-10 w-64 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                  <div className="overflow-hidden rounded-lg border border-line/15 bg-surface/95 p-2 shadow-card-lg backdrop-blur-xl">
+                  <div className="max-h-[70vh] overflow-y-auto overflow-hidden rounded-lg border border-line/15 bg-surface/95 p-2 shadow-card-lg backdrop-blur-xl">
                     {item.children.map((c) => (
-                      <div className="flex items-center gap-2 p-1 rounded-md transition-colors hover:bg-brand/10">
+                      <div
+                        key={c.href}
+                        className="flex items-center gap-2 rounded-md p-1 transition-colors hover:bg-brand/10"
+                      >
                         <span>{c.icon}</span>
-                        <Link
-                          key={c.href}
-                          href={c.href}
-                          className="block rounded-md  transition-colors hover:bg-brand/10"
-                        >
+                        <Link href={c.href} className="block rounded-md">
                           <div className="flex font-display text-sm uppercase tracking-wide text-fg">
-                            <span> {c.label} </span>
+                            <span>{c.label}</span>
                           </div>
                           {c.desc && (
                             <div className="mt-0.5 text-xs text-fg/50">
@@ -179,6 +201,14 @@ export default function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <button
+            type="button"
+            aria-label="Search"
+            onClick={() => setSearchOpen((v) => !v)}
+            className="grid h-10 w-10 place-items-center rounded-md border border-line/15 text-fg/70 transition-colors hover:text-fg"
+          >
+            <Search className="h-4 w-4" />
+          </button>
           <ThemeToggle />
           <a
             href={COMPANY.phoneHref}
@@ -189,6 +219,14 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
+          <button
+            type="button"
+            aria-label="Search"
+            onClick={() => setSearchOpen((v) => !v)}
+            className="grid h-10 w-10 place-items-center rounded-md border border-line/15 text-fg"
+          >
+            <Search className="h-4 w-4" />
+          </button>
           <ThemeToggle />
           <button
             onClick={() => setOpen((v) => !v)}
@@ -200,7 +238,34 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* mobile menu */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mx-auto max-w-7xl px-5 pb-4 md:px-8"
+          >
+            <form
+              onSubmit={submitSearch}
+              className="flex items-center gap-2 rounded-lg border border-line/15 bg-surface/95 p-2 shadow-card backdrop-blur-xl"
+            >
+              <Search className="ml-2 h-4 w-4 shrink-0 text-fg/40" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search products, brands, categories…"
+                className="min-w-0 flex-1 bg-transparent py-2 text-sm text-fg outline-none placeholder:text-fg/40"
+              />
+              <button type="submit" className="btn-brand !py-2 text-sm">
+                Search
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {open && (
           <motion.div

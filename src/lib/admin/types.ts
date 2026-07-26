@@ -79,6 +79,7 @@ export interface Product {
   brand: string;
   model: string;
   sku: string;
+  barcode?: string;
   purchasePrice: number;
   sellingPrice: number;
   warranty: string;

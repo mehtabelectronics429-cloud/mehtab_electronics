@@ -133,6 +133,13 @@ export const api = {
     }),
   archiveProduct: (id: string) =>
     request<{ ok: boolean }>(`/api/products/${id}`, { method: "DELETE" }),
+  downloadProductsCsv: (params?: { category?: string; q?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.category) sp.set("category", params.category);
+    if (params?.q) sp.set("q", params.q);
+    const s = sp.toString();
+    window.open(`/api/products/export${s ? `?${s}` : ""}`, "_blank");
+  },
 
   categories: (params?: ListParams) =>
     request<Paginated<import("./types").Category>>(

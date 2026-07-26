@@ -7,10 +7,12 @@ import SmartImage from "@/components/ui/SmartImage";
 import Contact from "@/components/sections/Contact";
 import {
   getCatalogProductById,
+  getRelatedCatalogProducts,
   categoryImage,
   toMarketingProduct,
 } from "@/lib/catalog";
 import { waLink } from "@/lib/whatsapp";
+import ProductCard from "@/components/ui/ProductCard";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,9 @@ export default async function ProductDetailPage({
   const item = await getCatalogProductById(params.id);
   if (!item) notFound();
   const product = toMarketingProduct(item);
+  const related = (
+    await getRelatedCatalogProducts(item.category, item.id, 4)
+  ).map(toMarketingProduct);
 
   return (
     <main>
@@ -128,6 +133,20 @@ export default async function ProductDetailPage({
           </div>
         </div>
       </section>
+
+      {related.length > 0 && (
+        <section className="relative mx-auto max-w-7xl px-6 pb-16 md:px-8 md:pb-24">
+          <div className="mono-label">Related products</div>
+          <h2 className="mt-3 font-display text-2xl text-fg md:text-3xl">
+            You may also like
+          </h2>
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+            {related.map((p, i) => (
+              <ProductCard key={p.id} product={p} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <Contact />
     </main>

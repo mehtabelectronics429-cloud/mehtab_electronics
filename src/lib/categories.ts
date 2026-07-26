@@ -1,5 +1,6 @@
 import { connectMongo } from "@/lib/db/mongodb";
 import { Category as CategoryModel } from "@/lib/db/models/Category";
+import { Product as ProductModel } from "@/lib/db/models/Product";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { categoryImage } from "@/lib/catalog";
 
@@ -22,30 +23,50 @@ export function slugify(input: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-/** Seeded defaults so the public site always has categories, even before admin adds any. */
-export const DEFAULT_CATEGORIES: PublicCategory[] = [
-  { id: "d-solar-panels", name: "Solar Panels", slug: "solar-panels", image: categoryImage("Solar Panels"), description: "Tier-1 mono-PERC & N-type modules.", order: 1 },
-  { id: "d-inverters", name: "Inverters", slug: "inverters", image: categoryImage("Inverters"), description: "Hybrid & on-grid inverters.", order: 2 },
-  { id: "d-batteries", name: "Batteries", slug: "batteries", image: categoryImage("Batteries"), description: "Lithium & tubular backup.", order: 3 },
-  { id: "d-cameras", name: "Cameras", slug: "cameras", image: categoryImage("Cameras"), description: "IP & analog CCTV cameras.", order: 4 },
-];
-
-/** Server-side category load for the marketing site (no auth). Falls back to defaults. */
+/** Server-side categories from admin (Category collection), else distinct product categories. */
 export async function getCategories(): Promise<PublicCategory[]> {
   try {
     await connectMongo();
     const docs = await CategoryModel.find(notDeleted).sort("order name").lean();
-    if (!docs.length) return DEFAULT_CATEGORIES;
-    return docs.map((d) => ({
-      id: String(d._id),
-      name: d.name ?? "",
-      slug: d.slug || slugify(d.name ?? ""),
-      image: d.image?.trim() || categoryImage(d.name ?? ""),
-      description: d.description ?? "",
-      order: Number(d.order ?? 0),
-    }));
+    if (docs.length) {
+      return docs.map((d) => ({
+        id: String(d._id),
+        name: d.name ?? "",
+        slug: d.slug || slugify(d.name ?? ""),
+        image: d.image?.trim() || categoryImage(d.name ?? ""),
+        description: d.description ?? "",
+        order: Number(d.order ?? 0),
+      }));
+    }
+
+    const names = (await ProductModel.distinct("category", {
+      ...notDeleted,
+    })) as string[];
+    return names
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b))
+      .map((name, i) => ({
+        id: slugify(name),
+        name,
+        slug: slugify(name),
+        image: categoryImage(name),
+        description: "",
+        order: i + 1,
+      }));
   } catch (err) {
     console.error("getCategories failed", err);
-    return DEFAULT_CATEGORIES;
+    return [];
   }
+}
+
+export async function getCategoryBySlug(
+  slug: string,
+): Promise<PublicCategory | null> {
+  const categories = await getCategories();
+  const lower = slug.trim().toLowerCase();
+  return (
+    categories.find(
+      (c) => c.slug === lower || slugify(c.name) === lower,
+    ) ?? null
+  );
 }

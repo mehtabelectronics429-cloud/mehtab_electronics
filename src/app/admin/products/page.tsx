@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Archive, Search } from "lucide-react";
+import { Plus, Pencil, Archive, Search, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
@@ -24,6 +24,7 @@ const schema = z.object({
   brand: z.string().min(1),
   model: z.string().min(1),
   sku: z.string().min(1),
+  barcode: z.string().optional(),
   purchasePrice: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
   warranty: z.string().optional(),
@@ -92,6 +93,7 @@ export default function ProductsPage() {
       brand: "",
       model: "",
       sku: "",
+      barcode: "",
       purchasePrice: 0,
       sellingPrice: 0,
       warranty: "",
@@ -206,9 +208,22 @@ export default function ProductsPage() {
         title="Products"
         subtitle="Catalogue of solar, security and networking equipment."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4" /> Add Product
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                api.downloadProductsCsv({
+                  category: cat === "all" ? undefined : cat,
+                  q: q || undefined,
+                })
+              }
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4" /> Add Product
+            </Button>
+          </div>
         }
       />
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -317,6 +332,13 @@ export default function ProductsPage() {
           <div>
             <Label>SKU</Label>
             <Input {...register("sku")} />
+          </div>
+          <div>
+            <Label>Barcode</Label>
+            <Input
+              {...register("barcode")}
+              placeholder="EAN / UPC — used by POS scanner"
+            />
           </div>
           <div>
             <Label>Purchase price</Label>

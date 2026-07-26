@@ -95,10 +95,20 @@ export default function PurchasesPage() {
   const pickProduct = (i: number, id: string) => {
     if (!id) return setRow(i, { productId: "", name: "", unitCost: 0 });
     const p = (products?.items ?? []).find((x) => x.id === id);
-    setRow(i, {
-      productId: id,
-      name: p ? `${p.brand} ${p.model}`.trim() : "",
-      unitCost: p ? p.purchasePrice : 0,
+    const name = p ? `${p.brand} ${p.model}`.trim() : "";
+    const unitCost = p ? p.purchasePrice : 0;
+    setRows((rs) => {
+      const existing = rs.findIndex((r, idx) => idx !== i && r.productId === id);
+      if (existing >= 0) {
+        return rs
+          .map((r, idx) =>
+            idx === existing ? { ...r, qty: r.qty + 1 } : r,
+          )
+          .filter((_, idx) => idx !== i);
+      }
+      return rs.map((r, idx) =>
+        idx === i ? { ...r, productId: id, name, unitCost } : r,
+      );
     });
   };
 

@@ -12,12 +12,25 @@ export async function GET(req: Request) {
     await connectMongo();
     const url = new URL(req.url);
     const category = url.searchParams.get("category");
+    const q = (url.searchParams.get("q") || "").trim();
     const limit = Math.min(
       200,
       Math.max(1, Number(url.searchParams.get("limit") || 100)),
     );
     const filter: Record<string, unknown> = { ...notDeleted };
     if (category && category !== "all") filter.category = category;
+    if (q) {
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const rx = new RegExp(escaped, "i");
+      filter.$or = [
+        { brand: rx },
+        { model: rx },
+        { category: rx },
+        { description: rx },
+        { sku: rx },
+        { barcode: rx },
+      ];
+    }
 
     const docs = await Product.find(filter)
       .select(

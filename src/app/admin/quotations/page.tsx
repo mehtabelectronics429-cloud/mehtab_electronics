@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Trash2, Printer, MessageCircle } from "lucide-react";
+import { Plus, Trash2, Printer, MessageCircle, FileInput } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import {
@@ -56,7 +57,9 @@ function nextQuoteNo() {
 }
 
 export default function QuotationsPage() {
+  const router = useRouter();
   const [customerId, setCustomerId] = useState("");
+  const [converting, setConverting] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
@@ -108,11 +111,30 @@ export default function QuotationsPage() {
       return;
     }
     const p = (products?.items ?? []).find((x) => x.id === id);
-    setLine(idx, {
-      productId: id,
-      description: p ? `${p.brand} ${p.model}`.trim() : "",
-      unitPrice: p?.sellingPrice ?? 0,
-      kind: "product",
+    const name = p ? `${p.brand} ${p.model}`.trim() : "";
+    const price = p?.sellingPrice ?? 0;
+    setLines((rows) => {
+      const existing = rows.findIndex(
+        (r, i) => i !== idx && r.productId === id,
+      );
+      if (existing >= 0) {
+        return rows
+          .map((r, i) =>
+            i === existing ? { ...r, qty: r.qty + 1 } : r,
+          )
+          .filter((_, i) => i !== idx);
+      }
+      return rows.map((r, i) =>
+        i === idx
+          ? {
+              ...r,
+              productId: id,
+              description: name,
+              unitPrice: price,
+              kind: "product" as LineKind,
+            }
+          : r,
+      );
     });
   };
 
@@ -171,6 +193,54 @@ export default function QuotationsPage() {
     toast.success("Opening WhatsApp…");
   };
 
+  const convertToInvoice = async () => {
+    const items = quoteData.items;
+    if (!items.length) return toast.error("Add at least one line item");
+    if (!customerId && !customerName.trim()) {
+      return toast.error("Select or enter a customer first");
+    }
+    if (!customerId && (customerPhone || "").replace(/\D/g, "").length < 7) {
+      return toast.error("Enter a valid customer phone to create the invoice");
+    }
+    setConverting(true);
+    try {
+      let cid = customerId;
+      if (!cid) {
+        const phone = customerPhone.trim();
+        const created = await api.createCustomer({
+          name: customerName.trim(),
+          phone,
+          whatsapp: phone,
+          address: customerAddress.trim() || "Address on file",
+        });
+        cid = created.id;
+        setCustomerId(cid);
+      }
+      const inv = await api.createInvoice({
+        customerId: cid,
+        date,
+        status: "pending",
+        discount,
+        taxRate,
+        shipping,
+        notes: [title, notes, `Converted from quotation ${quoteNo}`]
+          .filter(Boolean)
+          .join("\n"),
+        items: items.map((i) => ({
+          description: i.description,
+          qty: i.qty,
+          unitPrice: i.unitPrice,
+        })),
+      });
+      toast.success("Invoice created from quotation");
+      router.push(`/admin/billing/${inv.id}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not create invoice");
+    } finally {
+      setConverting(false);
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -178,6 +248,14 @@ export default function QuotationsPage() {
         subtitle="Build an installation quote with products, labour and materials — then download, share or print."
         actions={
           <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              disabled={converting}
+              onClick={() => void convertToInvoice()}
+            >
+              <FileInput className="h-4 w-4" />
+              {converting ? "Converting…" : "Convert to invoice"}
+            </Button>
             <Button variant="secondary" onClick={() => window.print()}>
               <Printer className="h-4 w-4" /> Print / PDF
             </Button>
