@@ -14,10 +14,10 @@ export default function Home() {
     <main>
       <Hero />
       <StatsBar />
+      <CNCAuthorized />
       <Specialties />
       <HowWeWork />
       <LoadCalculator />
-      <CNCAuthorized />
       <Partners />
       <InstallGallery />
       <PromoBanner />

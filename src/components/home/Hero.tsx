@@ -31,10 +31,15 @@ export default function Hero() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05 }}
-          className="mono-label inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/5 px-4 py-2"
+          className="flex flex-wrap items-center gap-2"
         >
-          <MapPin className="h-3.5 w-3.5" />
-          {COMPANY.region}
+          <span className="mono-label inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/5 px-4 py-2">
+            <MapPin className="h-3.5 w-3.5" />
+            {COMPANY.region}
+          </span>
+          <span className="mono-label inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/5 px-4 py-2 text-brand">
+            CNC Electric · Authorized
+          </span>
         </motion.span>
 
         <h1 className="mt-7 display-xl max-w-4xl text-fg">
