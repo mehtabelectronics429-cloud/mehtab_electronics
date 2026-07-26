@@ -36,14 +36,14 @@ export default function Sidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-white/10 bg-[var(--admin-bg-elevated)]/95 backdrop-blur-xl transition-[width,transform] duration-300",
+          "admin-sidebar fixed inset-y-0 left-0 z-50 flex h-screen flex-col border-r border-white/10 transition-[width,transform] duration-300",
           width,
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex h-16 items-center gap-2.5 px-4">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-[var(--admin-panel)] ring-1 ring-white/10">
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10">
               <Image
                 src={LOGO_MARK}
                 alt="Mehtab Electronics"
@@ -54,14 +54,15 @@ export default function Sidebar() {
               />
             </span>
             {!collapsed && (
-              <span className="font-display text-sm uppercase tracking-wider text-white">
+              <span className="font-display text-sm uppercase tracking-wider text-[var(--admin-fg)]">
                 Mehtab <span className="text-brand">Electronics</span>
               </span>
             )}
           </Link>
           <button
             onClick={toggle}
-            className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-white/40 hover:bg-white/5 hover:text-white lg:grid"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="ml-auto hidden h-8 w-8 place-items-center rounded-lg text-[var(--admin-muted)] hover:bg-white/5 hover:text-[var(--admin-fg)] lg:grid"
           >
             {collapsed ? (
               <PanelLeft className="h-4 w-4" />
@@ -75,7 +76,7 @@ export default function Sidebar() {
           {groups.map((g) => (
             <div key={g}>
               {!collapsed && (
-                <div className="px-3 pb-2 text-[0.62rem] font-semibold uppercase tracking-wider text-white/30">
+                <div className="px-3 pb-2 text-[0.62rem] font-semibold uppercase tracking-wider text-[var(--admin-label)]">
                   {g}
                 </div>
               )}
@@ -92,15 +93,15 @@ export default function Sidebar() {
                         className={cn(
                           "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                           active
-                            ? "text-white"
-                            : "text-white/55 hover:bg-white/5 hover:text-white",
+                            ? "font-medium text-[var(--admin-active-fg)]"
+                            : "text-[var(--admin-muted)] hover:bg-white/5 hover:text-[var(--admin-fg)]",
                           collapsed && "justify-center",
                         )}
                       >
                         {active && (
                           <motion.span
                             layoutId="nav-active-admin"
-                            className="absolute inset-0 rounded-xl border border-cyan/25 bg-cyan/10"
+                            className="absolute inset-0 rounded-xl border border-[var(--admin-active-border)] bg-[var(--admin-active-bg)]"
                             transition={{
                               type: "spring",
                               stiffness: 400,
@@ -127,7 +128,7 @@ export default function Sidebar() {
           <button
             onClick={logout}
             className={cn(
-              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/55 transition-colors hover:bg-red-500/10 hover:text-red-300",
+              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[var(--admin-muted)] transition-colors hover:bg-red-500/10 hover:text-red-500 dark:hover:text-red-300",
               collapsed && "justify-center",
             )}
           >

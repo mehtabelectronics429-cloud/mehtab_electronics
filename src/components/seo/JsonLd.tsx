@@ -38,6 +38,18 @@ export default function JsonLd() {
           addressCountry: "PK",
         },
         areaServed: { "@type": "State", name: "Punjab, Pakistan" },
+        brand: [
+          { "@type": "Brand", name: "CNC Electric" },
+          { "@type": "Brand", name: "Inverex" },
+          { "@type": "Brand", name: "Solis" },
+          { "@type": "Brand", name: "itel" },
+        ],
+        knowsAbout: [
+          "Solar installation",
+          "CCTV security",
+          "CNC Electric switchgear",
+          "Hybrid inverters",
+        ],
         contactPoint: {
           "@type": "ContactPoint",
           telephone: phone,

@@ -93,7 +93,7 @@ export default function DataTable<T>({
                 )}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-3 text-[var(--admin-fg)]/80">
+                  <td key={cell.id} className="px-4 py-3 text-[var(--admin-fg)]">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

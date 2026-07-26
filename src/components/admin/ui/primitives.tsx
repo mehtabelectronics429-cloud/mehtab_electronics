@@ -11,7 +11,7 @@ export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
     const sizes: Record<BtnSize, string> = { sm: "h-8 px-3 text-xs", md: "h-10 px-4 text-sm" };
     const variants: Record<BtnVariant, string> = {
       primary: "bg-gradient-to-r from-electric to-cyan text-white shadow-[0_8px_30px_-12px_rgba(46,107,255,0.7)] hover:brightness-110",
-      secondary: "border border-white/10 bg-white/5 text-[var(--admin-fg)]/90 hover:bg-white/10",
+      secondary: "border border-white/10 bg-white/5 text-[var(--admin-fg)] hover:bg-white/10",
       ghost: "text-[var(--admin-muted)] hover:bg-white/5 hover:text-[var(--admin-fg)]",
       danger: "border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20",
     };

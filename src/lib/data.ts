@@ -221,7 +221,7 @@ export const SPECIALTIES: Specialty[] = [
       "Authorized wholesale of solar panels, inverters, batteries and CCTV equipment. Dealer pricing for shops and installers across Punjab.",
     image: INVERTERS[0],
     features: [
-      "Inverex, Solis authorized",
+      "Inverex, Solis & CNC authorized",
       "Bulk pricing available",
       "Fast dispatch",
       "Genuine warranty",
@@ -249,6 +249,7 @@ export const SPECIALTIES: Specialty[] = [
 
 /** Certified / authorized brand partners (home logo wall). */
 export const PARTNERS = [
+  { name: "CNC Electric", role: "Authorized Partner" },
   { name: "Inverex", role: "Authorized Solar Partner" },
   { name: "Solis", role: "Authorized Inverter Dealer" },
   { name: "itel", role: "Authorized Dealer" },
@@ -683,6 +684,7 @@ export const INDUSTRIES = [
 ];
 
 export const BRANDS = [
+  "CNC Electric",
   "Inverex",
   "Solis",
   "LONGi",

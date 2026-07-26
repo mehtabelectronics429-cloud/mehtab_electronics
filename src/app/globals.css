@@ -113,6 +113,10 @@ body {
   --admin-input: #12151f;
   --admin-fg: #ffffff;
   --admin-muted: rgba(255, 255, 255, 0.6);
+  --admin-active-bg: rgba(255, 194, 26, 0.12);
+  --admin-active-border: rgba(255, 194, 26, 0.28);
+  --admin-active-fg: #ffc21a;
+  --admin-label: rgba(255, 255, 255, 0.35);
   color-scheme: dark;
   background-color: var(--admin-bg);
   color: var(--admin-fg);
@@ -125,7 +129,33 @@ html:not(.dark) .admin-root {
   --admin-input: #ffffff;
   --admin-fg: #0f172a;
   --admin-muted: rgba(15, 23, 42, 0.55);
+  --admin-active-bg: rgba(255, 194, 26, 0.22);
+  --admin-active-border: rgba(180, 130, 0, 0.35);
+  --admin-active-fg: #8a5b00;
+  --admin-label: rgba(15, 23, 42, 0.45);
   color-scheme: light;
+}
+
+/*
+ * Solid admin surfaces. Tailwind v3 cannot apply an opacity modifier to an
+ * arbitrary var() color (`bg-[var(--x)]/95` emits nothing), which left the
+ * sidebar/topbar transparent — obvious in light mode.
+ */
+.admin-root .admin-sidebar {
+  background-color: var(--admin-bg-elevated);
+}
+.admin-root .admin-topbar {
+  background-color: var(--admin-bg);
+}
+.admin-root .admin-floating-panel {
+  background-color: var(--admin-panel);
+}
+
+html:not(.dark) .admin-root .admin-sidebar {
+  box-shadow: 6px 0 24px -20px rgb(15 23 42 / 0.45);
+}
+html:not(.dark) .admin-root .admin-floating-panel {
+  box-shadow: 0 24px 60px -28px rgb(15 23 42 / 0.35);
 }
 
 /* Remap hard-coded dark-only utilities inside admin when light mode is on */

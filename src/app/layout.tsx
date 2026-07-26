@@ -23,7 +23,8 @@ export const metadata: Metadata = {
     "inverters",
     "batteries",
     "security cameras",
-    "Longi JinKO Solis Inverex Hikvision",
+    "Longi JinKO Solis Inverex Hikvision CNC Electric",
+    "CNC Electric authorized dealer Narowal",
   ],
   alternates: { canonical: "/" },
   openGraph: {

@@ -54,6 +54,11 @@ export const ALL_SOLAR = [...SOLAR_PANELS, ...INVERTERS];
 /** Authorized-partner / supplier brand logos (real marks) for the logo marquee. */
 export const PARTNER_LOGOS = [
   {
+    name: "CNC Electric",
+    role: "Authorized Partner",
+    src: "/images/logos/cnc-electric.svg",
+  },
+  {
     name: "Inverex",
     role: "Authorized Solar Partner",
     src: "/images/logos/inverex.png",
@@ -76,6 +81,21 @@ export const PARTNER_LOGOS = [
     src: "/images/logos/hikvision.png",
   },
 ];
+
+/** CNC Electric authorization — showroom proof + short brand facts. */
+export const CNC_AUTHORIZED = {
+  name: "CNC Electric",
+  badge: "Authorized Partner · Narowal",
+  website: "https://www.cncele.com/",
+  image: "/images/partners/cnc-authorized-showroom.png",
+  blurb:
+    "Mehtab Electronics is an authorized partner for CNC Electric — a global low-voltage and new-energy manufacturer (est. 1988) supplying MCBs, MCCBs, SPDs, meters and solar DC protection across 130+ countries. Genuine CNC switchgear for solar DBs and electrical boards, stocked in our Narowal showroom.",
+  highlights: [
+    "Circuit breakers, SPDs & metering for solar & commercial DBs",
+    "New-energy / PV-ready protection components",
+    "Genuine CNC stock with local support from our Narowal team",
+  ],
+} as const;
 
 /** Hand-picked heroes. */
 export const HERO_IMAGE = `${P}/solar-3.jpg`;
