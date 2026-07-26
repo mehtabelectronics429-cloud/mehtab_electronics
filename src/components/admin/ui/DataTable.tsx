@@ -93,7 +93,7 @@ export default function DataTable<T>({
                 )}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-3 text-white/80">
+                  <td key={cell.id} className="px-4 py-3 text-[var(--admin-fg)]/80">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -103,7 +103,7 @@ export default function DataTable<T>({
         </table>
       </div>
       {showPager && (
-        <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 text-xs text-white/45">
+        <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 text-xs text-[var(--admin-muted)]">
           <span>
             Page {page} of {totalPages}
             {typeof total === "number" ? ` · ${total} total` : ""}

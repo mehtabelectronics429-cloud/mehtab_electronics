@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import {
@@ -85,6 +85,7 @@ function InstallationsInner() {
   const qc = useQueryClient();
   const [status, setStatus] = useState<InstallationStatus | "all">("all");
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [addingCustomer, setAddingCustomer] = useState(false);
   const [employeeIds, setEmployeeIds] = useState<string[]>([]);
@@ -98,8 +99,14 @@ function InstallationsInner() {
   const [shipping, setShipping] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["installations", page, status],
-    queryFn: () => api.installations({ page, limit: 10, status }),
+    queryKey: ["installations", page, status, q],
+    queryFn: () =>
+      api.installations({
+        page,
+        limit: 10,
+        status,
+        q: q || undefined,
+      }),
   });
 
   const { data: customers } = useQuery({
@@ -383,7 +390,19 @@ function InstallationsInner() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative mr-2 min-w-[220px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Input
+            value={q}
+            onChange={(e) => {
+              setPage(1);
+              setQ(e.target.value);
+            }}
+            placeholder="Search by ref…"
+            className="pl-9"
+          />
+        </div>
         {FILTERS.map((f) => (
           <button
             key={f}

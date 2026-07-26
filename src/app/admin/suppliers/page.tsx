@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Archive, Search } from "lucide-react";
+import { Plus, Pencil, Archive, Search, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
@@ -165,9 +165,17 @@ export default function SuppliersPage() {
         title="Suppliers"
         subtitle="Vendors you buy stock from, and what you owe them."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4" /> Add Supplier
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => api.downloadSuppliersCsv({ q: q || undefined })}
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4" /> Add Supplier
+            </Button>
+          </div>
         }
       />
       <div className="mb-4 max-w-xs">

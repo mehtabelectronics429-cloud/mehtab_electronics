@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
 import { COMPANY } from "@/lib/data";
@@ -13,21 +14,37 @@ const EXPLORE = [
   { label: "Projects", href: "/projects" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Sitemap", href: "/sitemap" },
-];
-
-const PARTNERS = [
-  "Inverex  Authorized",
-  "Solis  Authorized",
-  "itel  Authorized Dealer",
+  { label: "Search", href: "/search" },
 ];
 
 export default function Footer() {
+  const [categories, setCategories] = useState<
+    { name: string; slug: string }[]
+  >([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/catalog/categories");
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          items?: { name: string; slug: string }[];
+        };
+        if (!cancelled) setCategories(data.items ?? []);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <footer className="relative border-t border-line/15 bg-surface/30">
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-8">
         <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
-          {/* brand */}
           <div>
             <Logo markSize={42} />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-fg/50">
@@ -49,12 +66,28 @@ export default function Footer() {
             ))}
           </FooterCol>
 
-          <FooterCol title="Partners">
-            {PARTNERS.map((p) => (
-              <li key={p} className="text-sm text-fg/60">
-                {p}
+          <FooterCol title="Products">
+            {categories.length === 0 ? (
+              <li>
+                <Link
+                  href="/products"
+                  className="text-sm text-fg/60 transition-colors hover:text-brand"
+                >
+                  All products
+                </Link>
               </li>
-            ))}
+            ) : (
+              categories.slice(0, 8).map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/products/${c.slug}`}
+                    className="text-sm text-fg/60 transition-colors hover:text-brand"
+                  >
+                    {c.name}
+                  </Link>
+                </li>
+              ))
+            )}
           </FooterCol>
 
           <FooterCol title="Contact">

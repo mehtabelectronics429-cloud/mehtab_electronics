@@ -28,10 +28,21 @@ export async function GET(req: Request) {
   try {
     await requireCap("purchases.view");
     await connectMongo();
-    const p = parsePagination(new URL(req.url));
+    const url = new URL(req.url);
+    const p = parsePagination(url);
+    const status = url.searchParams.get("status");
     const filter: Record<string, unknown> = { ...notDeleted };
-    if (p.q) filter.$or = [{ ref: new RegExp(p.q, "i") }, { supplierInvoiceNo: new RegExp(p.q, "i") }];
-    const result = await paginate(Purchase, filter, { ...p, sort: "-date", populate: "supplierId" });
+    if (status && status !== "all") filter.status = status;
+    if (p.q)
+      filter.$or = [
+        { ref: new RegExp(p.q, "i") },
+        { supplierInvoiceNo: new RegExp(p.q, "i") },
+      ];
+    const result = await paginate(Purchase, filter, {
+      ...p,
+      sort: "-date",
+      populate: "supplierId",
+    });
     return json({ ...result, items: result.items.map(mapPurchase) });
   } catch (err) {
     return errorResponse(err);

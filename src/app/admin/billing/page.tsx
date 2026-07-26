@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Check } from "lucide-react";
+import { Plus, Check, Search, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
@@ -36,12 +36,14 @@ export default function BillingPage() {
   const router = useRouter();
   const qc = useQueryClient();
   const [status, setStatus] = useState("all");
+  const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["invoices", page, status],
-    queryFn: () => api.invoices({ page, limit: 10, status }),
+    queryKey: ["invoices", page, status, q],
+    queryFn: () =>
+      api.invoices({ page, limit: 10, status, q: q || undefined }),
   });
 
   const { data: customers } = useQuery({
@@ -132,24 +134,51 @@ export default function BillingPage() {
         title={isAdmin ? "Billing" : "My Billing"}
         subtitle="Invoices, payments and approvals."
         actions={
-          <Button
-            onClick={() => {
-              reset({
-                customerId: "",
-                amount: 0,
-                cost: 0,
-                paid: 0,
-                date: new Date().toISOString().slice(0, 10),
-                status: "pending",
-              });
-              setOpen(true);
-            }}
-          >
-            <Plus className="h-4 w-4" /> New Invoice
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  api.downloadInvoicesCsv({
+                    status,
+                    q: q || undefined,
+                  })
+                }
+              >
+                <Download className="h-4 w-4" /> Export CSV
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                reset({
+                  customerId: "",
+                  amount: 0,
+                  cost: 0,
+                  paid: 0,
+                  date: new Date().toISOString().slice(0, 10),
+                  status: "pending",
+                });
+                setOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" /> New Invoice
+            </Button>
+          </div>
         }
       />
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative mr-2 min-w-[220px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Input
+            value={q}
+            onChange={(e) => {
+              setPage(1);
+              setQ(e.target.value);
+            }}
+            placeholder="Search invoice # or customer…"
+            className="pl-9"
+          />
+        </div>
         {["all", "draft", "pending", "approved", "rejected"].map((f) => (
           <button
             key={f}

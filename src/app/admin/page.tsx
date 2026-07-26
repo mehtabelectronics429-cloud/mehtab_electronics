@@ -84,7 +84,7 @@ export default function DashboardPage() {
       accent: "solar",
     },
     {
-      label: "Completed",
+      label: "Completed (all-time)",
       value: String(k.completedInstalls),
       icon: "CheckCheck",
       accent: "energy",
@@ -114,10 +114,22 @@ export default function DashboardPage() {
       accent: "energy",
     },
     {
+      label: "Collected",
+      value: pkr(k.collected),
+      icon: "Wallet",
+      accent: "energy",
+    },
+    {
       label: "Outstanding",
       value: pkr(k.outstanding),
       icon: "AlertCircle",
       accent: "red",
+    },
+    {
+      label: "Inventory value",
+      value: pkr(k.inventoryValue),
+      icon: "Package",
+      accent: "cyan",
     },
     {
       label: "Pending Approval",
@@ -310,9 +322,7 @@ export default function DashboardPage() {
               </h3>
               <div className="mt-4 space-y-2">
                 {(installs?.items ?? [])
-                  .filter(
-                    (i) => i.status === "submitted" || i.status === "assigned",
-                  )
+                  .filter((i) => i.status === "submitted")
                   .slice(0, 4)
                   .map((i) => (
                     <div

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays } from "lucide-react";
+import { Download } from "lucide-react";
 import { PageHeader, StatCard } from "@/components/admin/ui/feedback";
 import { LineChart, BarChart } from "@/components/admin/ui/charts";
 import { Button, Card, Input } from "@/components/admin/ui/primitives";
@@ -10,6 +10,62 @@ import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 
 const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
+
+function downloadReportsCsv(opts: {
+  rangeLabel: string;
+  totals?: Record<string, number>;
+  employees: {
+    name: string;
+    title: string;
+    revenue: number;
+    profit: number;
+    margin: number;
+    invoices: number;
+    jobs: number;
+    completed: number;
+  }[];
+}) {
+  const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const t = opts.totals ?? {};
+  const rows = [
+    ["Section", "Metric", "Value"].map(esc).join(","),
+    ["Summary", "Range", opts.rangeLabel].map(esc).join(","),
+    ["Summary", "Revenue", t.revenue ?? 0].map(esc).join(","),
+    ["Summary", "Cost", t.cost ?? 0].map(esc).join(","),
+    ["Summary", "Net Profit", t.profit ?? 0].map(esc).join(","),
+    ["Summary", "Margin", t.margin ?? 0].map(esc).join(","),
+    ["Summary", "Collected", t.collected ?? 0].map(esc).join(","),
+    ["Summary", "Outstanding", t.outstanding ?? 0].map(esc).join(","),
+    ["Summary", "Stock Purchased", t.purchaseTotal ?? 0].map(esc).join(","),
+    ["Summary", "Paid to Suppliers", t.purchasePaid ?? 0].map(esc).join(","),
+    ["Summary", "Supplier Payables", t.payable ?? 0].map(esc).join(","),
+    ["Employees", "Name", "Title", "Revenue", "Profit", "Margin", "Invoices", "Jobs", "Completed"]
+      .map(esc)
+      .join(","),
+    ...opts.employees.map((e) =>
+      [
+        "Employee",
+        e.name,
+        e.title,
+        e.revenue,
+        e.profit,
+        e.margin,
+        e.invoices,
+        e.jobs,
+        e.completed,
+      ]
+        .map(esc)
+        .join(","),
+    ),
+  ];
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "reports-export.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function ReportsPage() {
   const [from, setFrom] = useState("");
@@ -25,16 +81,32 @@ export default function ReportsPage() {
   const employees = data?.employees ?? [];
 
   const rangeLabel = useMemo(() => {
-    if (!from && !to) return "All-time";
+    if (mode === "overall") return "All-time";
+    if (!from && !to) return "Custom range";
     if (from && to) return `${from} → ${to}`;
     return from ? `From ${from}` : `Until ${to}`;
-  }, [from, to]);
+  }, [from, to, mode]);
 
   return (
     <div>
       <PageHeader
         title="Reports"
         subtitle="Accurate revenue, cost, profit and per-employee performance."
+        actions={
+          <Button
+            variant="secondary"
+            disabled={isLoading || !t}
+            onClick={() =>
+              downloadReportsCsv({
+                rangeLabel,
+                totals: t as Record<string, number> | undefined,
+                employees,
+              })
+            }
+          >
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
+        }
       />
 
       <Card className="mb-5 flex flex-col gap-3 border-white/10 p-4 lg:flex-row lg:items-end lg:justify-between">
@@ -154,9 +226,9 @@ export default function ReportsPage() {
           index={2}
         />
         <StatCard
-          label="Gross Profit"
-          value={pkr(t?.grossProfit ?? 0)}
-          icon="TrendingUp"
+          label="Cost Coverage"
+          value={pct(t?.costCoverage ?? 0)}
+          icon="Percent"
           accent="energy"
           index={3}
         />

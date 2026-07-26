@@ -11,8 +11,8 @@ export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
     const sizes: Record<BtnSize, string> = { sm: "h-8 px-3 text-xs", md: "h-10 px-4 text-sm" };
     const variants: Record<BtnVariant, string> = {
       primary: "bg-gradient-to-r from-electric to-cyan text-white shadow-[0_8px_30px_-12px_rgba(46,107,255,0.7)] hover:brightness-110",
-      secondary: "border border-white/10 bg-white/5 text-white/90 hover:bg-white/10",
-      ghost: "text-white/70 hover:bg-white/5 hover:text-white",
+      secondary: "border border-white/10 bg-white/5 text-[var(--admin-fg)]/90 hover:bg-white/10",
+      ghost: "text-[var(--admin-muted)] hover:bg-white/5 hover:text-[var(--admin-fg)]",
       danger: "border border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/20",
     };
     return <button ref={ref} className={cn(base, sizes[size], variants[variant], className)} {...props} />;
@@ -29,7 +29,16 @@ export function Badge({ className, children }: { className?: string; children: R
 
 export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className, ...props }, ref) {
-    return <input ref={ref} className={cn("h-10 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15", className)} {...props} />;
+    return (
+      <input
+        ref={ref}
+        className={cn(
+          "h-10 w-full rounded-xl border border-white/10 bg-[var(--admin-input)] px-3.5 text-sm text-[var(--admin-fg)] outline-none transition placeholder:text-[var(--admin-muted)] focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15",
+          className,
+        )}
+        {...props}
+      />
+    );
   }
 );
 export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
@@ -50,7 +59,16 @@ export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<H
 );
 export const Textarea = forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
   function Textarea({ className, ...props }, ref) {
-    return <textarea ref={ref} className={cn("w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15", className)} {...props} />;
+    return (
+      <textarea
+        ref={ref}
+        className={cn(
+          "w-full rounded-xl border border-white/10 bg-[var(--admin-input)] px-3.5 py-2.5 text-sm text-[var(--admin-fg)] outline-none transition placeholder:text-[var(--admin-muted)] focus:border-cyan/50 focus:ring-2 focus:ring-cyan/15",
+          className,
+        )}
+        {...props}
+      />
+    );
   }
 );
 export function Label({
@@ -59,7 +77,7 @@ export function Label({
   ...props
 }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label className={cn("mb-1.5 block text-xs font-medium text-white/60", className)} {...props}>
+    <label className={cn("mb-1.5 block text-xs font-medium text-[var(--admin-muted)]", className)} {...props}>
       {children}
     </label>
   );

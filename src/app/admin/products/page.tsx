@@ -66,12 +66,10 @@ export default function ProductsPage() {
     [categoryData],
   );
 
-  const cats = useMemo(() => {
-    const fromItems = Array.from(
-      new Set((data?.items ?? []).map((p) => p.category)),
-    );
-    return ["all", ...fromItems];
-  }, [data]);
+  const cats = useMemo(
+    () => ["all", ...categoryOptions],
+    [categoryOptions],
+  );
 
   const {
     register,

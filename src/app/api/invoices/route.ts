@@ -43,6 +43,21 @@ export async function GET(req: Request) {
     const status = url.searchParams.get("status");
     const filter: Record<string, unknown> = {};
     if (status && status !== "all") filter.status = status;
+    if (p.q) {
+      const rx = new RegExp(p.q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      const customers = await Customer.find({
+        ...notDeleted,
+        name: rx,
+      })
+        .select("_id")
+        .lean();
+      const customerIds = customers.map((c) => c._id);
+      filter.$or = [
+        { number: rx },
+        { notes: rx },
+        ...(customerIds.length ? [{ customerId: { $in: customerIds } }] : []),
+      ];
+    }
     if (!can(user.role, "billing.view.all")) {
       if (!user.employeeId) return json({ items: [], page: 1, limit: p.limit, total: 0, totalPages: 1 });
       filter.employeeId = user.employeeId;

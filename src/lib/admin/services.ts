@@ -140,6 +140,38 @@ export const api = {
     const s = sp.toString();
     window.open(`/api/products/export${s ? `?${s}` : ""}`, "_blank");
   },
+  downloadCustomersCsv: (params?: { q?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.q) sp.set("q", params.q);
+    const s = sp.toString();
+    window.open(`/api/customers/export${s ? `?${s}` : ""}`, "_blank");
+  },
+  downloadSuppliersCsv: (params?: { q?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.q) sp.set("q", params.q);
+    const s = sp.toString();
+    window.open(`/api/suppliers/export${s ? `?${s}` : ""}`, "_blank");
+  },
+  downloadInvoicesCsv: (params?: { status?: string; q?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.status && params.status !== "all") sp.set("status", params.status);
+    if (params?.q) sp.set("q", params.q);
+    const s = sp.toString();
+    window.open(`/api/invoices/export${s ? `?${s}` : ""}`, "_blank");
+  },
+  downloadPurchasesCsv: (params?: { status?: string; q?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.status && params.status !== "all") sp.set("status", params.status);
+    if (params?.q) sp.set("q", params.q);
+    const s = sp.toString();
+    window.open(`/api/purchases/export${s ? `?${s}` : ""}`, "_blank");
+  },
+  downloadMaterialsCsv: (params?: { q?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.q) sp.set("q", params.q);
+    const s = sp.toString();
+    window.open(`/api/materials/export${s ? `?${s}` : ""}`, "_blank");
+  },
 
   categories: (params?: ListParams) =>
     request<Paginated<import("./types").Category>>(

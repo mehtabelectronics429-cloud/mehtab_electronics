@@ -24,6 +24,7 @@ type NavChild = {
   href: string;
   desc?: string;
   icon?: ReactNode;
+  image?: string;
 };
 type NavItem = {
   label: string;
@@ -34,16 +35,14 @@ type NavItem = {
 
 const SERVICES: NavChild[] = [
   {
-    icon: <SunIcon size={30} />,
+    icon: <SunIcon size={22} />,
     label: "Solar Systems",
     href: "/services/solar",
-    desc: "On-grid, off-grid & hybrid installs",
   },
   {
-    icon: <CameraIcon size={30} />,
+    icon: <CameraIcon size={22} />,
     label: "CCTV & Security",
     href: "/services/cctv",
-    desc: "HD/4K camera networks",
   },
 ];
 
@@ -55,6 +54,40 @@ const STATIC_NAV: NavItem[] = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
+
+function CategoryThumb({
+  image,
+  label,
+  icon,
+}: {
+  image?: string;
+  label: string;
+  icon?: ReactNode;
+}) {
+  if (image) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={image}
+        alt=""
+        className="h-9 w-9 shrink-0 rounded-md object-cover"
+      />
+    );
+  }
+  if (icon) {
+    return (
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-brand/10 text-brand">
+        {icon}
+      </span>
+    );
+  }
+  return (
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-brand/10 text-brand">
+      <Package className="h-5 w-5" aria-hidden />
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -86,15 +119,14 @@ export default function Navbar() {
         const res = await fetch("/api/catalog/categories");
         if (!res.ok) return;
         const data = (await res.json()) as {
-          items?: { name: string; slug: string; description?: string }[];
+          items?: { name: string; slug: string; image?: string }[];
         };
         if (cancelled) return;
         setCategories(
           (data.items ?? []).map((c) => ({
             label: c.name,
             href: `/products/${c.slug}`,
-            desc: c.description || undefined,
-            icon: <Package size={28} />,
+            image: c.image?.trim() || undefined,
           })),
         );
       } catch {
@@ -173,25 +205,23 @@ export default function Navbar() {
                   {item.label}
                   <ChevronDown className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" />
                 </Link>
-                <div className="invisible absolute left-1/2 top-full z-10 w-64 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                  <div className="max-h-[70vh] overflow-y-auto overflow-hidden rounded-lg border border-line/15 bg-surface/95 p-2 shadow-card-lg backdrop-blur-xl">
+                <div className="invisible absolute left-1/2 top-full z-10 w-56 -translate-x-1/2 pt-4 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <div className="max-h-[70vh] overflow-y-auto rounded-lg border border-line/15 bg-surface/95 p-1.5 shadow-card-lg backdrop-blur-xl">
                     {item.children.map((c) => (
-                      <div
+                      <Link
                         key={c.href}
-                        className="flex items-center gap-2 rounded-md p-1 transition-colors hover:bg-brand/10"
+                        href={c.href}
+                        className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-brand/10"
                       >
-                        <span>{c.icon}</span>
-                        <Link href={c.href} className="block rounded-md">
-                          <div className="flex font-display text-sm uppercase tracking-wide text-fg">
-                            <span>{c.label}</span>
-                          </div>
-                          {c.desc && (
-                            <div className="mt-0.5 text-xs text-fg/50">
-                              {c.desc}
-                            </div>
-                          )}
-                        </Link>
-                      </div>
+                        <CategoryThumb
+                          image={c.image}
+                          label={c.label}
+                          icon={c.icon}
+                        />
+                        <span className="font-display text-sm uppercase tracking-wide text-fg">
+                          {c.label}
+                        </span>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -307,14 +337,19 @@ export default function Navbar() {
                     )}
                   </div>
                   {item.children && openGroup === item.label && (
-                    <div className="pb-2 pl-3">
+                    <div className="space-y-1 pb-2 pl-1">
                       {item.children.map((c) => (
                         <Link
                           key={c.href}
                           href={c.href}
-                          className="block py-2 text-sm text-fg/60"
+                          className="flex items-center gap-3 rounded-md px-2 py-2 text-sm text-fg/70 hover:bg-brand/10"
                         >
-                          {c.label}
+                          <CategoryThumb
+                            image={c.image}
+                            label={c.label}
+                            icon={c.icon}
+                          />
+                          <span>{c.label}</span>
                         </Link>
                       ))}
                     </div>

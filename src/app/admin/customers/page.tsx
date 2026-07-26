@@ -263,11 +263,19 @@ export default function CustomersPage() {
         title={canManage ? "Customers" : "My Customers"}
         subtitle="Records, ledgers, payment reminders and installation history."
         actions={
-          canManage ? (
-            <Button onClick={openCreate}>
-              <Plus className="h-4 w-4" /> New Customer
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => api.downloadCustomersCsv({ q: q || undefined })}
+            >
+              <Download className="h-4 w-4" /> Export CSV
             </Button>
-          ) : undefined
+            {canManage ? (
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4" /> New Customer
+              </Button>
+            ) : null}
+          </div>
         }
       />
 

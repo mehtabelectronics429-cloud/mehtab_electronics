@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Archive, Search } from "lucide-react";
+import { Plus, Pencil, Archive, Search, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
@@ -162,9 +162,17 @@ export default function MaterialsPage() {
         title="Materials"
         subtitle="Track installation materials  issued, used, returned and damaged."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4" /> Add Material
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => api.downloadMaterialsCsv({ q: q || undefined })}
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4" /> Add Material
+            </Button>
+          </div>
         }
       />
       <div className="mb-4 max-w-xs">

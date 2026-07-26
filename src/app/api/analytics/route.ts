@@ -70,14 +70,14 @@ export async function GET(req: Request) {
           .select("amount cost paid status date employeeId")
           .lean() as Promise<InvLean[]>,
         Installation.find({ ...notDeleted })
-          .select("status amount employeeId employeeIds")
+          .select("status amount date employeeId employeeIds")
           .lean(),
         Employee.find({ ...notDeleted })
           .select("name title active rating assigned completed")
           .lean(),
         Purchase.find({ ...notDeleted })
-          .select("amount paid")
-          .lean() as Promise<{ amount: number; paid: number }[]>,
+          .select("amount paid date")
+          .lean() as Promise<{ amount: number; paid: number; date?: Date }[]>,
         Supplier.aggregate([
           { $match: { deletedAt: null } },
           { $group: { _id: null, payable: { $sum: "$balance" } } },
@@ -85,8 +85,12 @@ export async function GET(req: Request) {
       ]);
 
     const filteredInvoices = invoices.filter((i) => dateFilter(i.date));
-    const filteredInstallations = installations.filter((i) =>
-      dateFilter(i.date ?? new Date()),
+    const filteredInstallations = installations.filter((i) => {
+      const d = (i as { date?: Date }).date;
+      return d ? dateFilter(d) : mode !== "range";
+    });
+    const filteredPurchases = purchases.filter((p) =>
+      p.date ? dateFilter(p.date) : mode !== "range",
     );
     const approved = filteredInvoices.filter((i) => i.status === "approved");
 
@@ -95,8 +99,9 @@ export async function GET(req: Request) {
     const cost = approved.reduce((s, i) => s + (i.cost || 0), 0);
     const profit = revenue - cost;
     const margin = revenue > 0 ? profit / revenue : 0;
-    const collected = filteredInvoices.reduce((s, i) => s + (i.paid || 0), 0);
-    const outstanding = filteredInvoices.reduce(
+    // Collected / outstanding on approved invoices only (aligned with revenue).
+    const collected = approved.reduce((s, i) => s + (i.paid || 0), 0);
+    const outstanding = approved.reduce(
       (s, i) => s + Math.max(0, (i.amount || 0) - (i.paid || 0)),
       0,
     );
@@ -105,8 +110,14 @@ export async function GET(req: Request) {
       : 0;
 
     // ── purchasing / payables (supplier side) ──
-    const purchaseTotal = purchases.reduce((s, p) => s + (p.amount || 0), 0);
-    const purchasePaid = purchases.reduce((s, p) => s + (p.paid || 0), 0);
+    const purchaseTotal = filteredPurchases.reduce(
+      (s, p) => s + (p.amount || 0),
+      0,
+    );
+    const purchasePaid = filteredPurchases.reduce(
+      (s, p) => s + (p.paid || 0),
+      0,
+    );
     const payable = supplierAgg[0]?.payable ?? 0; // what we still owe suppliers
 
     // ── 12-month series (revenue / cost / profit) ──
@@ -236,7 +247,7 @@ export async function GET(req: Request) {
         collected,
         outstanding,
         approvedInvoices: approved.length,
-        totalInvoices: invoices.length,
+        totalInvoices: filteredInvoices.length,
         costCoverage, // fraction of approved invoices that have a cost recorded
         jobs: filteredInstallations.length,
         completed: byStatus.completed || 0,

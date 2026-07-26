@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2, Wallet, Upload, Eye } from "lucide-react";
+import { Plus, Trash2, Wallet, Upload, Eye, Search, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
@@ -18,6 +18,7 @@ import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
 import type { Purchase } from "@/lib/admin/types";
+import { cn } from "@/lib/utils";
 
 const schema = z.object({
   supplierId: z.string().min(1, "Select a supplier"),
@@ -42,6 +43,8 @@ export default function PurchasesPage() {
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("all");
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<ItemRow[]>([
     { productId: "", name: "", unitCost: 0, qty: 1 },
@@ -55,8 +58,14 @@ export default function PurchasesPage() {
   const [payAmt, setPayAmt] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["purchases", page],
-    queryFn: () => api.purchases({ page, limit: 10 }),
+    queryKey: ["purchases", page, q, status],
+    queryFn: () =>
+      api.purchases({
+        page,
+        limit: 10,
+        q: q || undefined,
+        status: status === "all" ? undefined : status,
+      }),
   });
   const { data: suppliers } = useQuery({
     queryKey: ["suppliers-opts"],
@@ -263,12 +272,55 @@ export default function PurchasesPage() {
         title="Purchases"
         subtitle="Supplier bills for stock you buy in bulk  receiving updates inventory & payables."
         actions={
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4" /> New Purchase
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                api.downloadPurchasesCsv({
+                  status,
+                  q: q || undefined,
+                })
+              }
+            >
+              <Download className="h-4 w-4" /> Export CSV
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4" /> New Purchase
+            </Button>
+          </div>
         }
       />
-
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="relative mr-2 min-w-[220px] flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+          <Input
+            value={q}
+            onChange={(e) => {
+              setPage(1);
+              setQ(e.target.value);
+            }}
+            placeholder="Search ref or supplier invoice…"
+            className="pl-9"
+          />
+        </div>
+        {["all", "unpaid", "partial", "paid"].map((f) => (
+          <button
+            key={f}
+            onClick={() => {
+              setStatus(f);
+              setPage(1);
+            }}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-xs capitalize transition-colors",
+              status === f
+                ? "border-cyan/40 bg-cyan/10 text-cyan"
+                : "border-white/10 bg-white/5 text-white/50 hover:text-white",
+            )}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
       <DataTable
         columns={columns}
         data={data?.items ?? []}

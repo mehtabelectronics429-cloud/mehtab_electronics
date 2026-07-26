@@ -38,6 +38,7 @@ export async function GET() {
       lowStock,
       pendingWhatsapp,
       activity,
+      inventoryAgg,
     ] = await Promise.all([
       Installation.countDocuments({
         ...notDeleted,
@@ -67,6 +68,17 @@ export async function GET() {
         .sort({ at: -1 })
         .limit(10)
         .lean(),
+      Product.aggregate([
+        { $match: { deletedAt: null } },
+        {
+          $group: {
+            _id: null,
+            value: {
+              $sum: { $multiply: ["$stock", "$purchasePrice"] },
+            },
+          },
+        },
+      ]),
     ]);
 
     const approved = invoices.filter((i) => i.status === "approved");
@@ -75,11 +87,13 @@ export async function GET() {
     const cost = approved.reduce((s, i) => s + (i.cost || 0), 0);
     const profit = revenue - cost;
     const margin = revenue > 0 ? profit / revenue : 0;
-    const collected = invoices.reduce((s, i) => s + (i.paid || 0), 0);
-    const outstanding = invoices.reduce(
+    // Align cash figures with approved revenue recognition.
+    const collected = approved.reduce((s, i) => s + (i.paid || 0), 0);
+    const outstanding = approved.reduce(
       (s, i) => s + Math.max(0, (i.amount || 0) - (i.paid || 0)),
       0,
     );
+    const inventoryValue = Number(inventoryAgg[0]?.value ?? 0);
 
     return json({
       kpis: {
@@ -95,7 +109,7 @@ export async function GET() {
         margin,
         // kept for backward compatibility with any existing reads
         expenses: cost,
-        inventoryValue: 0,
+        inventoryValue,
         lowStock,
         pendingWhatsapp,
       },
