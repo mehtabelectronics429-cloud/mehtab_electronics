@@ -111,17 +111,26 @@ export default function Contact({
               ))}
             </div>
 
-            {/* animated map placeholder */}
+            {/* live location map */}
             <Reveal delay={0.1}>
-              <div className="mt-4 relative overflow-hidden rounded-2xl glass hairline h-40">
-                <div className="absolute inset-0 bg-grid-lines [background-size:36px_36px] opacity-40" />
-                <div className="absolute inset-0 bg-aurora opacity-50" />
-                <span className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan shadow-glow">
-                  <span className="absolute inset-0 rounded-full bg-cyan/60 animate-pulseRing" />
-                </span>
-                <span className="absolute bottom-3 left-4 font-mono text-[0.65rem] uppercase tracking-widest text-fg/50">
-                  Lahore · Punjab · PK
-                </span>
+              <div className="mt-4 relative overflow-hidden rounded-2xl glass hairline">
+                <iframe
+                  title="Mehtab Electronics — Railway Road, Narowal"
+                  src={COMPANY.mapEmbed}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-56 w-full"
+                  style={{ border: 0 }}
+                />
+                <a
+                  href={COMPANY.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-surface/90 px-3 py-1.5 font-mono text-[0.6rem] font-bold uppercase tracking-widest text-fg shadow-glow backdrop-blur transition-colors hover:text-cyan"
+                >
+                  <MapPin className="h-3.5 w-3.5 text-cyan" /> Open in Maps
+                </a>
               </div>
             </Reveal>
           </div>

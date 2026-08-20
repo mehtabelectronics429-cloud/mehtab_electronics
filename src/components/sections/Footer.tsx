@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { Phone, Mail, MapPin, MessageCircle, Globe } from "lucide-react";
 import { COMPANY } from "@/lib/data";
 import { waLink } from "@/lib/whatsapp";
 import Logo from "@/components/ui/Logo";
@@ -97,7 +97,11 @@ export default function Footer() {
                   href={c.phoneHref}
                   className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand"
                 >
-                  <Phone className="h-3.5 w-3.5 text-brand" /> {c.phone}
+                  <Phone className="h-3.5 w-3.5 shrink-0 text-brand" />
+                  <span>
+                    {c.phone}
+                    <span className="text-fg/40"> · {c.name}</span>
+                  </span>
                 </a>
               </li>
             ))}
@@ -119,9 +123,26 @@ export default function Footer() {
                 <Mail className="h-3.5 w-3.5 text-brand" /> {COMPANY.email}
               </a>
             </li>
-            <li className="flex items-start gap-2 text-sm text-fg/60">
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />{" "}
-              Narowal, Punjab, Pakistan
+            <li>
+              <a
+                href={COMPANY.websiteHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm text-fg/60 hover:text-brand"
+              >
+                <Globe className="h-3.5 w-3.5 text-brand" /> {COMPANY.website}
+              </a>
+            </li>
+            <li>
+              <a
+                href={COMPANY.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 text-sm text-fg/60 hover:text-brand"
+              >
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />{" "}
+                {COMPANY.address}
+              </a>
             </li>
           </FooterCol>
         </div>

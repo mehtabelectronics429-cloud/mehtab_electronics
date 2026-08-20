@@ -34,6 +34,7 @@ export const api = {
   dashboard: () =>
     request<{
       kpis: Record<string, number>;
+      pendingBills?: import("./types").PendingBill[];
       activity: import("./types").ActivityItem[];
     }>("/api/dashboard"),
   analytics: (params?: {
@@ -173,6 +174,36 @@ export const api = {
     window.open(`/api/materials/export${s ? `?${s}` : ""}`, "_blank");
   },
 
+  productGroups: (params?: ListParams) =>
+    request<Paginated<import("./types").ProductGroup>>(
+      `/api/product-groups${qs(params)}`,
+    ),
+  createProductGroup: (body: {
+    name: string;
+    description?: string;
+    active?: boolean;
+    items: { productId: string; qty: number }[];
+  }) =>
+    request<import("./types").ProductGroup>("/api/product-groups", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateProductGroup: (
+    id: string,
+    body: Partial<{
+      name: string;
+      description: string;
+      active: boolean;
+      items: { productId: string; qty: number }[];
+    }>,
+  ) =>
+    request<import("./types").ProductGroup>(`/api/product-groups/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  archiveProductGroup: (id: string) =>
+    request<{ ok: boolean }>(`/api/product-groups/${id}`, { method: "DELETE" }),
+
   categories: (params?: ListParams) =>
     request<Paginated<import("./types").Category>>(
       `/api/categories${qs(params)}`,
@@ -307,6 +338,37 @@ export const api = {
     }),
   archiveInvoice: (id: string) =>
     request<{ ok: boolean }>(`/api/invoices/${id}`, { method: "DELETE" }),
+  remindInvoice: (id: string, channel?: "direct" | "business") =>
+    request<{
+      ok: boolean;
+      channel: "direct" | "business";
+      requestedChannel?: "direct" | "business";
+      businessApiReady?: boolean;
+      jobId: string | null;
+      waUrl: string | null;
+      template?: string;
+    }>(`/api/invoices/${id}/remind`, {
+      method: "POST",
+      body: JSON.stringify({ channel }),
+    }),
+  returnSale: (
+    id: string,
+    body: {
+      reason: string;
+      note?: string;
+      items: { index: number; qty: number; restock?: boolean }[];
+    },
+  ) =>
+    request<
+      import("./types").Invoice & {
+        returnNumber: string;
+        refund: number;
+        restockedCost: number;
+      }
+    >(`/api/invoices/${id}/return`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   ledger: (params?: ListParams) =>
     request<Paginated<import("./types").LedgerEntry>>(

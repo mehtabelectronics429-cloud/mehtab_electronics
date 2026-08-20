@@ -21,6 +21,7 @@ export const NAV: NavItem[] = [
   { label: "Materials", href: "/admin/materials", icon: "Boxes", cap: "materials.view", group: "Inventory" },
   { label: "Categories", href: "/admin/categories", icon: "Tags", cap: "products.view", group: "Inventory" },
   { label: "Products", href: "/admin/products", icon: "Package", cap: "products.view", group: "Inventory" },
+  { label: "Product Groups", href: "/admin/product-groups", icon: "Layers", cap: "products.manage", group: "Inventory" },
   { label: "Inventory", href: "/admin/inventory", icon: "Warehouse", cap: "inventory.view", group: "Inventory" },
   { label: "Billing", href: "/admin/billing", icon: "ReceiptText", cap: "billing.view.all", group: "Finance" },
   { label: "My Billing", href: "/admin/billing", icon: "ReceiptText", cap: "billing.view.own", group: "Finance" },

@@ -71,7 +71,12 @@ export async function POST(req: Request) {
       customerId: customer._id,
       employeeId: user.employeeId || null,
       source: "pos",
-      items: body.items.map((i) => ({ description: i.description, qty: i.qty, unitPrice: i.unitPrice })),
+      items: body.items.map((i) => ({
+        description: i.description,
+        qty: i.qty,
+        unitPrice: i.unitPrice,
+        productId: i.productId || null,
+      })),
       discount: body.discount ?? 0,
       taxRate: body.taxRate ?? 0,
       shipping: body.shipping ?? 0,

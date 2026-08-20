@@ -9,8 +9,10 @@ import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Card, Input, Label } from "@/components/admin/ui/primitives";
 import InvoiceDocument from "@/components/admin/InvoiceDocument";
 import ShareInvoiceButton from "@/components/admin/ShareInvoiceButton";
+import { ReturnButton } from "@/components/admin/ReturnModal";
 import { api } from "@/lib/admin/services";
 import { useAuth } from "@/lib/admin/auth";
+import { can } from "@/lib/admin/permissions";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
 import { openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
@@ -48,7 +50,13 @@ export default function InvoiceDetailPage() {
 
   const totals = invoiceTotals(invoice);
   const paid = invoice.paid ?? 0;
-  const balance = totals.total - paid;
+  const returned = invoice.returnedAmount ?? 0;
+  const netTotal = totals.total - returned;
+  const balance = Math.max(0, netTotal - paid);
+  const canReturn =
+    !!user &&
+    can(user.role, "billing.approve") &&
+    (invoice.status === "approved" || invoice.status === "pending");
 
   const recordPayment = () => {
     const amt = Number(payment);
@@ -78,7 +86,8 @@ export default function InvoiceDetailPage() {
     const msg =
       `Assalam o Alaikum ${invoice.customer || ""},\n\n` +
       `Your invoice ${invoice.number} from Mehtab Electronics.\n` +
-      `Total: Rs ${totals.total.toLocaleString("en-PK")}\n` +
+      `Total: Rs ${netTotal.toLocaleString("en-PK")}\n` +
+      (returned > 0 ? `Refunded: Rs ${returned.toLocaleString("en-PK")}\n` : "") +
       (paid > 0 ? `Paid: Rs ${paid.toLocaleString("en-PK")}\n` : "") +
       `Balance Due: Rs ${balance.toLocaleString("en-PK")}\n\n` +
       `View / download your invoice (PDF): ${link}\n\nJazakAllah  Mehtab Electronics`;
@@ -109,6 +118,7 @@ export default function InvoiceDetailPage() {
             <Button variant="secondary" onClick={sendWhatsApp}>
               <MessageCircle className="h-4 w-4" /> WhatsApp link
             </Button>
+            {canReturn && <ReturnButton invoice={invoice} />}
             <ShareInvoiceButton
               filename={`Invoice-${invoice.number}.pdf`}
               shareText={`Invoice ${invoice.number}  Mehtab Electronics. Total Rs ${totals.total.toLocaleString("en-PK")}, Balance Due Rs ${balance.toLocaleString("en-PK")}.`}
@@ -118,7 +128,9 @@ export default function InvoiceDetailPage() {
       />
 
       {/* payment controls */}
-      <div className="mb-5 grid gap-4 lg:grid-cols-3">
+      <div
+        className={`mb-5 grid gap-4 ${returned > 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
+      >
         <Card className="p-4">
           <div className="text-xs uppercase tracking-wider text-white/40">
             Total
@@ -135,6 +147,16 @@ export default function InvoiceDetailPage() {
             {pkr(paid)}
           </div>
         </Card>
+        {returned > 0 && (
+          <Card className="p-4">
+            <div className="text-xs uppercase tracking-wider text-white/40">
+              Refunded
+            </div>
+            <div className="mt-1 text-lg font-semibold text-rose-300">
+              −{pkr(returned)}
+            </div>
+          </Card>
+        )}
         <Card className="p-4">
           <div className="text-xs uppercase tracking-wider text-white/40">
             Balance due
@@ -144,6 +166,44 @@ export default function InvoiceDetailPage() {
           </div>
         </Card>
       </div>
+
+      {/* returns history */}
+      {invoice.returns && invoice.returns.length > 0 && (
+        <Card className="mb-5 p-4">
+          <div className="mb-3 text-sm font-medium text-white/80">
+            Returns &amp; refunds
+          </div>
+          <div className="space-y-2">
+            {invoice.returns.map((r) => (
+              <div
+                key={r.number}
+                className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-sm font-medium text-white">
+                    {r.number}
+                    <span className="ml-2 text-xs font-normal text-white/40">
+                      {String(r.date).slice(0, 10)} · {r.reason}
+                    </span>
+                  </div>
+                  <div className="text-sm font-semibold text-rose-300">
+                    −{pkr(r.refund)}
+                  </div>
+                </div>
+                <div className="mt-1 text-xs text-white/50">
+                  {r.items
+                    .map(
+                      (it) =>
+                        `${it.qty} × ${it.description}${it.restock ? "" : " (not restocked)"}`,
+                    )
+                    .join(" · ")}
+                  {r.note ? ` — ${r.note}` : ""}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {isAdmin && balance > 0 && (
         <Card className="mb-5 flex flex-wrap items-end gap-3 p-4">

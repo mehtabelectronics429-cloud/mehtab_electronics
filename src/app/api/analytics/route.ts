@@ -29,6 +29,8 @@ type InvLean = {
   amount: number;
   cost?: number;
   paid: number;
+  returnedAmount?: number;
+  returnedCost?: number;
   status: string;
   date: Date;
   employeeId?: { toString(): string } | null;
@@ -67,7 +69,7 @@ export async function GET(req: Request) {
     const [invoices, installations, employees, purchases, supplierAgg] =
       await Promise.all([
         Invoice.find({ ...notDeleted })
-          .select("amount cost paid status date employeeId")
+          .select("amount cost paid returnedAmount returnedCost status date employeeId")
           .lean() as Promise<InvLean[]>,
         Installation.find({ ...notDeleted })
           .select("status amount date employeeId employeeIds")
@@ -83,6 +85,16 @@ export async function GET(req: Request) {
           { $group: { _id: null, payable: { $sum: "$balance" } } },
         ]),
       ]);
+
+    // Net returns off each invoice up front so every downstream figure (revenue,
+    // COGS, collected cash, monthly series, per-employee) reflects reality.
+    // Cash refunds reverse both recognised revenue and collected cash.
+    for (const i of invoices) {
+      const refunded = i.returnedAmount || 0;
+      i.amount = (i.amount || 0) - refunded;
+      i.cost = (i.cost || 0) - (i.returnedCost || 0);
+      i.paid = (i.paid || 0) - refunded;
+    }
 
     const filteredInvoices = invoices.filter((i) => dateFilter(i.date));
     const filteredInstallations = installations.filter((i) => {

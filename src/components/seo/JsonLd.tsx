@@ -32,11 +32,13 @@ export default function JsonLd() {
         slogan: COMPANY.tagline,
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Narowal",
+          streetAddress: "Railway Road, near Railway Station",
           addressLocality: "Narowal",
           addressRegion: "Punjab",
           addressCountry: "PK",
         },
+        hasMap: COMPANY.mapUrl,
+        openingHours: "Mo-Sa 09:00-20:00",
         areaServed: { "@type": "State", name: "Punjab, Pakistan" },
         brand: [
           { "@type": "Brand", name: "CNC Electric" },

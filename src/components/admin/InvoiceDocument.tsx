@@ -19,7 +19,10 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
   const items = invoice.items ?? [];
   const t = invoiceTotals(invoice);
   const paid = invoice.paid ?? 0;
-  const balance = t.total - paid;
+  const returns = invoice.returns ?? [];
+  const returned = invoice.returnedAmount ?? 0;
+  const netTotal = t.total - returned;
+  const balance = Math.max(0, netTotal - paid);
   const red = L.red;
 
   const Row = ({
@@ -60,7 +63,7 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
           </div>
           <span
             className="grid h-20 w-20 place-items-center overflow-hidden rounded-md"
-            style={{ background: red }}
+            style={{ background: "#000000" }}
           >
             <Image
               src={LOGO_MARK}
@@ -175,13 +178,49 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
           <Row label="Tax Rate" value={`${t.taxRate}`} />
           <Row label="Total Tax" value={money(t.tax)} />
           <Row label="Shipping / Handling" value={money(t.shipping)} />
+          {returned > 0 && (
+            <>
+              <Row label="Returns / Refund" value={`(${money(returned)})`} />
+              <Row label="Net Total" value={money(netTotal)} bold />
+            </>
+          )}
           {paid > 0 && <Row label="Paid" value={money(paid)} />}
           <div className="mt-1 flex items-center justify-between border-t-2 border-neutral-800 pt-2 text-base font-bold">
-            <span>{paid > 0 ? "Balance Due" : "Balance Due"}</span>
+            <span>Balance Due</span>
             <span className="tabular-nums">Rs {money(balance)}</span>
           </div>
         </div>
       </div>
+
+      {/* returns / credit notes */}
+      {returns.length > 0 && (
+        <div className="mt-6">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+            Returns / Credit Notes
+          </div>
+          <table className="mt-2 w-full border-collapse text-[11px]">
+            <tbody>
+              {returns.map((r) => (
+                <tr key={r.number} className="border-b border-neutral-200">
+                  <td className="py-1.5 pr-2 font-medium">{r.number}</td>
+                  <td className="py-1.5 pr-2 text-neutral-600">
+                    {String(r.date).slice(0, 10)}
+                  </td>
+                  <td className="py-1.5 pr-2 text-neutral-600">
+                    {r.items
+                      .map((it) => `${it.qty} × ${it.description}`)
+                      .join(", ")}
+                    {r.reason ? ` — ${r.reason}` : ""}
+                  </td>
+                  <td className="py-1.5 text-right tabular-nums">
+                    ({money(r.refund)})
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* disclaimer */}
       <div className="mt-10 text-center text-[10px] italic leading-relaxed text-neutral-500">

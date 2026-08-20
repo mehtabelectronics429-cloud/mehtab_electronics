@@ -32,3 +32,25 @@ export function invoiceTotals(inv: InvoiceTotalsInput) {
     total,
   };
 }
+
+/**
+ * Cash refund owed for a set of returned lines. The invoice-level discount and
+ * tax are prorated onto the returned goods so the customer gets back exactly
+ * what they paid for them — shipping / handling is never refunded (standard
+ * retail rule). Returns the raw goods value and the rounded cash refund.
+ */
+export function returnRefund(
+  invoice: InvoiceTotalsInput,
+  returnedLines: { qty: number; unitPrice: number }[],
+) {
+  const t = invoiceTotals(invoice);
+  const returnedGross = returnedLines.reduce(
+    (s, l) => s + (l.qty || 0) * (l.unitPrice || 0),
+    0,
+  );
+  // Share of the subtotal the customer actually pays after the discount.
+  const discountRatio = t.subtotal > 0 ? t.lessDiscount / t.subtotal : 1;
+  const taxMultiplier = 1 + (t.taxRate || 0) / 100;
+  const refund = Math.round(returnedGross * discountRatio * taxMultiplier * 100) / 100;
+  return { returnedGross, refund };
+}

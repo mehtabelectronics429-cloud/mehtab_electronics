@@ -10,31 +10,51 @@ const QasimImg = "/images/labour-r3YHRwh-.jpeg";
 export const COMPANY = {
   name: "Mehtab Electronics",
   tagline: "Power your home. Protect what matters.",
+  // Customer-facing call to action from the shop's own marketing.
+  ctaLine: "For a load-shedding-free life and lower bills, contact us today!",
+  freeOffer: "FREE Consultation & Quotation Available",
   region: "Narowal · Serving all Punjab",
   phone: "0303 7777921",
   phoneHref: "tel:+923037777921",
   whatsapp: "+92 303 7777921",
   email: "info@mehtabelectronics.com",
-  address: "Mehtab Electronics, Narowal, Punjab, Pakistan",
+  website: "www.mehtabelectronics.com",
+  websiteHref: "https://www.mehtabelectronics.com",
+  address: "Railway Road, near Railway Station, Narowal, Punjab",
   hours: "Mon–Sat · 9:00 AM – 8:00 PM",
+  // What the shop deals in (shown across the site).
+  dealsIn: [
+    "Solar Systems",
+    "Solar Panels",
+    "Inverters",
+    "Batteries",
+    "Electrical Work",
+  ],
+  // Clickable share link that opens the shop's exact pin / directions in Google Maps.
+  mapUrl: "https://maps.app.goo.gl/JEUj4rBGYHmtRXu1A",
+  // Embeddable map (short share links can't be iframed — Google's `output=embed`
+  // form can). Points at the shop's registered Google Business listing.
   mapEmbed:
-    // "https://www.google.com/maps?q=Narowal,Punjab,Pakistan&output=embed",
-    " https://maps.app.goo.gl/JEUj4rBGYHmtRXu1A?g_st=iwb",
+    "https://www.google.com/maps?q=Mehtab+Electronics+Since+1996+Solar+%26+CCTV,+near+Railway+Station,+Narowal&ftid=0x391953003ca2abe3:0x100722286bb6243c&output=embed",
   founded: 1996,
-  // The two people who run the shop (shown in the contact section)
+  // The direct lines, split by what each one handles.
   contacts: [
     {
-      name: "Mudassar Sherazi",
+      name: "Solar & Inverters",
       phone: "0303 7777921",
       phoneHref: "tel:+923037777921",
     },
-    { name: "M. Qasim", phone: "0313 7777921", phoneHref: "tel:+923137777921" },
+    {
+      name: "CCTV & Cameras",
+      phone: "0313 7777921",
+      phoneHref: "tel:+923137777921",
+    },
   ],
   stats: [
-    { value: "500+", label: "Systems Installed" },
-    { value: "1000+", label: "Happy Clients" },
     { value: "30+", label: "Years Experience" },
-    { value: "All", label: "Punjab Coverage" },
+    { value: "40+", label: "Team Members" },
+    { value: "10000+", label: "Systems Installed" },
+    { value: "100000+", label: "Happy Clients" },
   ],
 };
 

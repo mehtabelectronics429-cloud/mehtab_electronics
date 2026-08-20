@@ -7,6 +7,35 @@ export interface IInvoiceItem {
   description: string;
   qty: number;
   unitPrice: number;
+  /** Catalogue product this line was sold from — enables restock on return. */
+  productId?: Types.ObjectId | null;
+}
+
+/** A single returned line inside a return / credit note. */
+export interface IInvoiceReturnItem {
+  /** Index of the original line in `Invoice.items` this return applies to. */
+  index: number;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  /** Whether the returned unit was resalable and added back to stock. */
+  restock: boolean;
+  productId?: Types.ObjectId | null;
+}
+
+/** A customer return against this sale — a credit note with a cash refund. */
+export interface IInvoiceReturn {
+  /** Credit-note number, e.g. "INV-2001/R1". */
+  number: string;
+  date: Date;
+  reason: string;
+  note: string;
+  /** Cash refunded to the customer. */
+  refund: number;
+  /** COGS reversed for the units that went back into stock. */
+  restockedCost: number;
+  employeeId: Types.ObjectId | null;
+  items: IInvoiceReturnItem[];
 }
 
 export interface IInvoice {
@@ -28,6 +57,12 @@ export interface IInvoice {
   cost: number;
   paid: number;
   status: InvoiceStatus;
+  /** Customer returns recorded against this sale (audit trail). */
+  returns: IInvoiceReturn[];
+  /** Running total of cash refunded via returns (reverses revenue + collected). */
+  returnedAmount: number;
+  /** Running total of COGS reversed by restocked returns. */
+  returnedCost: number;
   date: Date;
   notes: string;
   deletedAt: Date | null;
@@ -68,6 +103,7 @@ const schema = new Schema<IInvoice>(
             description: { type: String, required: true, trim: true },
             qty: { type: Number, default: 1, min: 0 },
             unitPrice: { type: Number, default: 0, min: 0 },
+            productId: { type: Schema.Types.ObjectId, ref: "Product", default: null },
           },
           { _id: false },
         ),
@@ -86,6 +122,49 @@ const schema = new Schema<IInvoice>(
       default: "draft",
       index: true,
     },
+    returns: {
+      type: [
+        new Schema<IInvoiceReturn>(
+          {
+            number: { type: String, required: true },
+            date: { type: Date, required: true },
+            reason: { type: String, default: "" },
+            note: { type: String, default: "" },
+            refund: { type: Number, default: 0, min: 0 },
+            restockedCost: { type: Number, default: 0, min: 0 },
+            employeeId: {
+              type: Schema.Types.ObjectId,
+              ref: "Employee",
+              default: null,
+            },
+            items: {
+              type: [
+                new Schema<IInvoiceReturnItem>(
+                  {
+                    index: { type: Number, required: true, min: 0 },
+                    description: { type: String, default: "" },
+                    qty: { type: Number, required: true, min: 0 },
+                    unitPrice: { type: Number, default: 0, min: 0 },
+                    restock: { type: Boolean, default: true },
+                    productId: {
+                      type: Schema.Types.ObjectId,
+                      ref: "Product",
+                      default: null,
+                    },
+                  },
+                  { _id: false },
+                ),
+              ],
+              default: [],
+            },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
+    returnedAmount: { type: Number, default: 0, min: 0 },
+    returnedCost: { type: Number, default: 0, min: 0 },
     date: { type: Date, required: true, index: true },
     notes: { type: String, default: "" },
     deletedAt: { type: Date, default: null, index: true },

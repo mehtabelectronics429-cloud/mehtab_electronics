@@ -1,19 +1,21 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import Icon from "@/components/ui/Icon";
 import {
   PageHeader,
   StatCard,
   StatusBadge,
 } from "@/components/admin/ui/feedback";
-import { Card } from "@/components/admin/ui/primitives";
+import { Button, Card } from "@/components/admin/ui/primitives";
 import { BarChart, LineChart } from "@/components/admin/ui/charts";
 import { useAuth } from "@/lib/admin/auth";
 import { can } from "@/lib/admin/permissions";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
+import { toastForWhatsAppResult } from "@/lib/admin/whatsapp-client";
 import { formatDistanceToNow } from "date-fns";
 
 const KIND_ICON: Record<string, string> = {
@@ -68,7 +70,16 @@ export default function DashboardPage() {
     inventoryValue: 0,
     lowStock: 0,
     pendingWhatsapp: 0,
+    pendingBillsCount: 0,
+    pendingBillsTotal: 0,
   };
+
+  const pendingBills = data?.pendingBills ?? [];
+  const remind = useMutation({
+    mutationFn: (id: string) => api.remindInvoice(id),
+    onSuccess: (res) => toast.success(toastForWhatsAppResult(res)),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const adminStats = [
     {
@@ -368,6 +379,62 @@ export default function DashboardPage() {
                 </div>
               ))
             )}
+          </div>
+        </Card>
+      )}
+
+      {pendingBills.length > 0 && (
+        <Card className="mt-6 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-white/80">Pending Bills</h3>
+            <span className="text-xs text-white/40">
+              {k.pendingBillsCount} unpaid · {pkr(k.pendingBillsTotal)} due
+            </span>
+          </div>
+          <div className="mt-4 space-y-2">
+            {pendingBills.map((b) => {
+              const noPhone = !b.whatsapp && !b.phone;
+              const sending = remind.isPending && remind.variables === b.id;
+              return (
+                <div
+                  key={b.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm text-white">
+                      {b.number} · {b.customer}
+                    </div>
+                    <div className="text-xs text-white/40">
+                      {b.date} · Paid {pkr(b.paid)} / {pkr(b.amount)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-amber-300">
+                        {pkr(b.balance)}
+                      </div>
+                      <div className="text-[0.6rem] uppercase tracking-wide text-white/35">
+                        balance due
+                      </div>
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      disabled={sending || noPhone}
+                      title={
+                        noPhone
+                          ? "No phone / WhatsApp number on file"
+                          : "Send a WhatsApp payment reminder"
+                      }
+                      onClick={() => remind.mutate(b.id)}
+                    >
+                      <Icon name="MessageCircle" className="h-4 w-4" />
+                      {sending ? "Sending…" : "Send alert"}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </Card>
       )}

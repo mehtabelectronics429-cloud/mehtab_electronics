@@ -48,6 +48,18 @@ export const productInput = z.object({
   highlights: z.string().optional(),
 });
 
+export const productGroupItemInput = z.object({
+  productId: z.string().min(1),
+  qty: z.coerce.number().min(0.01),
+});
+
+export const productGroupInput = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  active: z.boolean().optional(),
+  items: z.array(productGroupItemInput).min(1, "Add at least one product"),
+});
+
 export const categoryInput = z.object({
   name: z.string().min(1),
   slug: z.string().optional(),
@@ -120,6 +132,24 @@ export const invoiceItemInput = z.object({
   description: z.string().min(1),
   qty: z.coerce.number().min(0),
   unitPrice: z.coerce.number().min(0),
+  productId: z.string().optional().nullable(),
+});
+
+/** Record a customer return / refund against a sale invoice. */
+export const saleReturnInput = z.object({
+  reason: z.string().min(2, "A return reason is required"),
+  note: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        /** Index of the original line in the invoice's items array. */
+        index: z.coerce.number().int().min(0),
+        qty: z.coerce.number().min(0.01),
+        /** Add the returned units back to stock (resalable). */
+        restock: z.boolean().optional(),
+      }),
+    )
+    .min(1, "Select at least one item to return"),
 });
 
 export const posItemInput = z.object({

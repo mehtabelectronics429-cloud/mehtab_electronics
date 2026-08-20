@@ -80,7 +80,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
           </div>
           <span
             className="grid h-20 w-20 place-items-center overflow-hidden rounded-md"
-            style={{ background: red }}
+            style={{ background: "#000000" }}
           >
             <Image
               src={LOGO_MARK}

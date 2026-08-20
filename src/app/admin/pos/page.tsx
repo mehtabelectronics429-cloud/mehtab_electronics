@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   Receipt,
   ScanBarcode,
+  Layers,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
@@ -42,32 +43,45 @@ export default function PosPage() {
   const [discount, setDiscount] = useState(0);
   const [received, setReceived] = useState<string>("");
 
+  const searchTerm = q.trim();
+  // Base catalogue (capped at 100 by the API) — used for stock lookups on cart lines.
   const { data: products } = useQuery({
     queryKey: ["pos-products"],
-    queryFn: () => api.products({ limit: 300 }),
+    queryFn: () => api.products({ limit: 100 }),
+  });
+  // Server-side text search so results match the products page exactly (case-insensitive, whole catalogue).
+  const { data: searchResults } = useQuery({
+    queryKey: ["pos-products-search", searchTerm],
+    queryFn: () => api.products({ limit: 100, q: searchTerm }),
+    enabled: searchTerm.length > 0,
   });
   const { data: customers } = useQuery({
     queryKey: ["pos-customers"],
     queryFn: () => api.customers({ limit: 200 }),
   });
+  // Product groups / bundles for one-click add.
+  const { data: groupsData } = useQuery({
+    queryKey: ["pos-product-groups"],
+    queryFn: () => api.productGroups({ limit: 100 }),
+  });
+  const groups = useMemo(
+    () => (groupsData?.items ?? []).filter((g) => g.active && g.items.length),
+    [groupsData],
+  );
 
   const filtered = useMemo(() => {
-    const items = products?.items ?? [];
-    if (!q.trim()) return items.slice(0, 24);
-    const s = q.toLowerCase();
-    return items
-      .filter((p) =>
-        `${p.brand} ${p.model} ${p.sku} ${p.barcode || ""} ${p.category}`
-          .toLowerCase()
-          .includes(s),
-      )
-      .slice(0, 24);
-  }, [products, q]);
+    const items = (searchTerm ? searchResults?.items : products?.items) ?? [];
+    return items.slice(0, 24);
+  }, [products, searchResults, searchTerm]);
+
+  // Look up a product across both the base list and current search results (either may hold it).
+  const findProduct = (productId: string) =>
+    (searchResults?.items ?? []).find((x) => x.id === productId) ??
+    (products?.items ?? []).find((x) => x.id === productId);
 
   const stockOf = (productId: string | null) => {
     if (!productId) return Infinity;
-    const p = (products?.items ?? []).find((x) => x.id === productId);
-    return p?.stock ?? 0;
+    return findProduct(productId)?.stock ?? 0;
   };
 
   const cartQtyOf = (productId: string, exceptIdx?: number) =>
@@ -78,7 +92,7 @@ export default function PosPage() {
     );
 
   const addProduct = (id: string) => {
-    const p = (products?.items ?? []).find((x) => x.id === id);
+    const p = findProduct(id);
     if (!p) return;
     if (p.stock <= 0) {
       toast.error("Out of stock");
@@ -106,17 +120,64 @@ export default function PosPage() {
     });
   };
 
+  /** One-click add every product in a group to the cart at its default qty. */
+  const addGroup = (group: (typeof groups)[number]) => {
+    const next = [...cart];
+    const skipped: string[] = [];
+    let added = 0;
+    for (const it of group.items) {
+      if (!it.productId) continue;
+      const stock = it.stock ?? 0;
+      if (stock <= 0) {
+        skipped.push(it.name || "item");
+        continue;
+      }
+      const idx = next.findIndex((l) => l.productId === it.productId);
+      if (idx >= 0) {
+        next[idx] = {
+          ...next[idx],
+          qty: Math.min(next[idx].qty + it.qty, stock),
+        };
+      } else {
+        next.push({
+          productId: it.productId,
+          description: it.name || "",
+          unitPrice: it.sellingPrice ?? 0,
+          qty: Math.min(it.qty, stock),
+        });
+      }
+      added += 1;
+    }
+    if (added) {
+      setCart(next);
+      toast.success(`Added “${group.name}” to cart`);
+    }
+    if (skipped.length) {
+      toast.error(`Out of stock, skipped: ${skipped.join(", ")}`);
+    }
+  };
+
   /** Exact barcode / SKU match from a hardware scanner (Enter after scan). */
-  const applyBarcodeScan = (raw: string) => {
+  const applyBarcodeScan = async (raw: string) => {
     const code = raw.trim();
     if (!code) return false;
-    const items = products?.items ?? [];
     const lower = code.toLowerCase();
-    const match = items.find((p) => {
+    const exact = (p: { barcode?: string; sku: string }) => {
       const barcode = (p.barcode || "").trim().toLowerCase();
       const sku = (p.sku || "").trim().toLowerCase();
       return (barcode && barcode === lower) || sku === lower;
-    });
+    };
+    const items = [...(products?.items ?? []), ...(searchResults?.items ?? [])];
+    let match = items.find(exact);
+    if (!match) {
+      // Fall back to a direct server search in case the code isn't in the loaded lists yet.
+      try {
+        const res = await api.products({ q: code, limit: 10 });
+        match = res.items.find(exact);
+      } catch {
+        // ignore, handled by the not-found toast below
+      }
+    }
     if (!match) {
       toast.error(`No product for barcode/SKU: ${code}`);
       return false;
@@ -221,6 +282,42 @@ export default function PosPage() {
           <p className="mt-1.5 text-[0.65rem] text-white/35">
             Barcode scanners type into this field and press Enter — matches barcode or SKU exactly.
           </p>
+
+          {groups.length > 0 && (
+            <div className="mt-4">
+              <div className="mb-2 flex items-center gap-1.5 text-[0.7rem] font-semibold uppercase tracking-wide text-white/40">
+                <Layers className="h-3.5 w-3.5" /> Bundles · one-click add
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {groups.map((g) => {
+                  const total = g.items.reduce(
+                    (s, i) => s + (i.sellingPrice ?? 0) * i.qty,
+                    0,
+                  );
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => addGroup(g)}
+                      title={g.items
+                        .map((i) => `${i.name} ×${i.qty}`)
+                        .join(", ")}
+                      className="group rounded-xl border border-cyan/25 bg-cyan/5 px-3 py-2 text-left transition-colors hover:border-cyan/50 hover:bg-cyan/10"
+                    >
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-white">
+                        <Plus className="h-3.5 w-3.5 text-cyan" />
+                        {g.name}
+                      </div>
+                      <div className="mt-0.5 text-[0.65rem] text-white/40">
+                        {g.items.length} item{g.items.length === 1 ? "" : "s"} ·{" "}
+                        {pkr(total)}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="mt-4 grid max-h-[62vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
             {filtered.map((p) => {
               const inCart = cartQtyOf(p.id);

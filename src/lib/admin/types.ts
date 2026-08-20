@@ -90,6 +90,24 @@ export interface Product {
   highlights?: string;
 }
 
+export interface ProductGroupItem {
+  productId: string | null;
+  qty: number;
+  /** Resolved product info (populated by the API for POS/one-click add). */
+  name?: string;
+  sku?: string;
+  sellingPrice?: number;
+  stock?: number;
+}
+
+export interface ProductGroup {
+  id: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  items: ProductGroupItem[];
+}
+
 export interface Category {
   id: string;
   name: string;
@@ -173,6 +191,26 @@ export interface Installation {
   }[];
 }
 
+export interface InvoiceReturnItem {
+  index: number;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  restock: boolean;
+  productId?: string | null;
+}
+
+export interface InvoiceReturn {
+  number: string;
+  date: string;
+  reason: string;
+  note?: string;
+  refund: number;
+  restockedCost: number;
+  employeeId?: string | null;
+  items: InvoiceReturnItem[];
+}
+
 export interface Invoice {
   id: string;
   number: string;
@@ -180,7 +218,12 @@ export interface Invoice {
   customerId?: string | null;
   employeeId?: string | null;
   installationId?: string | null;
-  items?: { description: string; qty: number; unitPrice: number }[];
+  items?: {
+    description: string;
+    qty: number;
+    unitPrice: number;
+    productId?: string | null;
+  }[];
   discount?: number;
   taxRate?: number;
   shipping?: number;
@@ -188,9 +231,11 @@ export interface Invoice {
   cost?: number;
   paid: number;
   status: InvoiceStatus;
+  returns?: InvoiceReturn[];
+  returnedAmount?: number;
+  returnedCost?: number;
   date: string;
   notes?: string;
-  customerId?: string | null;
   customerPhone?: string;
   customerWhatsapp?: string;
   customerAddress?: string;
@@ -233,6 +278,20 @@ export interface WhatsAppMsg {
   status: string;
   at?: string;
   error?: string;
+}
+
+export interface PendingBill {
+  id: string;
+  number: string;
+  customer: string;
+  customerId: string | null;
+  phone: string;
+  whatsapp: string;
+  amount: number;
+  paid: number;
+  balance: number;
+  status: InvoiceStatus;
+  date: string;
 }
 
 export interface ActivityItem {

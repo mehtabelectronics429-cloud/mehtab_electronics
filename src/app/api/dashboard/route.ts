@@ -39,6 +39,7 @@ export async function GET() {
       pendingWhatsapp,
       activity,
       inventoryAgg,
+      pendingBillsRaw,
     ] = await Promise.all([
       Installation.countDocuments({
         ...notDeleted,
@@ -57,7 +58,7 @@ export async function GET() {
       }),
       Installation.countDocuments({ ...notDeleted, status: "submitted" }),
       Invoice.find({ ...notDeleted })
-        .select("amount cost paid status")
+        .select("amount cost paid returnedAmount returnedCost status")
         .lean(),
       Product.countDocuments({ ...notDeleted, stock: { $lte: 5 } }),
       WhatsAppMessage.countDocuments({
@@ -79,7 +80,30 @@ export async function GET() {
           },
         },
       ]),
+      // Unpaid / partially-paid bills, scoped to what the user may see.
+      Invoice.find({
+        ...notDeleted,
+        status: { $in: ["pending", "approved"] },
+        ...(can(user.role, "billing.view.all")
+          ? {}
+          : user.employeeId
+            ? { employeeId: user.employeeId }
+            : { _id: null }),
+      })
+        .select("number amount paid returnedAmount status date customerId")
+        .populate("customerId", "name phone whatsapp")
+        .sort({ date: 1 })
+        .lean(),
     ]);
+
+    // Net customer returns off each invoice so revenue / cost / collected reflect
+    // reality (cash refunds reverse both recognised revenue and collected cash).
+    for (const i of invoices) {
+      const refunded = i.returnedAmount || 0;
+      i.amount = (i.amount || 0) - refunded;
+      i.cost = (i.cost || 0) - (i.returnedCost || 0);
+      i.paid = (i.paid || 0) - refunded;
+    }
 
     const approved = invoices.filter((i) => i.status === "approved");
     const revenue = approved.reduce((s, i) => s + (i.amount || 0), 0);
@@ -94,6 +118,52 @@ export async function GET() {
       0,
     );
     const inventoryValue = Number(inventoryAgg[0]?.value ?? 0);
+
+    // Build the pending-bills list: net balance (after returns) still owed.
+    const pendingBillsAll = (
+      pendingBillsRaw as {
+        _id: unknown;
+        number: string;
+        amount?: number;
+        paid?: number;
+        returnedAmount?: number;
+        status: string;
+        date: Date;
+        customerId?: {
+          _id?: unknown;
+          name?: string;
+          phone?: string;
+          whatsapp?: string;
+        } | null;
+      }[]
+    )
+      .map((i) => {
+        const cust = i.customerId;
+        const netTotal = (i.amount || 0) - (i.returnedAmount || 0);
+        const balance = Math.max(0, netTotal - (i.paid || 0));
+        return {
+          id: String(i._id),
+          number: i.number,
+          customer: cust?.name || "Walk-in",
+          customerId: cust?._id ? String(cust._id) : null,
+          phone: cust?.phone || "",
+          whatsapp: cust?.whatsapp || "",
+          amount: netTotal,
+          paid: i.paid || 0,
+          balance,
+          status: i.status,
+          date:
+            i.date instanceof Date
+              ? i.date.toISOString().slice(0, 10)
+              : i.date,
+        };
+      })
+      .filter((b) => b.balance > 0);
+
+    const pendingBillsTotal = pendingBillsAll.reduce(
+      (s, b) => s + b.balance,
+      0,
+    );
 
     return json({
       kpis: {
@@ -112,7 +182,10 @@ export async function GET() {
         inventoryValue,
         lowStock,
         pendingWhatsapp,
+        pendingBillsCount: pendingBillsAll.length,
+        pendingBillsTotal,
       },
+      pendingBills: pendingBillsAll.slice(0, 12),
       activity: activity.map((a) => ({
         id: String(a._id),
         actor: a.actor,
