@@ -64,28 +64,30 @@ function OwnerCard({ owner }: { owner: Owner }) {
             {owner.bio}
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-2.5">
+          {/* <div className="mt-6 flex flex-wrap gap-2.5">
             {owner.phoneHref && (
-              <a
-                href={owner.phoneHref}
-                className="btn-brand text-gray-800"
-                aria-label={`Call ${title}`}
-              >
-                <Phone className="h-4 w-4" /> Call
-              </a>
+              <>
+                <a
+                  href={owner.phoneHref}
+                  className="btn-brand text-gray-800"
+                  aria-label={`Call ${title}`}
+                >
+                  <Phone className="h-4 w-4" /> Call
+                </a>
+                <a
+                  href={waLink(
+                    `Hello, I'd like to speak with ${title} at Mehtab Electronics.`,
+                    owner.whatsapp,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline"
+                >
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                </a>
+              </>
             )}
-            <a
-              href={waLink(
-                `Hello, I'd like to speak with ${title} at Mehtab Electronics.`,
-                owner.whatsapp,
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-outline"
-            >
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

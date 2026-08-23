@@ -76,14 +76,14 @@ export type Owner = {
 
 export const OWNERS: Owner[] = [
   {
-    name: "Muhammad Ijaz (late)",
+    name: "Muhammad Ijaz",
     role: "Founder",
     since: "Since 1996",
     image: "/images/owner-father-cutout.png",
     bio: "Founded Mehtab Electronics in 1996 and grew it from an electronics and CCTV shop into one of Punjab's most trusted names in solar and security built on honesty, genuine equipment and after-sales care.",
-    phone: "0313 7777921",
-    phoneHref: "tel:+923137777921",
-    whatsapp: "+92 313 7777921",
+    // phone: "0313 7777921",
+    // phoneHref: "tel:+923137777921",
+    // whatsapp: "+92 313 7777921",
   },
   {
     name: "Mudassar Sherazi Adv.",
