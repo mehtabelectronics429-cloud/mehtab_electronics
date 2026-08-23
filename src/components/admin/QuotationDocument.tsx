@@ -35,7 +35,8 @@ const money = (n: number) =>
  * Print-ready installation quotation matching the Mehtab invoice letterhead.
  */
 export default function QuotationDocument({ data }: { data: QuotationData }) {
-  const red = L.red;
+  // Brand accent used for the heading, table header and bottom stripe.
+  const accent = "#000000";
   const t = invoiceTotals({
     items: data.items,
     discount: data.discount,
@@ -96,7 +97,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
 
       <h1
         className="-mt-6 font-display text-4xl font-bold uppercase"
-        style={{ color: red }}
+        style={{ color: accent }}
       >
         Quotation
       </h1>
@@ -160,7 +161,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
 
       <table className="mt-6 w-full border-collapse text-[12px]">
         <thead>
-          <tr style={{ background: red }} className="text-left text-white">
+          <tr style={{ background: accent }} className="text-left text-white">
             <th className="px-2 py-2 font-semibold">DESCRIPTION</th>
             <th className="w-20 px-2 py-2 font-semibold">TYPE</th>
             <th className="w-16 px-2 py-2 text-right font-semibold">QTY</th>
@@ -236,7 +237,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
         ))}
       </div>
 
-      <div className="mt-6 h-3 w-full" style={{ background: red }} />
+      <div className="mt-6 h-3 w-full" style={{ background: accent }} />
     </div>
   );
 }

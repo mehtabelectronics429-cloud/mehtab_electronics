@@ -62,7 +62,7 @@ export default function CNCAuthorized() {
 
         <div className="order-1 lg:order-2">
           <div className="overflow-hidden rounded-2xl border border-line/15 bg-surface/40 shadow-card">
-            <div className="relative aspect-[4/3]">
+            <div className="relative aspect-[3/4] w-3/6 mx-auto overflow-hidden rounded-2xl bg-gradient-to-br from-brand/20 via-surface to-cyan/10">
               <SmartImage
                 src={CNC_AUTHORIZED.image}
                 alt="Mehtab Electronics CNC Electric authorized showroom display — Narowal"

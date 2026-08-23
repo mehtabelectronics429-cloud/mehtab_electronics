@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import PageHero from "@/components/ui/PageHero";
 import About from "@/components/sections/About";
+import Owners from "@/components/sections/Owners";
 import Timeline from "@/components/sections/Timeline";
 import Values from "@/components/sections/Values";
 import Stats from "@/components/sections/Stats";
@@ -37,6 +38,7 @@ export default function AboutPage() {
         ]}
       />
       <About />
+      <Owners />
       <CNCAuthorized />
       <Timeline />
       <Values />

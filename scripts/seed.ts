@@ -60,7 +60,7 @@ async function main() {
 
   const employees = await db.collection("employees").insertMany([
     {
-      name: "Ahmed Sheikh",
+      name: "Qasim Ijaz",
       email: "staff@mehtabelectronics.com",
       phone: "+92 300 5551122",
       title: "Installation Technician",

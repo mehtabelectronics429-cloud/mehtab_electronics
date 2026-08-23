@@ -58,6 +58,45 @@ export const COMPANY = {
   ],
 };
 
+/**
+ * The two owners — father & son. Save professionally edited (ideally
+ * background-removed) portraits to the `image` paths below. If a file is
+ * missing the card shows a styled initials avatar automatically.
+ */
+export type Owner = {
+  name: string;
+  role: string;
+  since?: string;
+  image: string;
+  bio: string;
+  phone?: string;
+  phoneHref?: string;
+  whatsapp?: string;
+};
+
+export const OWNERS: Owner[] = [
+  {
+    name: "Muhammad Ijaz (late)",
+    role: "Founder",
+    since: "Since 1996",
+    image: "/images/owner-father-cutout.png",
+    bio: "Founded Mehtab Electronics in 1996 and grew it from an electronics and CCTV shop into one of Punjab's most trusted names in solar and security built on honesty, genuine equipment and after-sales care.",
+    phone: "0313 7777921",
+    phoneHref: "tel:+923137777921",
+    whatsapp: "+92 313 7777921",
+  },
+  {
+    name: "Mudassar Sherazi Adv.",
+    role: "CEO",
+    since: "Second generation",
+    image: "/images/CEO.png",
+    bio: "Leads day-to-day operations, modern solar solutions and customer experience carrying the family promise forward with new technology and the same trusted service. Building a brighter fuuture",
+    phone: "0303 7777921",
+    phoneHref: "tel:+923037777921",
+    whatsapp: "+92 303 7777921",
+  },
+];
+
 export const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Services", href: "#services" },
@@ -435,14 +474,14 @@ export const IMPACT = [
 ];
 
 export const TEAM = [
-  {
-    name: "Mudassar Sherazi",
-    role: "Founder & Owner",
-    image: MudassarImg,
-    focus: "Power systems",
-    description:
-      "Leads Mehtab Electronics with a vision to bring reliable solar energy and modern security to every corner of Punjab.",
-  },
+  // {
+  //   name: "Mudassar Sherazi Adv",
+  //   role: "CEO",
+  //   image: MudassarImg,
+  //   focus: "Power systems",
+  //   description:
+  //     "Leads Mehtab Electronics with a vision to bring reliable solar energy and modern security to every corner of Punjab.",
+  // },
   {
     name: "Ahmad Faraz",
     role: "Senior Engineer",
@@ -460,7 +499,7 @@ export const TEAM = [
       "Coordinates on-site teams, ensuring every installation meets our quality standards and client expectations.",
   },
   {
-    name: "Ahmed Sheikh",
+    name: "Qasim Ijaz",
     role: "Labor Handler",
     image: QasimImg,
     focus: "Site commissioning",

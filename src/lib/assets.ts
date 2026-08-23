@@ -87,7 +87,7 @@ export const CNC_AUTHORIZED = {
   name: "CNC Electric",
   badge: "Authorized Partner · Narowal",
   website: "https://www.cncele.com/",
-  image: "/images/partners/cnc-authorized-showroom.png",
+  image: "/images/partners/cnc-authorized-showroom.jpeg",
   blurb:
     "Mehtab Electronics is an authorized partner for CNC Electric — a global low-voltage and new-energy manufacturer (est. 1988) supplying MCBs, MCCBs, SPDs, meters and solar DC protection across 130+ countries. Genuine CNC switchgear for solar DBs and electrical boards, stocked in our Narowal showroom.",
   highlights: [

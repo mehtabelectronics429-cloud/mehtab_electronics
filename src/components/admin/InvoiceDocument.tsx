@@ -12,7 +12,7 @@ const money = (n: number) =>
 
 /**
  * Print-ready invoice that mirrors the physical Mehtab invoice. It renders on a
- * white sheet with black text and brand-red accents regardless of the admin
+ * white sheet with black text and black accents regardless of the admin
  * theme, so it looks identical on screen and when printed / saved as PDF.
  */
 export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
@@ -23,7 +23,8 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
   const returned = invoice.returnedAmount ?? 0;
   const netTotal = t.total - returned;
   const balance = Math.max(0, netTotal - paid);
-  const red = L.red;
+  // Brand accent used for the heading, table header and bottom stripe.
+  const accent = "#000000";
 
   const Row = ({
     label,
@@ -78,7 +79,7 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
 
       <h1
         className="-mt-6 font-display text-4xl font-bold uppercase"
-        style={{ color: red }}
+        style={{ color: accent }}
       >
         Invoice
       </h1>
@@ -134,7 +135,7 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
       {/* items table */}
       <table className="mt-6 w-full border-collapse text-[12px]">
         <thead>
-          <tr style={{ background: red }} className="text-left text-white">
+          <tr style={{ background: accent }} className="text-left text-white">
             <th className="px-2 py-2 font-semibold">DESCRIPTION</th>
             <th className="w-16 px-2 py-2 text-right font-semibold">QTY</th>
             <th className="w-28 px-2 py-2 text-right font-semibold">
@@ -229,7 +230,7 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
         ))}
       </div>
 
-      <div className="mt-6 h-3 w-full" style={{ background: red }} />
+      <div className="mt-6 h-3 w-full" style={{ background: accent }} />
     </div>
   );
 }

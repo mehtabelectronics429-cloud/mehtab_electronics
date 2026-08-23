@@ -22,7 +22,7 @@ export default function Team() {
         }
         intro="A tight, senior team that designs, installs and stands behind every system we deploy."
       />
-      <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {TEAM.map((m, i) => (
           <Reveal key={m.name} delay={(i % 4) * 0.08}>
             <TiltCard className="group relative overflow-hidden rounded-3xl glass hairline">
