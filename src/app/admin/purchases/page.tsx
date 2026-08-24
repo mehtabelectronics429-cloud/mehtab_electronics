@@ -11,7 +11,14 @@ import { Plus, Trash2, Wallet, Upload, Eye, Search, Download } from "lucide-reac
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
-import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import {
+  SearchableSelect,
+  type SearchableOption,
+} from "@/components/admin/ui/SearchableSelect";
+import {
+  searchProductOptions,
+  productFromOption,
+} from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
@@ -101,9 +108,10 @@ export default function PurchasesPage() {
 
   const setRow = (i: number, patch: Partial<ItemRow>) =>
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const pickProduct = (i: number, id: string) => {
+  const pickProduct = (i: number, id: string, opt?: SearchableOption) => {
     if (!id) return setRow(i, { productId: "", name: "", unitCost: 0 });
-    const p = (products?.items ?? []).find((x) => x.id === id);
+    const p =
+      (products?.items ?? []).find((x) => x.id === id) ?? productFromOption(opt);
     const name = p ? `${p.brand} ${p.model}`.trim() : "";
     const unitCost = p ? p.purchasePrice : 0;
     setRows((rs) => {
@@ -429,7 +437,7 @@ export default function PurchasesPage() {
                 >
                   <SearchableSelect
                     value={row.productId}
-                    onChange={(v) => pickProduct(idx, v)}
+                    onChange={(v, opt) => pickProduct(idx, v, opt)}
                     placeholder="Custom / not in catalogue…"
                     options={[
                       { value: "", label: "Custom / not in catalogue…" },
@@ -437,8 +445,10 @@ export default function PurchasesPage() {
                         value: p.id,
                         label: `${p.brand} ${p.model}`.trim(),
                         searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
+                        data: p as unknown as Record<string, unknown>,
                       })),
                     ]}
+                    onSearch={searchProductOptions}
                     allowClear={false}
                   />
                   <Input

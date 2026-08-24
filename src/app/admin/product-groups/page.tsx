@@ -12,7 +12,11 @@ import {
   Label,
   Textarea,
 } from "@/components/admin/ui/primitives";
-import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import {
+  SearchableSelect,
+  type SearchableOption,
+} from "@/components/admin/ui/SearchableSelect";
+import { searchProductOptions } from "@/lib/admin/product-search";
 import Modal from "@/components/admin/ui/Modal";
 import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
 import { api } from "@/lib/admin/services";
@@ -50,8 +54,13 @@ export default function ProductGroupsPage() {
       })),
     [products],
   );
+  // Selling prices for products chosen via whole-catalogue search (not in the
+  // loaded page) — keeps the estimated total accurate.
+  const [priceCache, setPriceCache] = useState<Record<string, number>>({});
   const priceOf = (id: string) =>
-    (products?.items ?? []).find((p) => p.id === id)?.sellingPrice ?? 0;
+    (products?.items ?? []).find((p) => p.id === id)?.sellingPrice ??
+    priceCache[id] ??
+    0;
 
   const resetForm = () => {
     setEditing(null);
@@ -250,15 +259,20 @@ export default function ProductGroupsPage() {
                   <div className="flex-1">
                     <SearchableSelect
                       value={line.productId}
-                      onChange={(v) =>
+                      onChange={(v, opt) => {
+                        const price = (opt?.data as { sellingPrice?: number })
+                          ?.sellingPrice;
+                        if (v && typeof price === "number")
+                          setPriceCache((m) => ({ ...m, [v]: price }));
                         setLines((ls) =>
                           ls.map((l, i) =>
                             i === idx ? { ...l, productId: v } : l,
                           ),
-                        )
-                      }
+                        );
+                      }}
                       placeholder="Select product…"
                       options={productOptions}
+                      onSearch={searchProductOptions}
                       allowClear={false}
                     />
                   </div>

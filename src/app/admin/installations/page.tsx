@@ -15,7 +15,14 @@ import {
   Label,
   Badge,
 } from "@/components/admin/ui/primitives";
-import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import {
+  SearchableSelect,
+  type SearchableOption,
+} from "@/components/admin/ui/SearchableSelect";
+import {
+  searchProductOptions,
+  productFromOption,
+} from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
@@ -138,10 +145,12 @@ function InstallationsInner() {
       rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)),
     );
 
-  const pickProduct = (idx: number, productId: string) => {
+  const pickProduct = (idx: number, productId: string, opt?: SearchableOption) => {
     if (!productId)
       return setItem(idx, { productId: "", name: "", unitPrice: 0 });
-    const p = (products?.items ?? []).find((x) => x.id === productId);
+    const p =
+      (products?.items ?? []).find((x) => x.id === productId) ??
+      productFromOption(opt);
     const name = p ? `${p.brand} ${p.model}`.trim() : "";
     const unitPrice = p ? p.sellingPrice : 0;
     setItemRows((rows) => {
@@ -559,7 +568,7 @@ function InstallationsInner() {
                 >
                   <SearchableSelect
                     value={row.productId}
-                    onChange={(v) => pickProduct(idx, v)}
+                    onChange={(v, opt) => pickProduct(idx, v, opt)}
                     placeholder="Custom / type below…"
                     options={[
                       { value: "", label: "Custom / type below…" },
@@ -567,8 +576,10 @@ function InstallationsInner() {
                         value: p.id,
                         label: `${p.brand} ${p.model}`.trim(),
                         searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
+                        data: p as unknown as Record<string, unknown>,
                       })),
                     ]}
+                    onSearch={searchProductOptions}
                     allowClear={false}
                   />
                   <Input

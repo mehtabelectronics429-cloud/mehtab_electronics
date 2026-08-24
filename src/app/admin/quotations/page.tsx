@@ -13,7 +13,14 @@ import {
   Label,
   Textarea,
 } from "@/components/admin/ui/primitives";
-import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import {
+  SearchableSelect,
+  type SearchableOption,
+} from "@/components/admin/ui/SearchableSelect";
+import {
+  searchProductOptions,
+  productFromOption,
+} from "@/lib/admin/product-search";
 import QuotationDocument, {
   type QuotationData,
   type QuotationLine,
@@ -105,12 +112,15 @@ export default function QuotationsPage() {
   const setLine = (idx: number, patch: Partial<EditorLine>) =>
     setLines((rows) => rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
 
-  const pickProduct = (idx: number, id: string) => {
+  const pickProduct = (idx: number, id: string, opt?: SearchableOption) => {
     if (!id) {
       setLine(idx, { productId: "", kind: "other" });
       return;
     }
-    const p = (products?.items ?? []).find((x) => x.id === id);
+    // Product may come from the loaded page or from a whole-catalogue search
+    // (carried on the picked option's data).
+    const p =
+      (products?.items ?? []).find((x) => x.id === id) ?? productFromOption(opt);
     const name = p ? `${p.brand} ${p.model}`.trim() : "";
     const price = p?.sellingPrice ?? 0;
     setLines((rows) => {
@@ -372,7 +382,7 @@ export default function QuotationsPage() {
                 >
                   <SearchableSelect
                     value={row.productId}
-                    onChange={(v) => pickProduct(idx, v)}
+                    onChange={(v, opt) => pickProduct(idx, v, opt)}
                     placeholder="Catalogue / custom…"
                     options={[
                       { value: "", label: "Custom / labour…" },
@@ -380,8 +390,10 @@ export default function QuotationsPage() {
                         value: p.id,
                         label: `${p.brand} ${p.model}`.trim(),
                         searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
+                        data: p as unknown as Record<string, unknown>,
                       })),
                     ]}
+                    onSearch={searchProductOptions}
                     allowClear={false}
                   />
                   <Input

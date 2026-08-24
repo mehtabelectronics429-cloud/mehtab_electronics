@@ -1,6 +1,7 @@
 import { Product } from "@/lib/db/models/Product";
 import { requireCap, json, errorResponse, parsePagination, paginate, serializeDoc } from "@/lib/api/http";
 import { productInput } from "@/lib/api/schemas";
+import { productSearchFilter } from "@/lib/api/product-search-filter";
 import { connectMongo } from "@/lib/db/mongodb";
 
 export async function GET(req: Request) {
@@ -12,7 +13,7 @@ export async function GET(req: Request) {
     const category = url.searchParams.get("category");
     const filter: Record<string, unknown> = {};
     if (category && category !== "all") filter.category = category;
-    if (p.q) filter.$text = { $search: p.q };
+    if (p.q) Object.assign(filter, productSearchFilter(p.q));
     return json(await paginate(Product, filter, p));
   } catch (err) {
     return errorResponse(err);

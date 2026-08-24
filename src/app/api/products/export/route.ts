@@ -1,5 +1,6 @@
 import { Product } from "@/lib/db/models/Product";
 import { requireCap, errorResponse, ApiError } from "@/lib/api/http";
+import { productSearchFilter } from "@/lib/api/product-search-filter";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 
@@ -16,7 +17,7 @@ export async function GET(req: Request) {
     const q = (url.searchParams.get("q") || "").trim();
     const filter: Record<string, unknown> = { ...notDeleted };
     if (category && category !== "all") filter.category = category;
-    if (q) filter.$text = { $search: q };
+    if (q) Object.assign(filter, productSearchFilter(q));
 
     const products = await Product.find(filter).sort({ category: 1, brand: 1 }).lean();
     const rows = [
