@@ -12,6 +12,7 @@ const EXPLORE = [
   { label: "CCTV & Security", href: "/services/cctv" },
   { label: "Products", href: "/products" },
   { label: "Projects", href: "/projects" },
+  { label: "Installations", href: "/installations" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
   { label: "Search", href: "/search" },

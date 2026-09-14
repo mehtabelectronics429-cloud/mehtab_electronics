@@ -51,6 +51,7 @@ const STATIC_NAV: NavItem[] = [
   { label: "Services", href: "/services", children: SERVICES },
   { label: "Products", href: "/products", children: [] },
   { label: "Projects", href: "/projects" },
+  { label: "Installations", href: "/installations" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];

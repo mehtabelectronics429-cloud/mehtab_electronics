@@ -493,4 +493,87 @@ export const api = {
 
   tickJobs: () =>
     request<{ processed: number }>("/api/jobs/tick", { method: "POST" }),
+
+  complaints: (params?: ListParams) =>
+    request<Paginated<import("./types").Complaint>>(
+      `/api/complaints${qs(params)}`,
+    ),
+  getComplaint: (id: string) =>
+    request<import("./types").Complaint>(`/api/complaints/${id}`),
+  createComplaint: (body: Record<string, unknown>) =>
+    request<import("./types").Complaint>("/api/complaints", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateComplaint: (id: string, body: Record<string, unknown>) =>
+    request<import("./types").Complaint>(`/api/complaints/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  archiveComplaint: (id: string) =>
+    request<{ ok: boolean }>(`/api/complaints/${id}`, { method: "DELETE" }),
+
+  expenses: (params?: ListParams) =>
+    request<Paginated<import("./types").Expense>>(`/api/expenses${qs(params)}`),
+  createExpense: (body: Partial<import("./types").Expense>) =>
+    request<import("./types").Expense>("/api/expenses", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateExpense: (id: string, body: Partial<import("./types").Expense>) =>
+    request<import("./types").Expense>(`/api/expenses/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  archiveExpense: (id: string) =>
+    request<{ ok: boolean }>(`/api/expenses/${id}`, { method: "DELETE" }),
+
+  employeePayments: (params?: ListParams) =>
+    request<Paginated<import("./types").EmployeePayment>>(
+      `/api/employee-payments${qs(params)}`,
+    ),
+  createEmployeePayment: (body: Partial<import("./types").EmployeePayment>) =>
+    request<import("./types").EmployeePayment>("/api/employee-payments", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateEmployeePayment: (
+    id: string,
+    body: Partial<import("./types").EmployeePayment>,
+  ) =>
+    request<import("./types").EmployeePayment>(`/api/employee-payments/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  archiveEmployeePayment: (id: string) =>
+    request<{ ok: boolean }>(`/api/employee-payments/${id}`, {
+      method: "DELETE",
+    }),
+
+  installationVideos: (params?: ListParams) =>
+    request<Paginated<import("./types").InstallationVideo>>(
+      `/api/installation-videos${qs(params)}`,
+    ),
+  createInstallationVideo: (
+    body: Partial<import("./types").InstallationVideo>,
+  ) =>
+    request<import("./types").InstallationVideo>("/api/installation-videos", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateInstallationVideo: (
+    id: string,
+    body: Partial<import("./types").InstallationVideo>,
+  ) =>
+    request<import("./types").InstallationVideo>(
+      `/api/installation-videos/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      },
+    ),
+  archiveInstallationVideo: (id: string) =>
+    request<{ ok: boolean }>(`/api/installation-videos/${id}`, {
+      method: "DELETE",
+    }),
 };

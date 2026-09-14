@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Trash2, Printer, MessageCircle, FileInput } from "lucide-react";
+import { Printer, MessageCircle, FileInput } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import {
@@ -13,40 +13,19 @@ import {
   Label,
   Textarea,
 } from "@/components/admin/ui/primitives";
-import {
-  SearchableSelect,
-  type SearchableOption,
-} from "@/components/admin/ui/SearchableSelect";
-import {
-  searchProductOptions,
-  productFromOption,
-} from "@/lib/admin/product-search";
+import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import ProductLineItems, {
+  type ProductLine,
+} from "@/components/admin/ui/ProductLineItems";
+import { productOption } from "@/lib/admin/product-search";
 import QuotationDocument, {
   type QuotationData,
-  type QuotationLine,
 } from "@/components/admin/QuotationDocument";
 import ShareInvoiceButton from "@/components/admin/ShareInvoiceButton";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
 import { openWhatsAppUrl } from "@/lib/admin/whatsapp-client";
-
-type LineKind = NonNullable<QuotationLine["kind"]>;
-
-type EditorLine = {
-  productId: string;
-  description: string;
-  qty: number;
-  unitPrice: number;
-  kind: LineKind;
-};
-
-const KIND_OPTIONS: { value: LineKind; label: string }[] = [
-  { value: "product", label: "Product" },
-  { value: "labour", label: "Labour" },
-  { value: "material", label: "Material" },
-  { value: "other", label: "Other" },
-];
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -80,9 +59,9 @@ export default function QuotationsPage() {
   const [discount, setDiscount] = useState(0);
   const [shipping, setShipping] = useState(0);
   const [taxRate, setTaxRate] = useState(0);
-  const [lines, setLines] = useState<EditorLine[]>([
+  const [lines, setLines] = useState<ProductLine[]>([
     {
-      productId: "",
+      productId: null,
       description: "Installation labour",
       qty: 1,
       unitPrice: 0,
@@ -109,44 +88,10 @@ export default function QuotationsPage() {
     setCustomerAddress(c.address || "");
   };
 
-  const setLine = (idx: number, patch: Partial<EditorLine>) =>
-    setLines((rows) => rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)));
-
-  const pickProduct = (idx: number, id: string, opt?: SearchableOption) => {
-    if (!id) {
-      setLine(idx, { productId: "", kind: "other" });
-      return;
-    }
-    // Product may come from the loaded page or from a whole-catalogue search
-    // (carried on the picked option's data).
-    const p =
-      (products?.items ?? []).find((x) => x.id === id) ?? productFromOption(opt);
-    const name = p ? `${p.brand} ${p.model}`.trim() : "";
-    const price = p?.sellingPrice ?? 0;
-    setLines((rows) => {
-      const existing = rows.findIndex(
-        (r, i) => i !== idx && r.productId === id,
-      );
-      if (existing >= 0) {
-        return rows
-          .map((r, i) =>
-            i === existing ? { ...r, qty: r.qty + 1 } : r,
-          )
-          .filter((_, i) => i !== idx);
-      }
-      return rows.map((r, i) =>
-        i === idx
-          ? {
-              ...r,
-              productId: id,
-              description: name,
-              unitPrice: price,
-              kind: "product" as LineKind,
-            }
-          : r,
-      );
-    });
-  };
+  const productOptions = useMemo(
+    () => (products?.items ?? []).map((p) => productOption(p)),
+    [products],
+  );
 
   const quoteData: QuotationData = useMemo(
     () => ({
@@ -353,98 +298,13 @@ export default function QuotationsPage() {
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <Label className="mb-0">Line items</Label>
-              <button
-                type="button"
-                onClick={() =>
-                  setLines((r) => [
-                    ...r,
-                    {
-                      productId: "",
-                      description: "",
-                      qty: 1,
-                      unitPrice: 0,
-                      kind: "product",
-                    },
-                  ])
-                }
-                className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
-              >
-                <Plus className="h-3.5 w-3.5" /> Add line
-              </button>
-            </div>
-            <div className="space-y-2">
-              {lines.map((row, idx) => (
-                <div
-                  key={idx}
-                  className="grid gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[1fr_1.2fr_0.7fr_0.55fr_0.7fr_auto]"
-                >
-                  <SearchableSelect
-                    value={row.productId}
-                    onChange={(v, opt) => pickProduct(idx, v, opt)}
-                    placeholder="Catalogue / custom…"
-                    options={[
-                      { value: "", label: "Custom / labour…" },
-                      ...(products?.items ?? []).map((p) => ({
-                        value: p.id,
-                        label: `${p.brand} ${p.model}`.trim(),
-                        searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
-                        data: p as unknown as Record<string, unknown>,
-                      })),
-                    ]}
-                    onSearch={searchProductOptions}
-                    allowClear={false}
-                  />
-                  <Input
-                    value={row.description}
-                    onChange={(e) =>
-                      setLine(idx, { description: e.target.value })
-                    }
-                    placeholder="Description"
-                  />
-                  <SearchableSelect
-                    value={row.kind}
-                    onChange={(v) =>
-                      setLine(idx, { kind: (v as LineKind) || "other" })
-                    }
-                    options={KIND_OPTIONS.map((k) => ({
-                      value: k.value,
-                      label: k.label,
-                    }))}
-                    allowClear={false}
-                  />
-                  <Input
-                    type="number"
-                    value={row.qty}
-                    onChange={(e) =>
-                      setLine(idx, { qty: Number(e.target.value) || 0 })
-                    }
-                    placeholder="Qty"
-                  />
-                  <Input
-                    type="number"
-                    value={row.unitPrice}
-                    onChange={(e) =>
-                      setLine(idx, {
-                        unitPrice: Number(e.target.value) || 0,
-                      })
-                    }
-                    placeholder="Unit"
-                  />
-                  <button
-                    type="button"
-                    disabled={lines.length <= 1}
-                    onClick={() =>
-                      setLines((rs) => rs.filter((_, i) => i !== idx))
-                    }
-                    className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-white/40 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-30"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
+            <Label>Line items</Label>
+            <ProductLineItems
+              value={lines}
+              onChange={setLines}
+              showKind
+              productOptions={productOptions}
+            />
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

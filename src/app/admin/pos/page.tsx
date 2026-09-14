@@ -6,8 +6,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Search,
   Plus,
-  Minus,
-  Trash2,
   ShoppingCart,
   Receipt,
   ScanBarcode,
@@ -22,17 +20,15 @@ import {
   Label,
 } from "@/components/admin/ui/primitives";
 import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import ProductLineItems, {
+  type ProductLine,
+} from "@/components/admin/ui/ProductLineItems";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
 import { cn } from "@/lib/utils";
 
-type CartLine = {
-  productId: string | null;
-  description: string;
-  unitPrice: number;
-  qty: number;
-};
+type CartLine = ProductLine;
 
 export default function PosPage() {
   const router = useRouter();
@@ -195,44 +191,6 @@ export default function PosPage() {
     applyBarcodeScan(q);
   };
 
-  const addCustom = () =>
-    setCart((c) => [
-      ...c,
-      { productId: null, description: "", unitPrice: 0, qty: 1 },
-    ]);
-  const setLine = (idx: number, patch: Partial<CartLine>) => {
-    setCart((c) => {
-      const line = c[idx];
-      if (!line) return c;
-      if (patch.qty !== undefined && line.productId) {
-        const max = stockOf(line.productId);
-        if (patch.qty > max) {
-          toast.error(`Only ${max} in stock`);
-          patch = { ...patch, qty: max };
-        }
-      }
-      return c.map((l, i) => (i === idx ? { ...l, ...patch } : l));
-    });
-  };
-  const removeLine = (idx: number) =>
-    setCart((c) => c.filter((_, i) => i !== idx));
-
-  const bumpQty = (idx: number, delta: number) => {
-    const line = cart[idx];
-    if (!line) return;
-    const next = Math.max(0, line.qty + delta);
-    if (line.productId && delta > 0) {
-      const max = stockOf(line.productId);
-      if (line.qty >= max) {
-        toast.error(`Only ${max} in stock`);
-        return;
-      }
-      setLine(idx, { qty: Math.min(next, max) });
-      return;
-    }
-    setLine(idx, { qty: next });
-  };
-
   const totals = invoiceTotals({ items: cart, discount });
   const change = Math.max(0, (Number(received) || 0) - totals.total);
 
@@ -364,12 +322,6 @@ export default function PosPage() {
               </div>
             )}
           </div>
-          <button
-            onClick={addCustom}
-            className="mt-3 inline-flex items-center gap-1 text-xs text-cyan hover:underline"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add custom line
-          </button>
         </Card>
 
         {/* cart */}
@@ -396,73 +348,19 @@ export default function PosPage() {
             />
           </div>
 
-          <div className="flex-1 space-y-2 overflow-y-auto">
-            {cart.length === 0 && (
+          <div className="flex-1 overflow-y-auto">
+            {cart.length === 0 ? (
               <div className="py-8 text-center text-sm text-white/40">
-                Tap products to add them.
+                Tap products or search to add them.
               </div>
+            ) : (
+              <ProductLineItems
+                value={cart}
+                onChange={setCart}
+                stockLookup={(id) => stockOf(id)}
+                autoRow={false}
+              />
             )}
-            {cart.map((l, idx) => (
-              <div
-                key={idx}
-                className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5"
-              >
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={l.description}
-                    onChange={(e) =>
-                      setLine(idx, { description: e.target.value })
-                    }
-                    placeholder="Item"
-                    className="h-8 flex-1 text-sm"
-                  />
-                  <button
-                    onClick={() => removeLine(idx)}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-white/40 hover:bg-red-500/10 hover:text-red-300"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => bumpQty(idx, -1)}
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-white/70"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <input
-                      type="number"
-                      value={l.qty}
-                      onChange={(e) =>
-                        setLine(idx, { qty: Number(e.target.value) || 0 })
-                      }
-                      className="h-7 w-12 rounded-lg border border-white/10 bg-transparent text-center text-sm text-white"
-                    />
-                    <button
-                      onClick={() => bumpQty(idx, 1)}
-                      disabled={
-                        !!l.productId && l.qty >= stockOf(l.productId)
-                      }
-                      className="grid h-7 w-7 place-items-center rounded-lg border border-white/10 text-white/70 disabled:opacity-40"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                  <input
-                    type="number"
-                    value={l.unitPrice}
-                    onChange={(e) =>
-                      setLine(idx, { unitPrice: Number(e.target.value) || 0 })
-                    }
-                    className="h-7 w-24 rounded-lg border border-white/10 bg-transparent px-2 text-right text-sm text-white"
-                  />
-                  <span className="w-24 text-right text-sm font-medium text-white">
-                    {pkr(l.qty * l.unitPrice)}
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
 
           <div className="mt-3 space-y-2 border-t border-white/10 pt-3 text-sm">

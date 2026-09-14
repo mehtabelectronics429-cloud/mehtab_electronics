@@ -14,3 +14,7 @@ export { WhatsAppMessage } from "./WhatsAppMessage";
 export { Job } from "./Job";
 export { Settings } from "./Settings";
 export { Activity } from "./Activity";
+export { Complaint } from "./Complaint";
+export { Expense } from "./Expense";
+export { EmployeePayment } from "./EmployeePayment";
+export { InstallationVideo } from "./InstallationVideo";

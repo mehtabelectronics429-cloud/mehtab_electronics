@@ -32,7 +32,10 @@ function downloadReportsCsv(opts: {
     ["Summary", "Range", opts.rangeLabel].map(esc).join(","),
     ["Summary", "Revenue", t.revenue ?? 0].map(esc).join(","),
     ["Summary", "Cost", t.cost ?? 0].map(esc).join(","),
-    ["Summary", "Net Profit", t.profit ?? 0].map(esc).join(","),
+    ["Summary", "Gross Profit", t.profit ?? 0].map(esc).join(","),
+    ["Summary", "Expenses", t.expensesTotal ?? 0].map(esc).join(","),
+    ["Summary", "Employee Payments", t.payrollTotal ?? 0].map(esc).join(","),
+    ["Summary", "Net Profit", t.netProfit ?? 0].map(esc).join(","),
     ["Summary", "Margin", t.margin ?? 0].map(esc).join(","),
     ["Summary", "Collected", t.collected ?? 0].map(esc).join(","),
     ["Summary", "Outstanding", t.outstanding ?? 0].map(esc).join(","),
@@ -173,32 +176,53 @@ export default function ReportsPage() {
           index={1}
         />
         <StatCard
-          label="Net Profit"
+          label="Gross Profit"
           value={pkr(t?.profit ?? 0)}
           icon="Wallet"
           accent="cyan"
           index={2}
         />
         <StatCard
+          label="Expenses"
+          value={pkr(t?.expensesTotal ?? 0)}
+          icon="Wallet"
+          accent="solar"
+          index={3}
+        />
+        <StatCard
+          label="Employee Payments"
+          value={pkr(t?.payrollTotal ?? 0)}
+          icon="HandCoins"
+          accent="solar"
+          index={4}
+        />
+        <StatCard
+          label="Net Profit"
+          value={pkr(t?.netProfit ?? 0)}
+          icon="TrendingUp"
+          accent="energy"
+          index={5}
+        />
+        <StatCard
           label="Margin"
           value={pct(t?.margin ?? 0)}
           icon="Percent"
           accent="energy"
-          index={3}
+          index={6}
         />
         <StatCard
           label="Collected"
           value={pkr(t?.collected ?? 0)}
           icon="CheckCheck"
           accent="cyan"
-          index={4}
+          index={7}
         />
         <StatCard
           label="Outstanding"
           value={pkr(t?.outstanding ?? 0)}
           icon="AlertCircle"
           accent="red"
-          index={5}
+          index={8}
         />
       </div>
 

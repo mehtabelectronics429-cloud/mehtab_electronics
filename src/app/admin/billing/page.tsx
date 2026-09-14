@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,11 @@ import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
 import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
+import ProductLineItems, {
+  type ProductLine,
+  emptyLine,
+} from "@/components/admin/ui/ProductLineItems";
+import { productOption } from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
@@ -39,6 +44,7 @@ export default function BillingPage() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const [lines, setLines] = useState<ProductLine[]>([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["invoices", page, status, q],
@@ -52,6 +58,21 @@ export default function BillingPage() {
     enabled: open,
   });
 
+  const { data: products } = useQuery({
+    queryKey: ["products-opts-billing"],
+    queryFn: () => api.products({ limit: 300 }),
+    enabled: open,
+  });
+  const productOptions = useMemo(
+    () => (products?.items ?? []).map(productOption),
+    [products],
+  );
+  const linesTotal = lines.reduce(
+    (s, l) => s + (l.qty || 0) * (l.unitPrice || 0),
+    0,
+  );
+  const hasLines = lines.some((l) => l.description.trim() && l.qty > 0);
+
   const { register, handleSubmit, reset, watch, setValue, formState: { isSubmitting } } = useForm<Form>({
     resolver: zodResolver(schema),
   });
@@ -62,8 +83,17 @@ export default function BillingPage() {
   const wProfit = wAmount - wCost;
   const wMargin = wAmount > 0 ? (wProfit / wAmount) * 100 : 0;
 
+  // When line items are present, the amount is driven by them.
+  useEffect(() => {
+    if (hasLines) setValue("amount", linesTotal, { shouldValidate: true });
+  }, [hasLines, linesTotal, setValue]);
+
   const create = useMutation({
-    mutationFn: (form: Form) => api.createInvoice({ ...form, status: form.status || "pending" }),
+    mutationFn: (payload: Record<string, unknown>) =>
+      api.createInvoice({
+        ...payload,
+        status: (payload.status as string) || "pending",
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
       setOpen(false);
@@ -71,6 +101,25 @@ export default function BillingPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const submitInvoice = (form: Form) => {
+    const items = lines
+      .filter((l) => l.description.trim() && l.qty > 0)
+      .map((l) => ({
+        description: l.description.trim(),
+        qty: l.qty,
+        unitPrice: l.unitPrice,
+        productId: l.productId || null,
+      }));
+    // Let the server derive cost from products when items carry catalogue lines
+    // and the user hasn't typed a cost.
+    const payload: Record<string, unknown> = { ...form };
+    if (items.length) {
+      payload.items = items;
+      if (!form.cost) delete payload.cost;
+    }
+    create.mutate(payload);
+  };
 
   const approve = useMutation({
     mutationFn: (id: string) => api.updateInvoice(id, { status: "approved" }),
@@ -158,6 +207,7 @@ export default function BillingPage() {
                   date: new Date().toISOString().slice(0, 10),
                   status: "pending",
                 });
+                setLines([emptyLine()]);
                 setOpen(true);
               }}
             >
@@ -208,7 +258,7 @@ export default function BillingPage() {
       />
 
       <Modal open={open} onClose={() => setOpen(false)} title="New invoice" wide>
-        <form onSubmit={handleSubmit((d) => create.mutate(d))} className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={handleSubmit(submitInvoice)} className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label>Customer</Label>
             <SearchableSelect
@@ -228,13 +278,35 @@ export default function BillingPage() {
             <Label>Date</Label>
             <Input type="date" {...register("date")} />
           </div>
+          <div className="sm:col-span-2">
+            <Label>Products / line items</Label>
+            <ProductLineItems
+              value={lines}
+              onChange={setLines}
+              productOptions={productOptions}
+            />
+          </div>
           <div>
             <Label>Amount (sale)</Label>
-            <Input type="number" {...register("amount")} />
+            <Input
+              type="number"
+              {...register("amount")}
+              readOnly={hasLines}
+              className={hasLines ? "opacity-70" : undefined}
+            />
+            {hasLines && (
+              <p className="mt-1 text-[0.65rem] text-white/40">
+                Auto-calculated from line items ({pkr(linesTotal)}).
+              </p>
+            )}
           </div>
           <div>
             <Label>Cost (goods + materials)</Label>
-            <Input type="number" {...register("cost")} placeholder="0" />
+            <Input
+              type="number"
+              {...register("cost")}
+              placeholder={hasLines ? "Auto from products" : "0"}
+            />
           </div>
           <div>
             <Label>Paid</Label>

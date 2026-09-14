@@ -444,7 +444,7 @@ export default function PurchasesPage() {
                       ...(products?.items ?? []).map((p) => ({
                         value: p.id,
                         label: `${p.brand} ${p.model}`.trim(),
-                        searchText: `${p.brand} ${p.model} ${p.sku} ${p.category}`,
+                        searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
                         data: p as unknown as Record<string, unknown>,
                       })),
                     ]}

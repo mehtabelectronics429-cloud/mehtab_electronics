@@ -3,6 +3,8 @@ import { Installation } from "@/lib/db/models/Installation";
 import { Employee } from "@/lib/db/models/Employee";
 import { Purchase } from "@/lib/db/models/Purchase";
 import { Supplier } from "@/lib/db/models/Supplier";
+import { Expense } from "@/lib/db/models/Expense";
+import { EmployeePayment } from "@/lib/db/models/EmployeePayment";
 import { requireCap, json, errorResponse } from "@/lib/api/http";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
@@ -66,25 +68,38 @@ export async function GET(req: Request) {
       return true;
     };
 
-    const [invoices, installations, employees, purchases, supplierAgg] =
-      await Promise.all([
-        Invoice.find({ ...notDeleted })
-          .select("amount cost paid returnedAmount returnedCost status date employeeId")
-          .lean() as Promise<InvLean[]>,
-        Installation.find({ ...notDeleted })
-          .select("status amount date employeeId employeeIds")
-          .lean(),
-        Employee.find({ ...notDeleted })
-          .select("name title active rating assigned completed")
-          .lean(),
-        Purchase.find({ ...notDeleted })
-          .select("amount paid date")
-          .lean() as Promise<{ amount: number; paid: number; date?: Date }[]>,
-        Supplier.aggregate([
-          { $match: { deletedAt: null } },
-          { $group: { _id: null, payable: { $sum: "$balance" } } },
-        ]),
-      ]);
+    const [
+      invoices,
+      installations,
+      employees,
+      purchases,
+      supplierAgg,
+      expenses,
+      payments,
+    ] = await Promise.all([
+      Invoice.find({ ...notDeleted })
+        .select("amount cost paid returnedAmount returnedCost status date employeeId")
+        .lean() as Promise<InvLean[]>,
+      Installation.find({ ...notDeleted })
+        .select("status amount date employeeId employeeIds")
+        .lean(),
+      Employee.find({ ...notDeleted })
+        .select("name title active rating assigned completed")
+        .lean(),
+      Purchase.find({ ...notDeleted })
+        .select("amount paid date")
+        .lean() as Promise<{ amount: number; paid: number; date?: Date }[]>,
+      Supplier.aggregate([
+        { $match: { deletedAt: null } },
+        { $group: { _id: null, payable: { $sum: "$balance" } } },
+      ]),
+      Expense.find({ ...notDeleted })
+        .select("amount date")
+        .lean() as Promise<{ amount: number; date?: Date }[]>,
+      EmployeePayment.find({ ...notDeleted })
+        .select("amount date")
+        .lean() as Promise<{ amount: number; date?: Date }[]>,
+    ]);
 
     // Net returns off each invoice up front so every downstream figure (revenue,
     // COGS, collected cash, monthly series, per-employee) reflects reality.
@@ -131,6 +146,16 @@ export async function GET(req: Request) {
       0,
     );
     const payable = supplierAgg[0]?.payable ?? 0; // what we still owe suppliers
+
+    // ── operating outflows (expenses + employee payments) ──
+    const expensesTotal = expenses
+      .filter((e) => (e.date ? dateFilter(e.date) : mode !== "range"))
+      .reduce((s, e) => s + (e.amount || 0), 0);
+    const payrollTotal = payments
+      .filter((p) => (p.date ? dateFilter(p.date) : mode !== "range"))
+      .reduce((s, p) => s + (p.amount || 0), 0);
+    // Net profit = gross profit − operating expenses − employee payments.
+    const netProfit = profit - expensesTotal - payrollTotal;
 
     // ── 12-month series (revenue / cost / profit) ──
     const months: {
@@ -267,9 +292,13 @@ export async function GET(req: Request) {
         purchaseTotal,
         purchasePaid,
         payable,
-        // Net profit = gross profit (sales − COGS). Purchases affect cash/stock,
-        // not P&L directly (COGS is recognised on sale via invoice.cost).
+        // Gross profit = sales − COGS. Purchases affect cash/stock, not P&L
+        // directly (COGS is recognised on sale via invoice.cost).
         grossProfit: profit,
+        // Operating outflows and true net profit.
+        expensesTotal,
+        payrollTotal,
+        netProfit,
       },
       byStatus,
       months,

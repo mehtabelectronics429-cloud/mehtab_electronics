@@ -1,5 +1,6 @@
 import { Invoice } from "@/lib/db/models/Invoice";
 import { Customer } from "@/lib/db/models/Customer";
+import { Product } from "@/lib/db/models/Product";
 import {
   requireUser,
   requireCap,
@@ -81,9 +82,37 @@ export async function POST(req: Request) {
       body.items && body.items.length
         ? invoiceTotals(body).total
         : body.amount ?? 0;
+
+    // Cost of goods: use the explicit cost when given, otherwise derive it from
+    // the purchase price of any catalogue products on the line items so profit
+    // stays accurate.
+    let cost = body.cost ?? 0;
+    if ((body.cost === undefined || body.cost === null) && body.items?.length) {
+      const productIds = body.items
+        .map((i) => i.productId)
+        .filter((id): id is string => !!id);
+      if (productIds.length) {
+        const products = await Product.find({
+          _id: { $in: productIds },
+          ...notDeleted,
+        })
+          .select("purchasePrice")
+          .lean();
+        const priceOf = new Map(
+          products.map((p) => [String(p._id), p.purchasePrice || 0]),
+        );
+        cost = body.items.reduce(
+          (s, i) =>
+            s + (i.productId ? (priceOf.get(i.productId) || 0) * i.qty : 0),
+          0,
+        );
+      }
+    }
+
     const doc = await Invoice.create({
       ...body,
       amount,
+      cost,
       number: body.number || (await nextNumber()),
       date: new Date(body.date),
       employeeId: body.employeeId || user.employeeId || null,

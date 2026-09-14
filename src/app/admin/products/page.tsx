@@ -23,7 +23,7 @@ const schema = z.object({
   category: z.string().min(1),
   brand: z.string().min(1),
   model: z.string().min(1),
-  sku: z.string().min(1),
+  sku: z.string().optional(),
   barcode: z.string().optional(),
   purchasePrice: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
@@ -328,8 +328,8 @@ export default function ProductsPage() {
             <Input {...register("model")} />
           </div>
           <div>
-            <Label>SKU</Label>
-            <Input {...register("sku")} />
+            <Label>SKU (optional)</Label>
+            <Input {...register("sku")} placeholder="Leave blank if none" />
           </div>
           <div>
             <Label>Barcode</Label>

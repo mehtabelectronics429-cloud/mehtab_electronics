@@ -82,6 +82,12 @@ export const SITE_MAP: SiteNode[] = [
     priority: 0.8,
     changeFrequency: "weekly",
   },
+  {
+    label: "Installations",
+    href: "/installations",
+    priority: 0.7,
+    changeFrequency: "weekly",
+  },
   { label: "About", href: "/about", priority: 0.7, changeFrequency: "monthly" },
   {
     label: "Contact",

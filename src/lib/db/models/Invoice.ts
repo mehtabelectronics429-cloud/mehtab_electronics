@@ -45,7 +45,7 @@ export interface IInvoice {
   employeeId: Types.ObjectId | null;
   installationId: Types.ObjectId | null;
   /** Where the invoice originated. */
-  source: "installation" | "pos" | "manual";
+  source: "installation" | "pos" | "manual" | "complaint";
   /** Line items shown on the printed invoice. */
   items: IInvoiceItem[];
   discount: number;
@@ -92,7 +92,7 @@ const schema = new Schema<IInvoice>(
     },
     source: {
       type: String,
-      enum: ["installation", "pos", "manual"],
+      enum: ["installation", "pos", "manual", "complaint"],
       default: "manual",
       index: true,
     },

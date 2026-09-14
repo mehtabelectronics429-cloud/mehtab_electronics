@@ -50,7 +50,7 @@ export default function ProductGroupsPage() {
       (products?.items ?? []).map((p) => ({
         value: p.id,
         label: `${p.brand} ${p.model}`.trim(),
-        searchText: `${p.brand} ${p.model} ${p.sku}`,
+        searchText: `${p.brand} ${p.model} ${p.sku || ""}`,
       })),
     [products],
   );

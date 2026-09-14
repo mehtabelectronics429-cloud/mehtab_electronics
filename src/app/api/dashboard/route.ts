@@ -3,6 +3,8 @@ import { Invoice } from "@/lib/db/models/Invoice";
 import { Product } from "@/lib/db/models/Product";
 import { WhatsAppMessage } from "@/lib/db/models/WhatsAppMessage";
 import { Activity } from "@/lib/db/models/Activity";
+import { Expense } from "@/lib/db/models/Expense";
+import { EmployeePayment } from "@/lib/db/models/EmployeePayment";
 import { requireUser, json, errorResponse } from "@/lib/api/http";
 import { can } from "@/lib/admin/permissions";
 import { connectMongo } from "@/lib/db/mongodb";
@@ -40,6 +42,8 @@ export async function GET() {
       activity,
       inventoryAgg,
       pendingBillsRaw,
+      expenseAgg,
+      payrollAgg,
     ] = await Promise.all([
       Installation.countDocuments({
         ...notDeleted,
@@ -94,6 +98,14 @@ export async function GET() {
         .populate("customerId", "name phone whatsapp")
         .sort({ date: 1 })
         .lean(),
+      Expense.aggregate([
+        { $match: { deletedAt: null } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]),
+      EmployeePayment.aggregate([
+        { $match: { deletedAt: null } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]),
     ]);
 
     // Net customer returns off each invoice so revenue / cost / collected reflect
@@ -118,6 +130,9 @@ export async function GET() {
       0,
     );
     const inventoryValue = Number(inventoryAgg[0]?.value ?? 0);
+    const expensesTotal = Number(expenseAgg[0]?.total ?? 0);
+    const payrollTotal = Number(payrollAgg[0]?.total ?? 0);
+    const netProfit = profit - expensesTotal - payrollTotal;
 
     // Build the pending-bills list: net balance (after returns) still owed.
     const pendingBillsAll = (
@@ -177,6 +192,9 @@ export async function GET() {
         cost,
         profit,
         margin,
+        expensesTotal,
+        payrollTotal,
+        netProfit,
         // kept for backward compatibility with any existing reads
         expenses: cost,
         inventoryValue,

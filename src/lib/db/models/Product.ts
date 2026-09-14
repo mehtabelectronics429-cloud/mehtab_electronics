@@ -27,7 +27,7 @@ const schema = new Schema<IProduct>(
     category: { type: String, required: true, trim: true, index: true },
     brand: { type: String, required: true, trim: true },
     model: { type: String, required: true, trim: true },
-    sku: { type: String, required: true, trim: true, unique: true },
+    sku: { type: String, default: "", trim: true },
     barcode: { type: String, default: "", trim: true, index: true },
     purchasePrice: { type: Number, required: true, min: 0 },
     sellingPrice: { type: Number, required: true, min: 0 },
@@ -43,6 +43,8 @@ const schema = new Schema<IProduct>(
 );
 
 schema.index({ brand: "text", model: "text", sku: "text", barcode: "text", category: "text" });
+// SKU is optional; enforce uniqueness only among products that actually have one.
+schema.index({ sku: 1 }, { unique: true, partialFilterExpression: { sku: { $gt: "" } } });
 
 export const Product: Model<IProduct> = registerModel<IProduct>(
   "Product",

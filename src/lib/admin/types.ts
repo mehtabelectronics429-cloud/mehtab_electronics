@@ -361,6 +361,9 @@ export interface Analytics {
     purchasePaid: number;
     payable: number;
     grossProfit: number;
+    expensesTotal: number;
+    payrollTotal: number;
+    netProfit: number;
   };
   byStatus: Record<string, number>;
   months: {
@@ -389,4 +392,76 @@ export interface ListParams {
   status?: string;
   category?: string;
   customerId?: string;
+  employeeId?: string;
+  type?: string;
+}
+
+export interface ComplaintItem {
+  productId?: string | null;
+  description: string;
+  qty: number;
+  unitPrice: number;
+}
+
+export interface Complaint {
+  id: string;
+  number: string;
+  customerId?: string | null;
+  customerName: string;
+  phone?: string;
+  address?: string;
+  complaint: string;
+  status: "open" | "assigned" | "resolved" | "cancelled";
+  resolvedById?: string | null;
+  resolvedByName?: string;
+  resolvedAt?: string | null;
+  serviceCharge: number;
+  items: ComplaintItem[];
+  invoiceId?: string | null;
+  date: string;
+  notes?: string;
+}
+
+export interface Expense {
+  id: string;
+  category: string;
+  amount: number;
+  date: string;
+  paidTo?: string;
+  method?: "cash" | "bank" | "card" | "other";
+  note?: string;
+  employeeId?: string | null;
+}
+
+export type PaymentType =
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "frequent"
+  | "random"
+  | "bonus"
+  | "advance";
+
+export interface EmployeePayment {
+  id: string;
+  employeeId: string;
+  employeeName?: string;
+  amount: number;
+  type: PaymentType;
+  method?: "cash" | "bank" | "card" | "other";
+  date: string;
+  note?: string;
+}
+
+export interface InstallationVideo {
+  id: string;
+  title: string;
+  videoUrl: string;
+  thumbnail?: string;
+  category: string;
+  location?: string;
+  spec?: string;
+  summary?: string;
+  order?: number;
+  active: boolean;
 }

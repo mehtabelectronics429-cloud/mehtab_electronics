@@ -67,6 +67,9 @@ export default function DashboardPage() {
     profit: 0,
     margin: 0,
     expenses: 0,
+    expensesTotal: 0,
+    payrollTotal: 0,
+    netProfit: 0,
     inventoryValue: 0,
     lowStock: 0,
     pendingWhatsapp: 0,
@@ -113,10 +116,22 @@ export default function DashboardPage() {
       accent: "solar",
     },
     {
-      label: "Net Profit",
+      label: "Gross Profit",
       value: pkr(k.profit),
       icon: "Wallet",
       accent: "cyan",
+    },
+    {
+      label: "Expenses + Payroll",
+      value: pkr((k.expensesTotal || 0) + (k.payrollTotal || 0)),
+      icon: "HandCoins",
+      accent: "solar",
+    },
+    {
+      label: "Net Profit",
+      value: pkr(k.netProfit),
+      icon: "TrendingUp",
+      accent: "energy",
     },
     {
       label: "Margin",

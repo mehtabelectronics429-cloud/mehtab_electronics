@@ -36,7 +36,7 @@ export const productInput = z.object({
   category: z.string().min(1),
   brand: z.string().min(1),
   model: z.string().min(1),
-  sku: z.string().min(1),
+  sku: z.string().optional(),
   barcode: z.string().optional(),
   purchasePrice: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
@@ -242,4 +242,77 @@ export const whatsappSendInput = z.object({
 export const settingsInput = z.object({
   key: z.string().min(1),
   value: z.record(z.unknown()),
+});
+
+/* ── Complaints ───────────────────────────────────────────────────────── */
+
+export const complaintItemInput = z.object({
+  productId: z.string().optional().nullable(),
+  description: z.string().min(1),
+  qty: z.coerce.number().min(0),
+  unitPrice: z.coerce.number().min(0),
+});
+
+export const complaintInput = z.object({
+  customerId: z.string().optional().nullable(),
+  customerName: z.string().min(2),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  complaint: z.string().min(2),
+  status: z.enum(["open", "assigned", "resolved", "cancelled"]).optional(),
+  resolvedById: z.string().optional().nullable(),
+  serviceCharge: z.coerce.number().min(0).optional(),
+  items: z.array(complaintItemInput).optional(),
+  date: z.string().or(z.date()).optional(),
+  notes: z.string().optional(),
+});
+
+/** PATCH: any field may change; resolving triggers invoice generation. */
+export const complaintUpdateInput = complaintInput.partial();
+
+/* ── Expenses ─────────────────────────────────────────────────────────── */
+
+export const expenseInput = z.object({
+  category: z.string().min(1),
+  amount: z.coerce.number().min(0),
+  date: z.string().or(z.date()),
+  paidTo: z.string().optional(),
+  method: z.enum(["cash", "bank", "card", "other"]).optional(),
+  note: z.string().optional(),
+  employeeId: z.string().optional().nullable(),
+});
+
+/* ── Employee payments ────────────────────────────────────────────────── */
+
+export const employeePaymentInput = z.object({
+  employeeId: z.string().min(1),
+  amount: z.coerce.number().min(0),
+  type: z
+    .enum([
+      "daily",
+      "weekly",
+      "monthly",
+      "frequent",
+      "random",
+      "bonus",
+      "advance",
+    ])
+    .optional(),
+  method: z.enum(["cash", "bank", "card", "other"]).optional(),
+  date: z.string().or(z.date()),
+  note: z.string().optional(),
+});
+
+/* ── Installation videos (public showcase) ────────────────────────────── */
+
+export const installationVideoInput = z.object({
+  title: z.string().min(2),
+  videoUrl: z.string().url(),
+  thumbnail: z.string().optional(),
+  category: z.string().optional(),
+  location: z.string().optional(),
+  spec: z.string().optional(),
+  summary: z.string().optional(),
+  order: z.coerce.number().optional(),
+  active: z.boolean().optional(),
 });

@@ -37,6 +37,13 @@ export type Capability =
   | "suppliers.manage"
   | "purchases.view"
   | "purchases.manage"
+  | "complaints.view"
+  | "complaints.manage"
+  | "expenses.view"
+  | "expenses.manage"
+  | "payroll.view"
+  | "payroll.manage"
+  | "content.manage"
   | "profile.view";
 
 const MATRIX: Record<Role, Capability[]> = {
@@ -69,6 +76,13 @@ const MATRIX: Record<Role, Capability[]> = {
     "suppliers.manage",
     "purchases.view",
     "purchases.manage",
+    "complaints.view",
+    "complaints.manage",
+    "expenses.view",
+    "expenses.manage",
+    "payroll.view",
+    "payroll.manage",
+    "content.manage",
     "profile.view",
   ],
   // Manager: runs the whole business day-to-day, but not system settings.
@@ -99,6 +113,13 @@ const MATRIX: Record<Role, Capability[]> = {
     "suppliers.manage",
     "purchases.view",
     "purchases.manage",
+    "complaints.view",
+    "complaints.manage",
+    "expenses.view",
+    "expenses.manage",
+    "payroll.view",
+    "payroll.manage",
+    "content.manage",
     "profile.view",
   ],
   // Cashier: the POS / retail counter role.
@@ -118,6 +139,10 @@ const MATRIX: Record<Role, Capability[]> = {
     "billing.manage",
     "ledger.view.all",
     "whatsapp.send",
+    "complaints.view",
+    "complaints.manage",
+    "expenses.view",
+    "expenses.manage",
     "profile.view",
   ],
   // Technician: the installation field role (own jobs only).
