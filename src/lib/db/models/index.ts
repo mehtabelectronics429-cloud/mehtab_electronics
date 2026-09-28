@@ -18,3 +18,4 @@ export { Complaint } from "./Complaint";
 export { Expense } from "./Expense";
 export { EmployeePayment } from "./EmployeePayment";
 export { InstallationVideo } from "./InstallationVideo";
+export { Quotation } from "./Quotation";

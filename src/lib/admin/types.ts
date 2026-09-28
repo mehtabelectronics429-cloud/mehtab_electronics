@@ -422,6 +422,41 @@ export interface Complaint {
   notes?: string;
 }
 
+export type QuotationStatus = "draft" | "sent" | "accepted" | "converted";
+
+export interface QuotationItem {
+  productId?: string | null;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  kind?: "product" | "labour" | "material" | "other";
+}
+
+export interface Quotation {
+  id: string;
+  number: string;
+  customerId?: string | null;
+  customerName?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  title?: string;
+  date: string;
+  validUntil?: string | null;
+  notes?: string;
+  discount?: number;
+  shipping?: number;
+  taxRate?: number;
+  /** Omitted in list responses — use `itemCount` there. */
+  items?: QuotationItem[];
+  itemCount?: number;
+  total: number;
+  status: QuotationStatus;
+  invoiceId?: string | null;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Expense {
   id: string;
   category: string;

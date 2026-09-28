@@ -316,3 +316,31 @@ export const installationVideoInput = z.object({
   order: z.coerce.number().optional(),
   active: z.boolean().optional(),
 });
+
+/* ── Quotations ───────────────────────────────────────────────────────── */
+
+export const quotationItemInput = z.object({
+  productId: z.string().optional().nullable(),
+  description: z.string().min(1),
+  qty: z.coerce.number().min(0),
+  unitPrice: z.coerce.number().min(0),
+  kind: z.enum(["product", "labour", "material", "other"]).optional(),
+});
+
+export const quotationInput = z.object({
+  number: z.string().min(1),
+  customerId: z.string().optional().nullable(),
+  customerName: z.string().optional(),
+  customerPhone: z.string().optional(),
+  customerAddress: z.string().optional(),
+  title: z.string().optional(),
+  date: z.string().or(z.date()),
+  validUntil: z.string().or(z.date()).optional().nullable(),
+  notes: z.string().optional(),
+  discount: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  items: z.array(quotationItemInput),
+  status: z.enum(["draft", "sent", "accepted", "converted"]).optional(),
+  invoiceId: z.string().optional().nullable(),
+});

@@ -513,6 +513,25 @@ export const api = {
   archiveComplaint: (id: string) =>
     request<{ ok: boolean }>(`/api/complaints/${id}`, { method: "DELETE" }),
 
+  quotations: (params?: ListParams) =>
+    request<Paginated<import("./types").Quotation>>(
+      `/api/quotations${qs(params)}`,
+    ),
+  getQuotation: (id: string) =>
+    request<import("./types").Quotation>(`/api/quotations/${id}`),
+  createQuotation: (body: Partial<import("./types").Quotation>) =>
+    request<import("./types").Quotation>("/api/quotations", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateQuotation: (id: string, body: Partial<import("./types").Quotation>) =>
+    request<import("./types").Quotation>(`/api/quotations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  archiveQuotation: (id: string) =>
+    request<{ ok: boolean }>(`/api/quotations/${id}`, { method: "DELETE" }),
+
   expenses: (params?: ListParams) =>
     request<Paginated<import("./types").Expense>>(`/api/expenses${qs(params)}`),
   createExpense: (body: Partial<import("./types").Expense>) =>
