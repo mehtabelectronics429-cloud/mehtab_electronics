@@ -86,9 +86,9 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
             <Image
               src={LOGO_MARK}
               alt="Mehtab Electronics"
-              width={210}
-              height={178}
-              className="h-[80%] w-[80%] object-contain"
+              width={770}
+              height={482}
+              className="h-full w-[88%] object-contain"
               unoptimized
             />
           </span>

@@ -30,9 +30,9 @@ export default function Logo({
         <Image
           src={LOGO_MARK}
           alt="Mehtab Electronics"
-          width={210}
-          height={178}
-          className="h-[78%] w-[78%] object-contain"
+          width={770}
+          height={482}
+          className="h-full w-[86%] object-contain"
           priority
         />
       </span>
