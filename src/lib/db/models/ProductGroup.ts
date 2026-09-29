@@ -8,7 +8,8 @@ export interface IProductGroupItem {
 }
 
 /**
- * A named bundle of products for one-click adding at the POS counter (e.g.
+ * A named bundle of products for one-click adding at the POS, quotations,
+ * invoices, complaints and purchases (e.g.
  * "5kW Solar Kit" → panels ×8, inverter ×1, battery ×2). Quantities are
  * defaults; the cashier can still adjust each line after adding.
  */

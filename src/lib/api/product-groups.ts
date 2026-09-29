@@ -4,6 +4,7 @@ type PopulatedProduct = {
   model?: string;
   sku?: string;
   sellingPrice?: number;
+  purchasePrice?: number;
   stock?: number;
 };
 
@@ -22,6 +23,7 @@ export function mapGroup(item: Record<string, unknown>) {
       name: isObj ? `${p.brand ?? ""} ${p.model ?? ""}`.trim() : "",
       sku: isObj ? p.sku ?? "" : "",
       sellingPrice: isObj ? p.sellingPrice ?? 0 : 0,
+      purchasePrice: isObj ? p.purchasePrice ?? 0 : 0,
       stock: isObj ? p.stock ?? 0 : 0,
     };
   });

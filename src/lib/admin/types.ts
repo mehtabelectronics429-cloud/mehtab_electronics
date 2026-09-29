@@ -97,6 +97,7 @@ export interface ProductGroupItem {
   name?: string;
   sku?: string;
   sellingPrice?: number;
+  purchasePrice?: number;
   stock?: number;
 }
 

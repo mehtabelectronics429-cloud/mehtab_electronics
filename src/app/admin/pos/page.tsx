@@ -23,6 +23,7 @@ import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import ProductLineItems, {
   type ProductLine,
 } from "@/components/admin/ui/ProductLineItems";
+import { mergeGroup, useProductGroups } from "@/components/admin/ui/GroupPicker";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
@@ -56,14 +57,7 @@ export default function PosPage() {
     queryFn: () => api.customers({ limit: 200 }),
   });
   // Product groups / bundles for one-click add.
-  const { data: groupsData } = useQuery({
-    queryKey: ["pos-product-groups"],
-    queryFn: () => api.productGroups({ limit: 100 }),
-  });
-  const groups = useMemo(
-    () => (groupsData?.items ?? []).filter((g) => g.active && g.items.length),
-    [groupsData],
-  );
+  const { groups } = useProductGroups();
 
   const filtered = useMemo(() => {
     const items = (searchTerm ? searchResults?.items : products?.items) ?? [];
@@ -118,38 +112,24 @@ export default function PosPage() {
 
   /** One-click add every product in a group to the cart at its default qty. */
   const addGroup = (group: (typeof groups)[number]) => {
-    const next = [...cart];
-    const skipped: string[] = [];
-    let added = 0;
-    for (const it of group.items) {
-      if (!it.productId) continue;
-      const stock = it.stock ?? 0;
-      if (stock <= 0) {
-        skipped.push(it.name || "item");
-        continue;
-      }
-      const idx = next.findIndex((l) => l.productId === it.productId);
-      if (idx >= 0) {
-        next[idx] = {
-          ...next[idx],
-          qty: Math.min(next[idx].qty + it.qty, stock),
-        };
-      } else {
-        next.push({
-          productId: it.productId,
-          description: it.name || "",
-          unitPrice: it.sellingPrice ?? 0,
-          qty: Math.min(it.qty, stock),
-        });
-      }
-      added += 1;
-    }
-    if (added) {
-      setCart(next);
+    const stockById = new Map(group.items.map((i) => [i.productId, i.stock ?? 0]));
+    const res = mergeGroup(
+      cart,
+      group,
+      (it) => ({
+        productId: it.productId,
+        description: it.name || "",
+        unitPrice: it.sellingPrice ?? 0,
+        qty: it.qty,
+      }),
+      { cap: (id) => stockById.get(id) ?? 0 },
+    );
+    if (res.added) {
+      setCart(res.lines);
       toast.success(`Added “${group.name}” to cart`);
     }
-    if (skipped.length) {
-      toast.error(`Out of stock, skipped: ${skipped.join(", ")}`);
+    if (res.skipped.length) {
+      toast.error(`Out of stock, skipped: ${res.skipped.join(", ")}`);
     }
   };
 
@@ -358,6 +338,7 @@ export default function PosPage() {
                 value={cart}
                 onChange={setCart}
                 stockLookup={(id) => stockOf(id)}
+                showGroups={false}
                 autoRow={false}
               />
             )}

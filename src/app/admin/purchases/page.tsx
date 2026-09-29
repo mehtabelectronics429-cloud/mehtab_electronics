@@ -20,11 +20,12 @@ import {
   productFromOption,
 } from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
+import GroupPicker, { mergeGroup } from "@/components/admin/ui/GroupPicker";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
-import type { Purchase } from "@/lib/admin/types";
+import type { ProductGroup, Purchase } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
@@ -127,6 +128,25 @@ export default function PurchasesPage() {
         idx === i ? { ...r, productId: id, name, unitCost } : r,
       );
     });
+  };
+
+  /** Add every product of a saved group at its purchase cost. */
+  const addGroup = (group: ProductGroup) => {
+    const res = mergeGroup(
+      rows,
+      group,
+      (it) => ({
+        productId: it.productId ?? "",
+        name: it.name || "",
+        unitCost: it.purchasePrice ?? 0,
+        qty: it.qty,
+      }),
+      { isEmpty: (r) => !r.productId && !r.name.trim() && !r.unitCost },
+    );
+    if (res.added) {
+      setRows(res.lines.length ? res.lines : [{ productId: "", name: "", unitCost: 0, qty: 1 }]);
+      toast.success(`Added “${group.name}”`);
+    }
   };
 
   const openCreate = () => {
@@ -416,6 +436,8 @@ export default function PurchasesPage() {
           <div className="sm:col-span-2">
             <div className="mb-2 flex items-center justify-between">
               <Label className="mb-0">Items received</Label>
+              <div className="flex items-center gap-3">
+              <GroupPicker onPick={addGroup} price="purchase" align="right" />
               <button
                 type="button"
                 onClick={() =>
@@ -428,12 +450,13 @@ export default function PurchasesPage() {
               >
                 <Plus className="h-3.5 w-3.5" /> Add item
               </button>
+              </div>
             </div>
             <div className="space-y-2">
               {rows.map((row, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[1.3fr_1.7fr_0.9fr_0.6fr_auto]"
+                  className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,0.6fr)_auto]"
                 >
                   <SearchableSelect
                     value={row.productId}
@@ -447,6 +470,11 @@ export default function PurchasesPage() {
                         searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
                         data: p as unknown as Record<string, unknown>,
                       })),
+                      // Rows added from a group may reference products outside the loaded list.
+                      ...(row.productId &&
+                      !(products?.items ?? []).some((p) => p.id === row.productId)
+                        ? [{ value: row.productId, label: row.name }]
+                        : []),
                     ]}
                     onSearch={searchProductOptions}
                     allowClear={false}

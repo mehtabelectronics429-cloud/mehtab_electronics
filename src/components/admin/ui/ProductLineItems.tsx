@@ -23,6 +23,9 @@ import {
 import type { SearchableOption } from "@/components/admin/ui/SearchableSelect";
 import { pkr } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
+import GroupPicker, { mergeGroup } from "@/components/admin/ui/GroupPicker";
+import type { ProductGroup } from "@/lib/admin/types";
 
 export type LineKind = "product" | "labour" | "material" | "other";
 
@@ -61,6 +64,8 @@ type Props = {
   /** Auto-append a fresh empty row once the last row is filled. Default true. */
   autoRow?: boolean;
   currency?: (n: number) => string;
+  /** Show the "Add group" bundle picker next to "Add line". Default true. */
+  showGroups?: boolean;
   className?: string;
 };
 
@@ -82,6 +87,7 @@ export default function ProductLineItems({
   productOptions = [],
   autoRow = true,
   currency = pkr,
+  showGroups = true,
   className,
 }: Props) {
   const rows = value;
@@ -106,6 +112,29 @@ export default function ProductLineItems({
   };
 
   const addRow = () => onChange([...rows, emptyLine()]);
+
+  /** Drop every product of a saved group in as lines (qty merged if already listed). */
+  const addGroup = (group: ProductGroup) => {
+    const res = mergeGroup(
+      rows,
+      group,
+      (it) => ({
+        productId: it.productId,
+        description: it.name || "",
+        qty: it.qty,
+        unitPrice: it.sellingPrice ?? 0,
+        kind: "product",
+      }),
+      { isEmpty: lineIsEmpty, cap: stockLookup },
+    );
+    if (res.added) {
+      onChange(res.lines);
+      toast.success(`Added “${group.name}”`);
+    }
+    if (res.skipped.length) {
+      toast.error(`Out of stock, skipped: ${res.skipped.join(", ")}`);
+    }
+  };
 
   // Auto-append a trailing empty row once the last row has content.
   useEffect(() => {
@@ -301,13 +330,16 @@ export default function ProductLineItems({
         );
       })}
 
-      <button
-        type="button"
-        onClick={addRow}
-        className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
-      >
-        <Plus className="h-3.5 w-3.5" /> Add line
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={addRow}
+          className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add line
+        </button>
+        {showGroups && <GroupPicker onPick={addGroup} />}
+      </div>
     </div>
   );
 }

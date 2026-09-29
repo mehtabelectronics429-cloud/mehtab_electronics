@@ -125,7 +125,7 @@ export default function ProductGroupsPage() {
     <div>
       <PageHeader
         title="Product Groups"
-        subtitle="Bundle products together for one-click adding at the POS counter."
+        subtitle="Bundle products together for one-click adding at the POS, quotations, invoices, complaints and purchases."
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4" /> New group
@@ -312,7 +312,7 @@ export default function ProductGroupsPage() {
               onChange={(e) => setActive(e.target.checked)}
               className="h-4 w-4 accent-cyan-500"
             />
-            Active (show in POS)
+            Active (show in pickers)
           </label>
 
           <div className="flex items-center justify-between border-t border-white/10 pt-3">
@@ -340,7 +340,7 @@ export default function ProductGroupsPage() {
         onClose={() => setPendingDelete(null)}
         onConfirm={() => pendingDelete && remove.mutate(pendingDelete.id)}
         title="Archive product group?"
-        message={`"${pendingDelete?.name}" will be removed from the POS. This does not affect any products or past sales.`}
+        message={`"${pendingDelete?.name}" will be removed from the POS and all group pickers. This does not affect any products or past sales.`}
         confirmLabel="Archive"
       />
     </div>
