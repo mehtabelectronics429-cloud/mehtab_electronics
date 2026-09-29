@@ -40,11 +40,6 @@ export const COMPANY = {
   // The direct lines, split by what each one handles.
   contacts: [
     {
-      name: "Shop",
-      phone: "0300 7777921",
-      phoneHref: "tel:+923007777921",
-    },
-    {
       name: "Solar & Inverters",
       phone: "0303 7777921",
       phoneHref: "tel:+923037777921",
@@ -53,6 +48,11 @@ export const COMPANY = {
       name: "CCTV & Cameras",
       phone: "0313 7777921",
       phoneHref: "tel:+923137777921",
+    },
+    {
+      name: "Office",
+      phone: "0300 7777921",
+      phoneHref: "tel:+923007777921",
     },
   ],
   stats: [
