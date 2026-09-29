@@ -6,7 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { Zap, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
+import BrandMark from "@/components/ui/BrandMark";
 import toast from "react-hot-toast";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
 import { useAuth, googleAuthEnabled } from "@/lib/admin/auth";
@@ -102,9 +103,7 @@ function LoginInner() {
         className="relative w-full max-w-[24rem] rounded-3xl border border-white/10 bg-white/[0.04] p-8 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.9)] backdrop-blur-2xl"
       >
         <div className="flex items-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-electric to-cyan shadow-[0_10px_30px_-12px_rgba(46,107,255,0.8)]">
-            <Zap className="h-4 w-4 text-white" strokeWidth={2.5} />
-          </span>
+          <BrandMark size={44} priority />
           <div>
             <div className="font-display text-sm tracking-wider">MEHTAB</div>
             <div className="text-xs text-white/40">Admin Console</div>

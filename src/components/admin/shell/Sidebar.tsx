@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { PanelLeftClose, PanelLeft, LogOut } from "lucide-react";
 import Icon from "@/components/ui/Icon";
-import { LOGO_MARK } from "@/lib/assets";
+import BrandMark from "@/components/ui/BrandMark";
 import { NAV } from "@/lib/admin/nav";
 import { can } from "@/lib/admin/permissions";
 import { useAuth } from "@/lib/admin/auth";
@@ -43,16 +42,7 @@ export default function Sidebar() {
       >
         <div className="flex h-16 items-center gap-2.5 px-4">
           <Link href="/admin" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10">
-              <Image
-                src={LOGO_MARK}
-                alt="Mehtab Electronics"
-                width={770}
-                height={666}
-                className="h-[88%] w-[88%] object-contain"
-                priority
-              />
-            </span>
+            <BrandMark size={36} priority />
             {!collapsed && (
               <span className="font-display text-sm uppercase tracking-wider text-[var(--admin-fg)]">
                 Mehtab <span className="text-brand">Electronics</span>

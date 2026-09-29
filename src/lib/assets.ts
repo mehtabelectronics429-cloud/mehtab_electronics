@@ -7,6 +7,8 @@
 const P = "/images/site";
 
 export const LOGO_MARK = `${P}/logo-mark.png`;
+/** Black-artwork variant of the mark for light backgrounds (light mode). */
+export const LOGO_MARK_BLACK = `${P}/logo-mark-black.png`;
 /** Full left lockup: mark + "SINCE 1996" + "MEHTAB" (white/gold, transparent). */
 export const LOGO_FULL = `${P}/logo-full.png`;
 /** Wide branded promo banner (Solar EPC + Security Division), text baked in. */
