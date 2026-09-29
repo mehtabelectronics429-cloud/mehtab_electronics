@@ -70,8 +70,8 @@ export default function InvoiceDocument({ invoice }: { invoice: Invoice }) {
               src={LOGO_MARK}
               alt="Mehtab Electronics"
               width={770}
-              height={482}
-              className="h-full w-[88%] object-contain"
+              height={666}
+              className="h-[90%] w-[90%] object-contain"
             />
           </span>
         </div>

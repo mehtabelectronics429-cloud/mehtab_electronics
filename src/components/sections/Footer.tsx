@@ -47,7 +47,7 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-16 md:px-8">
         <div className="grid gap-12 md:grid-cols-[1.6fr_1fr_1fr_1.2fr]">
           <div>
-            <Logo markSize={42} />
+            <Logo markSize={56} />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-fg/50">
               Solar systems, CCTV networks and wholesale supply engineered
               across Punjab from our Narowal base.

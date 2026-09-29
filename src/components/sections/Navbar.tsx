@@ -175,7 +175,7 @@ export default function Navbar() {
       )}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 md:px-8">
-        <Logo markSize={38} />
+        <Logo markSize={46} />
 
         <div className="hidden items-center gap-7 lg:flex">
           {NAV.map((item) => {
