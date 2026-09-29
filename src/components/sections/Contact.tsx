@@ -33,12 +33,12 @@ export default function Contact({
   };
 
   const details = [
-    {
+    ...COMPANY.contacts.map((c) => ({
       icon: Phone,
-      label: "Call us",
-      value: COMPANY.phone,
-      href: COMPANY.phoneHref,
-    },
+      label: `Call · ${c.name}`,
+      value: c.phone,
+      href: c.phoneHref,
+    })),
     {
       icon: Mail,
       label: "Email",

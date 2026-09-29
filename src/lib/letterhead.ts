@@ -9,7 +9,7 @@ export const LETTERHEAD = {
   tagline: "a name of trust!",
   address: "RAILWAY ROAD NAROWAL",
   postal: "POSTAL CODE : 51600",
-  phones: "0303 7777921 , 0313 7777921",
+  phones: "0300 7777921 , 0303 7777921 , 0313 7777921",
   ntn: "NTN # 8206299-0",
   email: "mudassarsareiaz@gmail.com",
   preparedBy: {
