@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seed.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "demo:admin": "tsx scripts/create-demo-admin.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
