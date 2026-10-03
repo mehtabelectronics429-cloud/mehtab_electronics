@@ -15,10 +15,12 @@ import { ledgerInput } from "@/lib/api/schemas";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope, ledgerScopeFilter } from "@/lib/api/scope";
+import { balanceEffect, dateBounds } from "@/lib/ledger/statement";
 
 function mapLedger(item: Record<string, unknown>) {
   const customer = item.customerId as { _id?: unknown; name?: string; whatsapp?: string } | string | null;
   const installation = item.installationId as { _id?: unknown; ref?: string } | string | null;
+  const invoice = item.invoiceId as { _id?: unknown; number?: string } | string | null;
   return {
     ...item,
     customerId:
@@ -32,6 +34,9 @@ function mapLedger(item: Record<string, unknown>) {
           ? String(installation)
           : null,
     installationRef: typeof installation === "object" && installation?.ref ? installation.ref : "",
+    invoiceId:
+      typeof invoice === "object" && invoice?._id ? String(invoice._id) : invoice ? String(invoice) : null,
+    invoiceNumber: typeof invoice === "object" && invoice?.number ? invoice.number : "",
     date: item.date instanceof Date ? (item.date as Date).toISOString().slice(0, 10) : item.date,
   };
 }
@@ -47,9 +52,14 @@ export async function GET(req: Request) {
     const p = parsePagination(url);
     const status = url.searchParams.get("status");
     const customerId = url.searchParams.get("customerId");
+    const type = url.searchParams.get("type");
+    const { start, end } = dateBounds(url.searchParams.get("from"), url.searchParams.get("to"));
 
     const parts: Record<string, unknown>[] = [];
     if (status && status !== "all") parts.push({ status });
+    if (type === "debit") parts.push({ $or: [{ type: { $in: ["invoice", "debit"] } }, { type: "adjustment", amount: { $gte: 0 } }] });
+    if (type === "credit") parts.push({ $or: [{ type: { $in: ["payment", "credit"] } }, { type: "adjustment", amount: { $lt: 0 } }] });
+    if (start || end) parts.push({ date: { ...(start && { $gte: start }), ...(end && { $lte: end }) } });
     if (customerId) {
       const ownIds = await ownCustomerIdList(user);
       if (isOwnScope(ownIds) && !ownIds.includes(customerId)) {
@@ -65,7 +75,8 @@ export async function GET(req: Request) {
 
     const result = await paginate(LedgerEntry, filter, {
       ...p,
-      populate: ["customerId", "installationId"],
+      sort: p.sort === "-createdAt" ? "-date" : p.sort,
+      populate: ["customerId", "installationId", "invoiceId"],
     });
     return json({ ...result, items: result.items.map(mapLedger) });
   } catch (err) {
@@ -85,19 +96,23 @@ export async function POST(req: Request) {
     const customer = await Customer.findOne({ _id: body.customerId, ...notDeleted });
     if (!customer) throw new ApiError(400, "Invalid customer");
 
+    // Store a consistent sign: debits positive, credits / payments negative.
+    const signed = balanceEffect(body.type, body.amount);
     const doc = await LedgerEntry.create({
       ...body,
+      amount: signed,
       date: new Date(body.date),
       employeeId: body.employeeId || user.employeeId || null,
       installationId: body.installationId || null,
       status: body.status || "pending",
     });
     if (doc.status === "approved") {
-      await Customer.findByIdAndUpdate(customer._id, { $inc: { balance: doc.amount } });
+      await Customer.findByIdAndUpdate(customer._id, { $inc: { balance: balanceEffect(doc.type, doc.amount) } });
     }
     const populated = await LedgerEntry.findById(doc._id).populate([
       { path: "customerId", strictPopulate: false },
       { path: "installationId", strictPopulate: false },
+      { path: "invoiceId", select: "number", strictPopulate: false },
     ]);
     return json(mapLedger(serializeDoc(populated!)), 201);
   } catch (err) {

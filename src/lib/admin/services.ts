@@ -409,8 +409,10 @@ export const api = {
     customerId?: string;
     from?: string;
     to?: string;
+    view?: "summary";
   }) => {
     const sp = new URLSearchParams();
+    if (opts?.view) sp.set("view", opts.view);
     if (opts?.customerId) sp.set("customerId", opts.customerId);
     if (opts?.from) sp.set("from", opts.from);
     if (opts?.to) sp.set("to", opts.to);
@@ -426,32 +428,18 @@ export const api = {
     sp.set("customerId", params.customerId);
     if (params.from) sp.set("from", params.from);
     if (params.to) sp.set("to", params.to);
-    return request<{
-      customer: {
-        id: string;
-        name: string;
-        phone?: string;
-        whatsapp?: string;
-        address?: string;
-        balance: number;
-      };
-      from: string | null;
-      to: string | null;
-      entries: {
-        id: string;
-        date: string;
-        type: string;
-        amount: number;
-        status: string;
-        note: string;
-      }[];
-      totals: {
-        debits: number;
-        credits: number;
-        net: number;
-        count: number;
-      };
-    }>(`/api/ledger/report?${sp.toString()}`);
+    return request<import("@/lib/ledger/statement").LedgerStatement>(
+      `/api/ledger/report?${sp.toString()}`,
+    );
+  },
+  ledgerSummary: (params?: { from?: string; to?: string }) => {
+    const sp = new URLSearchParams();
+    if (params?.from) sp.set("from", params.from);
+    if (params?.to) sp.set("to", params.to);
+    const q = sp.toString();
+    return request<import("@/lib/ledger/statement").LedgerSummary>(
+      `/api/ledger/summary${q ? `?${q}` : ""}`,
+    );
   },
 
   whatsapp: (params?: ListParams) =>

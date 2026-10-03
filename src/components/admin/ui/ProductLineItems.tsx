@@ -25,7 +25,8 @@ import { pkr } from "@/lib/admin/format";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import GroupPicker, { mergeGroup } from "@/components/admin/ui/GroupPicker";
-import type { ProductGroup } from "@/lib/admin/types";
+import ScanInput from "@/components/admin/ui/BarcodeScanner";
+import type { Product, ProductGroup } from "@/lib/admin/types";
 
 export type LineKind = "product" | "labour" | "material" | "other";
 
@@ -66,6 +67,8 @@ type Props = {
   currency?: (n: number) => string;
   /** Show the "Add group" bundle picker next to "Add line". Default true. */
   showGroups?: boolean;
+  /** Show the barcode scan field (USB scanner + camera). Default true. */
+  scanner?: boolean;
   className?: string;
 };
 
@@ -88,6 +91,7 @@ export default function ProductLineItems({
   autoRow = true,
   currency = pkr,
   showGroups = true,
+  scanner = true,
   className,
 }: Props) {
   const rows = value;
@@ -123,7 +127,7 @@ export default function ProductLineItems({
         description: it.name || "",
         qty: it.qty,
         unitPrice: it.sellingPrice ?? 0,
-        kind: "product",
+        kind: "product" as const,
       }),
       { isEmpty: lineIsEmpty, cap: stockLookup },
     );
@@ -134,6 +138,36 @@ export default function ProductLineItems({
     if (res.skipped.length) {
       toast.error(`Out of stock, skipped: ${res.skipped.join(", ")}`);
     }
+  };
+
+  /** Scanned product: bump qty if already listed, else fill the first empty row. */
+  const addScanned = (p: Product) => {
+    const cap = stockLookup?.(p.id);
+    const existing = rows.findIndex((r) => r.productId === p.id);
+    if (existing >= 0) {
+      const qty = (rows[existing].qty || 0) + 1;
+      if (cap != null && qty > cap) {
+        toast.error(`Only ${cap} in stock`);
+        return false;
+      }
+      onChange(rows.map((r, i) => (i === existing ? { ...r, qty } : r)));
+      return;
+    }
+    if (cap != null && cap <= 0) {
+      toast.error(`${`${p.brand} ${p.model}`.trim()} is out of stock`);
+      return false;
+    }
+    const line: ProductLine = {
+      productId: p.id,
+      description: `${p.brand} ${p.model}`.trim(),
+      qty: 1,
+      unitPrice: p.sellingPrice,
+      kind: "product",
+    };
+    const empty = rows.findIndex(lineIsEmpty);
+    onChange(
+      empty >= 0 ? rows.map((r, i) => (i === empty ? line : r)) : [...rows, line],
+    );
   };
 
   // Auto-append a trailing empty row once the last row has content.
@@ -164,6 +198,8 @@ export default function ProductLineItems({
 
   return (
     <div className={cn("space-y-2", className)}>
+      {scanner && <ScanInput onProduct={addScanned} />}
+
       {/* header (desktop only) */}
       <div
         className={cn(

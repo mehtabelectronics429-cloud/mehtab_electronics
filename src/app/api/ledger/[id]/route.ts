@@ -16,6 +16,7 @@ import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
 import { queueWhatsAppEvent } from "@/lib/whatsapp/queue";
 import { logActivity } from "@/lib/db/logActivity";
+import { balanceEffect } from "@/lib/ledger/statement";
 
 type Ctx = { params: { id: string } };
 
@@ -61,10 +62,13 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const wasApproved = existing.status === "approved";
     if (body.date) body.date = new Date(body.date as string) as unknown as string;
     Object.assign(existing, body);
+    if (body.type !== undefined || body.amount !== undefined) {
+      existing.amount = balanceEffect(existing.type, existing.amount);
+    }
     await existing.save();
 
     if (!wasApproved && existing.status === "approved") {
-      await Customer.findByIdAndUpdate(existing.customerId, { $inc: { balance: existing.amount } });
+      await Customer.findByIdAndUpdate(existing.customerId, { $inc: { balance: balanceEffect(existing.type, existing.amount) } });
       await logActivity({
         actor: user.name,
         actorId: user.id,

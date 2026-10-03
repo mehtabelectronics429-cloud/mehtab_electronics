@@ -21,11 +21,12 @@ import {
 } from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
 import GroupPicker, { mergeGroup } from "@/components/admin/ui/GroupPicker";
+import ScanInput from "@/components/admin/ui/BarcodeScanner";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
-import type { ProductGroup, Purchase } from "@/lib/admin/types";
+import type { Product, ProductGroup, Purchase } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
@@ -127,6 +128,24 @@ export default function PurchasesPage() {
       return rs.map((r, idx) =>
         idx === i ? { ...r, productId: id, name, unitCost } : r,
       );
+    });
+  };
+
+  /** Scanned product: +1 qty if already on the bill, else fill the first empty row. */
+  const addScanned = (p: Product) => {
+    setRows((rs) => {
+      const existing = rs.findIndex((r) => r.productId === p.id);
+      if (existing >= 0) {
+        return rs.map((r, i) => (i === existing ? { ...r, qty: r.qty + 1 } : r));
+      }
+      const row = {
+        productId: p.id,
+        name: `${p.brand} ${p.model}`.trim(),
+        unitCost: p.purchasePrice ?? 0,
+        qty: 1,
+      };
+      const empty = rs.findIndex((r) => !r.productId && !r.name.trim() && !r.unitCost);
+      return empty >= 0 ? rs.map((r, i) => (i === empty ? row : r)) : [...rs, row];
     });
   };
 
@@ -452,6 +471,11 @@ export default function PurchasesPage() {
               </button>
               </div>
             </div>
+            <ScanInput
+              onProduct={addScanned}
+              placeholder="Scan received items (barcode / SKU + Enter)"
+              className="mb-2"
+            />
             <div className="space-y-2">
               {rows.map((row, idx) => (
                 <div

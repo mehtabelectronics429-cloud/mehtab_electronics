@@ -257,6 +257,8 @@ export interface LedgerEntry {
   employeeId?: string | null;
   installationId?: string | null;
   installationRef?: string;
+  invoiceId?: string | null;
+  invoiceNumber?: string;
   type: "invoice" | "payment" | "credit" | "debit" | "adjustment";
   amount: number;
   status: "pending" | "approved";
@@ -395,6 +397,8 @@ export interface ListParams {
   customerId?: string;
   employeeId?: string;
   type?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface ComplaintItem {

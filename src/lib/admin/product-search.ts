@@ -28,3 +28,18 @@ export function productFromOption(
 ): Product | undefined {
   return option?.data as Product | undefined;
 }
+
+/**
+ * Resolve a scanned code to exactly one product — barcode first, then SKU
+ * (case-insensitive). Used by the hardware/camera scanner fields.
+ */
+export async function findProductByCode(raw: string): Promise<Product | null> {
+  const code = raw.trim().toLowerCase();
+  if (!code) return null;
+  const res = await api.products({ q: raw.trim(), limit: 20 });
+  return (
+    res.items.find((p) => (p.barcode || "").trim().toLowerCase() === code) ??
+    res.items.find((p) => (p.sku || "").trim().toLowerCase() === code) ??
+    null
+  );
+}

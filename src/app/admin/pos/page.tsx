@@ -8,7 +8,7 @@ import {
   Plus,
   ShoppingCart,
   Receipt,
-  ScanBarcode,
+  Camera,
   Layers,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -24,6 +24,7 @@ import ProductLineItems, {
   type ProductLine,
 } from "@/components/admin/ui/ProductLineItems";
 import { mergeGroup, useProductGroups } from "@/components/admin/ui/GroupPicker";
+import { CameraScanModal } from "@/components/admin/ui/BarcodeScanner";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
@@ -35,6 +36,7 @@ export default function PosPage() {
   const router = useRouter();
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerId, setCustomerId] = useState("");
   const [discount, setDiscount] = useState(0);
@@ -215,10 +217,22 @@ export default function PosPage() {
               className="pl-9 pr-10"
               autoFocus
             />
-            <ScanBarcode className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+            <button
+              type="button"
+              title="Scan with camera"
+              onClick={() => setCameraOpen(true)}
+              className="absolute right-1.5 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-white/50 hover:bg-white/10 hover:text-cyan"
+            >
+              <Camera className="h-4 w-4" />
+            </button>
           </div>
+          <CameraScanModal
+            open={cameraOpen}
+            onClose={() => setCameraOpen(false)}
+            onCode={(code) => void applyBarcodeScan(code)}
+          />
           <p className="mt-1.5 text-[0.65rem] text-white/35">
-            Barcode scanners type into this field and press Enter — matches barcode or SKU exactly.
+            Barcode scanners type into this field and press Enter — or tap the camera to scan with your phone. Matches barcode or SKU exactly.
           </p>
 
           {groups.length > 0 && (
@@ -339,6 +353,7 @@ export default function PosPage() {
                 onChange={setCart}
                 stockLookup={(id) => stockOf(id)}
                 showGroups={false}
+                scanner={false}
                 autoRow={false}
               />
             )}

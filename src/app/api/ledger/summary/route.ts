@@ -1,15 +1,13 @@
-import { Customer } from "@/lib/db/models/Customer";
 import { requireUser, json, errorResponse, ApiError } from "@/lib/api/http";
 import { can } from "@/lib/admin/permissions";
 import { connectMongo } from "@/lib/db/mongodb";
-import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
-import { loadCustomerStatement } from "@/lib/ledger/server";
+import { loadLedgerSummary } from "@/lib/ledger/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Customer ledger statement (debit / credit / running balance) for a date range. */
+/** All-customer ledger summary: opening, period debit / credit and closing balance. */
 export async function GET(req: Request) {
   try {
     const user = await requireUser();
@@ -21,20 +19,12 @@ export async function GET(req: Request) {
     }
     await connectMongo();
     const url = new URL(req.url);
-    const customerId = url.searchParams.get("customerId");
     const from = url.searchParams.get("from") || null;
     const to = url.searchParams.get("to") || null;
-    if (!customerId) throw new ApiError(400, "customerId is required");
-
     const ownIds = await ownCustomerIdList(user);
-    if (isOwnScope(ownIds) && !ownIds.includes(customerId)) {
-      throw new ApiError(403, "Forbidden");
-    }
-
-    const customer = await Customer.findOne({ _id: customerId, ...notDeleted }).lean();
-    if (!customer) throw new ApiError(404, "Customer not found");
-
-    return json(await loadCustomerStatement(customer, from, to));
+    return json(
+      await loadLedgerSummary(from, to, isOwnScope(ownIds) ? ownIds : null),
+    );
   } catch (err) {
     return errorResponse(err);
   }

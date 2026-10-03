@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Pencil, Archive, Search, Download } from "lucide-react";
+import { Plus, Pencil, Archive, Search, Download, Camera } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import { Button, Badge, Input, Label } from "@/components/admin/ui/primitives";
@@ -14,6 +14,7 @@ import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
 import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
+import { CameraScanModal } from "@/components/admin/ui/BarcodeScanner";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import type { Product } from "@/lib/admin/types";
@@ -44,6 +45,7 @@ export default function ProductsPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
+  const [scanBarcode, setScanBarcode] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["products", page, cat, q],
@@ -333,9 +335,33 @@ export default function ProductsPage() {
           </div>
           <div>
             <Label>Barcode</Label>
-            <Input
-              {...register("barcode")}
-              placeholder="EAN / UPC — used by POS scanner"
+            <div className="flex gap-2">
+              <Input
+                {...register("barcode")}
+                placeholder="EAN / UPC — scan or type"
+                onKeyDown={(e) => {
+                  // A USB scanner ends with Enter — don't submit the form.
+                  if (e.key === "Enter") e.preventDefault();
+                }}
+              />
+              <button
+                type="button"
+                title="Scan barcode with camera"
+                onClick={() => setScanBarcode(true)}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 text-white/60 hover:bg-white/5 hover:text-cyan"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+            </div>
+            <CameraScanModal
+              open={scanBarcode}
+              title="Scan product barcode"
+              continuous={false}
+              onClose={() => setScanBarcode(false)}
+              onCode={(code) => {
+                setValue("barcode", code, { shouldDirty: true });
+                toast.success(`Barcode ${code} captured`);
+              }}
             />
           </div>
           <div>
