@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search,
   Plus,
@@ -10,6 +10,9 @@ import {
   Receipt,
   Camera,
   Layers,
+  Minus,
+  Trash2,
+  Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
@@ -20,9 +23,7 @@ import {
   Label,
 } from "@/components/admin/ui/primitives";
 import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
-import ProductLineItems, {
-  type ProductLine,
-} from "@/components/admin/ui/ProductLineItems";
+import type { ProductLine } from "@/components/admin/ui/ProductLineItems";
 import { mergeGroup, useProductGroups } from "@/components/admin/ui/GroupPicker";
 import { CameraScanModal } from "@/components/admin/ui/BarcodeScanner";
 import { api } from "@/lib/admin/services";
@@ -34,6 +35,7 @@ type CartLine = ProductLine;
 
 export default function PosPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -41,6 +43,8 @@ export default function PosPage() {
   const [customerId, setCustomerId] = useState("");
   const [discount, setDiscount] = useState(0);
   const [received, setReceived] = useState<string>("");
+  // Put cash above the sale total towards the customer's previous balance.
+  const [payPrevious, setPayPrevious] = useState(true);
 
   const searchTerm = q.trim();
   // Base catalogue (capped at 100 by the API) — used for stock lookups on cart lines.
@@ -58,6 +62,17 @@ export default function PosPage() {
     queryKey: ["pos-customers"],
     queryFn: () => api.customers({ limit: 200 }),
   });
+  // Fresh record for the selected customer so the previous balance is current.
+  const { data: customer, isFetching: customerLoading } = useQuery({
+    queryKey: ["pos-customer", customerId],
+    queryFn: () => api.getCustomer(customerId),
+    enabled: !!customerId,
+  });
+  const previousBalance = customerId
+    ? (customer?.balance ??
+      customers?.items.find((c) => c.id === customerId)?.balance ??
+      0)
+    : 0;
   // Product groups / bundles for one-click add.
   const { groups } = useProductGroups();
 
@@ -173,8 +188,39 @@ export default function PosPage() {
     applyBarcodeScan(q);
   };
 
+  const setQty = (idx: number, next: number) => {
+    const line = cart[idx];
+    if (!line) return;
+    let qty = Math.max(1, Math.floor(next) || 1);
+    if (line.productId) {
+      const max = stockOf(line.productId) - cartQtyOf(line.productId, idx);
+      if (qty > max) {
+        toast.error(`Only ${Math.max(0, max)} in stock`);
+        qty = Math.max(1, max);
+      }
+    }
+    setCart((c) => c.map((l, i) => (i === idx ? { ...l, qty } : l)));
+  };
+
+  const setPrice = (idx: number, unitPrice: number) =>
+    setCart((c) =>
+      c.map((l, i) => (i === idx ? { ...l, unitPrice: Math.max(0, unitPrice) } : l)),
+    );
+
+  const removeLine = (idx: number) =>
+    setCart((c) => c.filter((_, i) => i !== idx));
+
   const totals = invoiceTotals({ items: cart, discount });
-  const change = Math.max(0, (Number(received) || 0) - totals.total);
+  const isWalkIn = !customerId;
+  const paidNow =
+    received === "" ? totals.total : Math.min(totals.total, Number(received) || 0);
+  const extraCash = Math.max(0, (Number(received) || 0) - totals.total);
+  const balancePayment =
+    !isWalkIn && payPrevious ? Math.min(extraCash, Math.max(0, previousBalance)) : 0;
+  const change = extraCash - balancePayment;
+  const itemCount = cart.reduce((s, l) => s + l.qty, 0);
+  const balanceAfter = previousBalance + totals.total - paidNow - balancePayment;
+  const walkInShort = isWalkIn && paidNow < totals.total;
 
   const checkout = useMutation({
     mutationFn: () =>
@@ -182,19 +228,24 @@ export default function PosPage() {
         customerId: customerId || null,
         items: cart.filter((l) => l.description.trim() && l.qty > 0),
         discount,
-        paid:
-          received === ""
-            ? totals.total
-            : Math.min(totals.total, Number(received) || 0),
+        paid: paidNow,
+        balancePayment,
       }),
     onSuccess: (inv) => {
-      toast.success("Sale complete");
+      toast.success(
+        inv.balancePayment > 0
+          ? `Sale complete · ${pkr(inv.balancePayment)} paid against previous balance`
+          : "Sale complete",
+      );
+      qc.invalidateQueries({ queryKey: ["pos-customer"] });
+      qc.invalidateQueries({ queryKey: ["pos-customers"] });
+      qc.invalidateQueries({ queryKey: ["pos-products"] });
       router.push(`/admin/billing/${inv.id}`);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const canSell = cart.some((l) => l.description.trim() && l.qty > 0);
+  const canSell = cart.some((l) => l.description.trim() && l.qty > 0) && !walkInShort;
 
   return (
     <div>
@@ -203,7 +254,7 @@ export default function PosPage() {
         subtitle="Scan a barcode into search (Enter) or tap products — stock, invoice and ledger update automatically."
       />
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1.15fr]">
         {/* product picker */}
         <Card className="p-4">
           <div className="relative">
@@ -270,7 +321,7 @@ export default function PosPage() {
             </div>
           )}
 
-          <div className="mt-4 grid max-h-[62vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3">
+          <div className="mt-4 grid max-h-[62vh] grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
             {filtered.map((p) => {
               const inCart = cartQtyOf(p.id);
               const out = p.stock <= 0;
@@ -320,8 +371,16 @@ export default function PosPage() {
 
         {/* cart */}
         <Card className="flex flex-col p-4">
-          <div className="mb-3 flex items-center gap-2 text-sm font-medium text-white/80">
-            <ShoppingCart className="h-4 w-4" /> Cart
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-white/80">
+              <ShoppingCart className="h-4 w-4" /> Cart
+            </div>
+            {cart.length > 0 && (
+              <span className="text-xs text-white/40">
+                {cart.length} line{cart.length === 1 ? "" : "s"} · {itemCount} item
+                {itemCount === 1 ? "" : "s"}
+              </span>
+            )}
           </div>
 
           <div className="mb-3">
@@ -342,26 +401,143 @@ export default function PosPage() {
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          {customerId && (
+            <div
+              className={cn(
+                "mb-3 flex items-center justify-between rounded-xl border px-3 py-2.5",
+                previousBalance > 0
+                  ? "border-amber-300/30 bg-amber-300/5"
+                  : "border-white/10 bg-white/[0.03]",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Wallet
+                  className={cn(
+                    "h-4 w-4",
+                    previousBalance > 0 ? "text-amber-300" : "text-white/40",
+                  )}
+                />
+                <div>
+                  <div className="text-xs font-medium text-white/80">
+                    Previous balance
+                  </div>
+                  <div className="text-[0.65rem] text-white/40">
+                    {customer?.phone || customer?.name || ""}
+                  </div>
+                </div>
+              </div>
+              <span
+                className={cn(
+                  "text-base font-semibold",
+                  previousBalance > 0
+                    ? "text-amber-300"
+                    : previousBalance < 0
+                      ? "text-emerald-300"
+                      : "text-white/60",
+                )}
+              >
+                {customerLoading && !customer ? "…" : pkr(previousBalance)}
+              </span>
+            </div>
+          )}
+
+          <div className="min-h-[200px] flex-1 overflow-x-auto overflow-y-auto rounded-xl border border-white/10">
             {cart.length === 0 ? (
-              <div className="py-8 text-center text-sm text-white/40">
-                Tap products or search to add them.
+              <div className="py-12 text-center text-sm text-white/40">
+                Scan a barcode or tap products to add them.
               </div>
             ) : (
-              <ProductLineItems
-                value={cart}
-                onChange={setCart}
-                stockLookup={(id) => stockOf(id)}
-                showGroups={false}
-                scanner={false}
-                autoRow={false}
-              />
+              <table className="w-full min-w-[520px] text-sm">
+                <thead className="sticky top-0 z-10 bg-bg text-[0.7rem] uppercase tracking-wide text-white/40">
+                  <tr className="border-b border-white/10">
+                    <th className="w-8 px-3 py-2.5 text-left font-medium">#</th>
+                    <th className="px-3 py-2.5 text-left font-medium">Item</th>
+                    <th className="px-3 py-2.5 text-center font-medium">Qty</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Price</th>
+                    <th className="px-3 py-2.5 text-right font-medium">Total</th>
+                    <th className="w-10" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {cart.map((l, idx) => {
+                    const p = l.productId ? findProduct(l.productId) : undefined;
+                    return (
+                      <tr
+                        key={`${l.productId ?? "x"}-${idx}`}
+                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]"
+                      >
+                        <td className="px-3 py-3 align-middle text-white/40">
+                          {idx + 1}
+                        </td>
+                        <td className="px-3 py-3 align-middle">
+                          <div className="font-medium leading-snug text-white">
+                            {l.description}
+                          </div>
+                          {p && (
+                            <div className="mt-0.5 text-[0.65rem] text-white/35">
+                              {p.sku ? `${p.sku} · ` : ""}stock {p.stock}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 align-middle">
+                          <div className="mx-auto flex w-fit items-center rounded-lg border border-white/10">
+                            <button
+                              type="button"
+                              onClick={() => setQty(idx, l.qty - 1)}
+                              disabled={l.qty <= 1}
+                              className="grid h-8 w-8 place-items-center text-white/60 hover:text-cyan disabled:opacity-30"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <input
+                              type="number"
+                              min={1}
+                              value={l.qty}
+                              onChange={(e) => setQty(idx, Number(e.target.value))}
+                              className="h-8 w-12 border-x border-white/10 bg-transparent text-center text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setQty(idx, l.qty + 1)}
+                              className="grid h-8 w-8 place-items-center text-white/60 hover:text-cyan"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-right align-middle">
+                          <input
+                            type="number"
+                            min={0}
+                            value={l.unitPrice}
+                            onChange={(e) => setPrice(idx, Number(e.target.value) || 0)}
+                            className="h-8 w-24 rounded-lg border border-white/10 bg-transparent px-2 text-right text-white"
+                          />
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-3 text-right align-middle font-semibold text-white">
+                          {pkr(l.qty * l.unitPrice)}
+                        </td>
+                        <td className="px-2 py-3 align-middle">
+                          <button
+                            type="button"
+                            title="Remove"
+                            onClick={() => removeLine(idx)}
+                            className="grid h-8 w-8 place-items-center rounded-lg text-white/40 hover:bg-red-500/10 hover:text-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             )}
           </div>
 
           <div className="mt-3 space-y-2 border-t border-white/10 pt-3 text-sm">
             <div className="flex justify-between text-white/60">
-              <span>Subtotal</span>
+              <span>Subtotal ({itemCount} item{itemCount === 1 ? "" : "s"})</span>
               <span>{pkr(totals.subtotal)}</span>
             </div>
             <div className="flex items-center justify-between">
@@ -373,10 +549,22 @@ export default function PosPage() {
                 className="h-8 w-28 rounded-lg border border-white/10 bg-transparent px-2 text-right text-white"
               />
             </div>
-            <div className="flex justify-between text-base font-semibold text-white">
+            <div className="flex justify-between rounded-lg bg-cyan/5 px-3 py-2 text-lg font-semibold text-white">
               <span>Total</span>
-              <span>{pkr(totals.total)}</span>
+              <span className="text-cyan">{pkr(totals.total)}</span>
             </div>
+            {customerId && (
+              <>
+                <div className="flex justify-between text-white/60">
+                  <span>Previous balance</span>
+                  <span>{pkr(previousBalance)}</span>
+                </div>
+                <div className="flex justify-between font-medium text-white">
+                  <span>Total due (incl. previous)</span>
+                  <span>{pkr(previousBalance + totals.total)}</span>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-white/60">Cash received</span>
               <input
@@ -387,10 +575,45 @@ export default function PosPage() {
                 className="h-8 w-28 rounded-lg border border-white/10 bg-transparent px-2 text-right text-white"
               />
             </div>
+            {!isWalkIn && previousBalance > 0 && extraCash > 0 && (
+              <label className="flex items-center justify-between gap-2 text-white/60">
+                <span className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={payPrevious}
+                    onChange={(e) => setPayPrevious(e.target.checked)}
+                  />
+                  Apply extra cash to previous balance
+                </span>
+                <span className="text-amber-300">{pkr(balancePayment)}</span>
+              </label>
+            )}
+            {received !== "" && paidNow < totals.total && (
+              <div
+                className={cn(
+                  "flex justify-between",
+                  walkInShort ? "text-red-300" : "text-amber-300",
+                )}
+              >
+                <span>{walkInShort ? "Short (walk-in must pay in full)" : "Unpaid → added to balance"}</span>
+                <span>{pkr(totals.total - paidNow)}</span>
+              </div>
+            )}
             {received !== "" && (
               <div className="flex justify-between text-emerald-300">
                 <span>Change</span>
                 <span>{pkr(change)}</span>
+              </div>
+            )}
+            {customerId && (
+              <div
+                className={cn(
+                  "flex justify-between font-medium",
+                  balanceAfter > 0 ? "text-amber-300" : "text-white/70",
+                )}
+              >
+                <span>Balance after sale</span>
+                <span>{pkr(balanceAfter)}</span>
               </div>
             )}
           </div>

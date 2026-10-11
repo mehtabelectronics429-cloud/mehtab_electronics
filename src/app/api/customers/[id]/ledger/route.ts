@@ -12,6 +12,7 @@ import { can } from "@/lib/admin/permissions";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
+import { ledgerEntryItems, syncCustomerBalance } from "@/lib/ledger/server";
 
 type Ctx = { params: { id: string } };
 
@@ -28,9 +29,13 @@ export async function GET(_req: Request, { params }: Ctx) {
 
     const customer = await Customer.findOne({ _id: params.id, ...notDeleted }).lean();
     if (!customer) throw new ApiError(404, "Customer not found");
+    customer.balance = await syncCustomerBalance(customer._id);
 
     const [ledger, installations, invoices] = await Promise.all([
-      LedgerEntry.find({ customerId: params.id, ...notDeleted }).sort({ date: -1 }).lean(),
+      LedgerEntry.find({ customerId: params.id, ...notDeleted })
+        .populate({ path: "invoiceId", select: "number items", strictPopulate: false })
+        .sort({ date: -1 })
+        .lean(),
       Installation.find({ customerId: params.id, ...notDeleted })
         .populate([
           { path: "employeeId", select: "name" },
@@ -59,7 +64,11 @@ export async function GET(_req: Request, { params }: Ctx) {
         date: l.date,
         note: l.note,
         installationId: l.installationId ? String(l.installationId) : null,
-        invoiceId: l.invoiceId ? String(l.invoiceId) : null,
+        invoiceId: l.invoiceId
+          ? String((l.invoiceId as { _id?: unknown })._id ?? l.invoiceId)
+          : null,
+        invoiceNumber: (l.invoiceId as { number?: string } | null)?.number || "",
+        items: ledgerEntryItems(l as Parameters<typeof ledgerEntryItems>[0]),
       })),
       installations: installations.map((i) => {
         const team = ((i.employeeIds as { name?: string }[]) || [])

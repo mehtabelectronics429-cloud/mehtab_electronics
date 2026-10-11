@@ -16,6 +16,21 @@
 
 export type LedgerType = "invoice" | "payment" | "credit" | "debit" | "adjustment";
 
+/** A goods line attached to a ledger entry (product, qty, unit price). */
+export type LedgerItem = {
+  productId?: string | null;
+  description: string;
+  qty: number;
+  unitPrice: number;
+};
+
+export const ledgerItemsTotal = (items: LedgerItem[] = []) =>
+  Math.round(items.reduce((s, i) => s + (i.qty || 0) * (i.unitPrice || 0), 0) * 100) / 100;
+
+/** One-line text for an item: "Inverter 5kW × 2 @ 85,000 = 170,000". */
+export const ledgerItemText = (i: LedgerItem, fmt: (n: number) => string = (n) => n.toLocaleString("en-PK")) =>
+  `${i.description} × ${i.qty} @ ${fmt(i.unitPrice)} = ${fmt(i.qty * i.unitPrice)}`;
+
 export type RawLedgerEntry = {
   id: string;
   date: string; // YYYY-MM-DD
@@ -24,6 +39,7 @@ export type RawLedgerEntry = {
   status: "pending" | "approved" | string;
   note: string;
   ref?: string;
+  items?: LedgerItem[];
 };
 
 export type StatementRow = {
@@ -35,6 +51,8 @@ export type StatementRow = {
   status: string;
   debit: number;
   credit: number;
+  /** Goods on this entry (sale / debit note lines). */
+  items: LedgerItem[];
   /** Running balance after this row (approved rows only; pending rows repeat the prior balance). */
   balance: number;
 };
@@ -165,6 +183,7 @@ export function buildStatement(
       status: e.status,
       debit,
       credit,
+      items: e.items ?? [],
       balance: running,
     };
   });
@@ -191,4 +210,73 @@ export function dateBounds(from: string | null, to: string | null) {
   const end = to ? new Date(to) : null;
   if (end) end.setHours(23, 59, 59, 999);
   return { start, end };
+}
+
+export type ProductSummaryRow = {
+  key: string;
+  description: string;
+  soldQty: number;
+  soldAmount: number;
+  returnedQty: number;
+  returnedAmount: number;
+  netQty: number;
+  netAmount: number;
+  /** Number of ledger entries this product appears on. */
+  entries: number;
+};
+
+/**
+ * Per-product totals across a customer's statement: goods on debit entries
+ * (sales / goods on account) count as sold, goods on credit entries (returns)
+ * as returned. Approved entries only, so it agrees with the balance.
+ */
+export function ledgerProductSummary(
+  rows: Pick<StatementRow, "status" | "debit" | "credit" | "items">[],
+): { rows: ProductSummaryRow[]; totals: Omit<ProductSummaryRow, "key" | "description" | "entries"> } {
+  const map = new Map<string, ProductSummaryRow>();
+  for (const r of rows) {
+    if (r.status !== "approved" || !r.items?.length) continue;
+    const returned = r.credit > 0 && !r.debit;
+    for (const it of r.items) {
+      const key = it.productId || `txt:${it.description.trim().toLowerCase()}`;
+      const row =
+        map.get(key) ??
+        ({
+          key,
+          description: it.description,
+          soldQty: 0,
+          soldAmount: 0,
+          returnedQty: 0,
+          returnedAmount: 0,
+          netQty: 0,
+          netAmount: 0,
+          entries: 0,
+        } satisfies ProductSummaryRow);
+      const amount = (it.qty || 0) * (it.unitPrice || 0);
+      if (returned) {
+        row.returnedQty += it.qty;
+        row.returnedAmount += amount;
+      } else {
+        row.soldQty += it.qty;
+        row.soldAmount += amount;
+      }
+      row.netQty = row.soldQty - row.returnedQty;
+      row.netAmount = round2(row.soldAmount - row.returnedAmount);
+      row.entries += 1;
+      map.set(key, row);
+    }
+  }
+  const list = Array.from(map.values()).sort((a, b) => b.netAmount - a.netAmount);
+  const totals = list.reduce(
+    (t, r) => ({
+      soldQty: t.soldQty + r.soldQty,
+      soldAmount: round2(t.soldAmount + r.soldAmount),
+      returnedQty: t.returnedQty + r.returnedQty,
+      returnedAmount: round2(t.returnedAmount + r.returnedAmount),
+      netQty: t.netQty + r.netQty,
+      netAmount: round2(t.netAmount + r.netAmount),
+    }),
+    { soldQty: 0, soldAmount: 0, returnedQty: 0, returnedAmount: 0, netQty: 0, netAmount: 0 },
+  );
+  return { rows: list, totals };
 }

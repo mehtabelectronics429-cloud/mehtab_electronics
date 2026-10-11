@@ -264,6 +264,8 @@ export interface LedgerEntry {
   status: "pending" | "approved";
   date: string;
   note?: string;
+  /** Goods on the entry (sale / debit-note lines). */
+  items?: import("@/lib/ledger/statement").LedgerItem[];
 }
 
 export interface WhatsAppMsg {

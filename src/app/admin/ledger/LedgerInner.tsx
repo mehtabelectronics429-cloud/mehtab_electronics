@@ -27,6 +27,10 @@ import {
 import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
+import ProductLineItems, {
+  emptyLine,
+  type ProductLine,
+} from "@/components/admin/ui/ProductLineItems";
 import { api } from "@/lib/admin/services";
 import { useAuth } from "@/lib/admin/auth";
 import { can } from "@/lib/admin/permissions";
@@ -39,13 +43,17 @@ import {
 } from "@/lib/admin/whatsapp-client";
 import {
   downloadFile,
+  generateLedgerDetailedPdf,
   generateLedgerStatementPdf,
   generateLedgerSummaryPdf,
 } from "@/lib/admin/ledger-pdf";
 import {
   drCr,
+  ledgerItemsTotal,
+  ledgerProductSummary,
   ledgerTypeLabel,
   splitDebitCredit,
+  type LedgerItem,
   type LedgerStatement,
 } from "@/lib/ledger/statement";
 
@@ -168,6 +176,14 @@ export default function LedgerPageInner() {
       toast.success("Ledger summary PDF downloaded");
     });
 
+  const detailedPdf = () =>
+    run("dt-pdf", async () => {
+      const res = await api.ledgerStatements(range);
+      if (!res.statements.length) throw new Error("No ledger activity in this period");
+      downloadFile(await generateLedgerDetailedPdf(res.statements, res.from, res.to));
+      toast.success(`Detailed ledger PDF downloaded · ${res.statements.length} customer(s)`);
+    });
+
   const statementWhatsapp = () =>
     run("st-wa", async () => {
       const st = await loadStatement();
@@ -240,9 +256,10 @@ export default function LedgerPageInner() {
       id: "particulars",
       header: "Particulars",
       cell: (i) => (
-        <div className="max-w-[18rem]">
+        <div className="max-w-[22rem]">
           <div className="truncate">{i.row.original.note || ledgerTypeLabel(i.row.original.type)}</div>
           <div className="text-[0.65rem] text-white/40">{ledgerTypeLabel(i.row.original.type)}</div>
+          <LedgerItems items={i.row.original.items} compact />
         </div>
       ),
     },
@@ -316,7 +333,16 @@ export default function LedgerPageInner() {
               onClick={summaryPdf}
             >
               <FileText className="h-4 w-4" />
-              {busy === "sm-pdf" ? "Preparing…" : "Download PDF"}
+              {busy === "sm-pdf" ? "Preparing…" : "Summary PDF"}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!!busy}
+              onClick={detailedPdf}
+              title="Every customer's statement with entries and item lines"
+            >
+              <FileText className="h-4 w-4" />
+              {busy === "dt-pdf" ? "Preparing…" : "Detailed PDF"}
             </Button>
             {canManage && (
               <Button onClick={() => setEntryOpen(true)}>
@@ -477,6 +503,7 @@ export default function LedgerPageInner() {
                             {r.particulars}
                             <span className="ml-2 text-[0.65rem] text-white/35">{ledgerTypeLabel(r.type)}</span>
                             {pending && <StatusPill status="pending" className="ml-2" />}
+                            <LedgerItems items={r.items} />
                           </td>
                           <td className="px-4 py-2.5 text-right tabular-nums text-red-600 dark:text-red-300">{amt(r.debit)}</td>
                           <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600 dark:text-emerald-300">{amt(r.credit)}</td>
@@ -526,6 +553,8 @@ export default function LedgerPageInner() {
                 </div>
               )}
             </Card>
+
+            <ProductsSummary rows={st.rows} />
           </div>
         ))}
 
@@ -675,6 +704,127 @@ export default function LedgerPageInner() {
   );
 }
 
+/** Per-product totals for a customer statement (sold, returned, net). */
+function ProductsSummary({ rows }: { rows: LedgerStatement["rows"] }) {
+  const ps = ledgerProductSummary(rows);
+  return (
+    <Card className="overflow-hidden">
+      <div className="border-b border-white/10 p-4">
+        <div className="font-display text-base text-white">Products</div>
+        <div className="text-xs text-white/50">
+          Every item this customer took in the period (approved entries) · returns netted off
+        </div>
+      </div>
+      {ps.rows.length === 0 ? (
+        <div className="p-8 text-center text-sm text-white/40">No product lines in this period.</div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead>
+              <tr className="border-b border-white/10 text-left text-[0.65rem] uppercase tracking-wider text-white/40">
+                <th className="px-4 py-3 font-semibold">#</th>
+                <th className="px-4 py-3 font-semibold">Product / item</th>
+                <th className="px-4 py-3 text-right font-semibold">Sold qty</th>
+                <th className="px-4 py-3 text-right font-semibold">Sold amount</th>
+                <th className="px-4 py-3 text-right font-semibold">Returned</th>
+                <th className="px-4 py-3 text-right font-semibold">Net qty</th>
+                <th className="px-4 py-3 text-right font-semibold">Net amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ps.rows.map((r, i) => (
+                <tr key={r.key} className="border-b border-white/5">
+                  <td className="px-4 py-2.5 text-white/40">{i + 1}</td>
+                  <td className="px-4 py-2.5 text-white">
+                    {r.description}
+                    <div className="text-[0.65rem] text-white/35">
+                      on {r.entries} entr{r.entries === 1 ? "y" : "ies"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{r.soldQty}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums">{pkr(r.soldAmount)}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600 dark:text-emerald-300">
+                    {r.returnedQty ? `${r.returnedQty} · ${pkr(r.returnedAmount)}` : "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-right font-semibold tabular-nums">{r.netQty}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-white">{pkr(r.netAmount)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-white/20 bg-white/[0.04] font-bold">
+                <td colSpan={2} className="px-4 py-3 text-right text-xs uppercase tracking-wider text-white/60">
+                  Total
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">{ps.totals.soldQty}</td>
+                <td className="px-4 py-3 text-right tabular-nums">{pkr(ps.totals.soldAmount)}</td>
+                <td className="px-4 py-3 text-right tabular-nums text-emerald-600 dark:text-emerald-300">
+                  {ps.totals.returnedQty ? `${ps.totals.returnedQty} · ${pkr(ps.totals.returnedAmount)}` : "—"}
+                </td>
+                <td className="px-4 py-3 text-right tabular-nums">{ps.totals.netQty}</td>
+                <td className="px-4 py-3 text-right tabular-nums text-white">{pkr(ps.totals.netAmount)}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/** Goods lines on a ledger entry: name × qty @ price = total. */
+function LedgerItems({ items, compact }: { items?: LedgerItem[]; compact?: boolean }) {
+  if (!items?.length) return null;
+  const shown = compact ? items.slice(0, 3) : items;
+  return (
+    <div className="mt-1.5 overflow-hidden rounded-lg border border-white/10 bg-white/[0.02] not-italic">
+      <table className="w-full text-[0.7rem]">
+        {!compact && (
+          <thead>
+            <tr className="text-left text-[0.6rem] uppercase tracking-wider text-white/35">
+              <th className="px-2 py-1 font-medium">Item</th>
+              <th className="px-2 py-1 text-right font-medium">Qty</th>
+              <th className="px-2 py-1 text-right font-medium">Price</th>
+              <th className="px-2 py-1 text-right font-medium">Total</th>
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {shown.map((it, idx) => (
+            <tr key={idx} className="border-t border-white/5 text-white/70 first:border-0">
+              <td className="px-2 py-1">{it.description}</td>
+              <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums">× {it.qty}</td>
+              {!compact && (
+                <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums">{pkr(it.unitPrice)}</td>
+              )}
+              <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums text-white/85">
+                {pkr(it.qty * it.unitPrice)}
+              </td>
+            </tr>
+          ))}
+          {compact && items.length > shown.length && (
+            <tr className="border-t border-white/5 text-white/40">
+              <td colSpan={3} className="px-2 py-1">
+                +{items.length - shown.length} more
+              </td>
+            </tr>
+          )}
+          {!compact && items.length > 1 && (
+            <tr className="border-t border-white/10 font-medium text-white/85">
+              <td colSpan={3} className="px-2 py-1 text-right">
+                Items total
+              </td>
+              <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums">
+                {pkr(ledgerItemsTotal(items))}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function StatusPill({ status, className }: { status: string; className?: string }) {
   return status === "approved" ? (
     <Badge className={cn("border-emerald-400/30 bg-emerald-400/10 text-emerald-300", className)}>Approved</Badge>
@@ -750,6 +900,8 @@ function NewEntryModal({
   const [date, setDate] = useState(today);
   const [note, setNote] = useState("");
   const [post, setPost] = useState(true);
+  const [withItems, setWithItems] = useState(false);
+  const [lines, setLines] = useState<ProductLine[]>([emptyLine()]);
 
   useEffect(() => {
     if (open) {
@@ -759,12 +911,17 @@ function NewEntryModal({
       setDate(today);
       setNote("");
       setPost(true);
+      setWithItems(false);
+      setLines([emptyLine()]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const meta = ENTRY_KINDS.find((k) => k.value === kind)!;
-  const value = Number(amount) || 0;
+  const useItems = withItems && meta.side === "debit";
+  const filledLines = lines.filter((l) => l.description.trim() && l.qty > 0);
+  const itemsTotal = ledgerItemsTotal(filledLines);
+  const value = useItems ? itemsTotal : Number(amount) || 0;
 
   const save = useMutation({
     mutationFn: () =>
@@ -773,8 +930,20 @@ function NewEntryModal({
         type: kind,
         amount: value,
         date,
-        note: note.trim() || meta.label,
+        note:
+          note.trim() ||
+          (useItems
+            ? `Goods on account · ${filledLines.reduce((s, l) => s + l.qty, 0)} item(s)`
+            : meta.label),
         status: canApprove && post ? "approved" : "pending",
+        ...(useItems && {
+          items: filledLines.map((l) => ({
+            productId: l.productId,
+            description: l.description,
+            qty: l.qty,
+            unitPrice: l.unitPrice,
+          })),
+        }),
       }),
     onSuccess: () => {
       toast.success(`${meta.side === "debit" ? "Debit" : "Credit"} entry saved`);
@@ -785,12 +954,13 @@ function NewEntryModal({
   });
 
   return (
-    <Modal open={open} onClose={onClose} title="New ledger entry">
+    <Modal open={open} onClose={onClose} title="New ledger entry" wide={useItems}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           if (!cid) return toast.error("Select a customer");
-          if (value <= 0) return toast.error("Enter an amount greater than 0");
+          if (useItems && !filledLines.length) return toast.error("Add at least one item");
+          if (value <= 0) return toast.error(useItems ? "Items total must be greater than 0" : "Enter an amount greater than 0");
           save.mutate();
         }}
         className="space-y-4"
@@ -843,8 +1013,25 @@ function NewEntryModal({
           </div>
         </div>
 
+        {meta.side === "debit" && (
+          <label className="flex items-center gap-2 text-sm text-white/70">
+            <input type="checkbox" checked={withItems} onChange={(e) => setWithItems(e.target.checked)} />
+            Goods given on account — add products (taken out of stock)
+          </label>
+        )}
+
+        {useItems && (
+          <div className="space-y-2">
+            <ProductLineItems value={lines} onChange={setLines} />
+            <div className="flex items-center justify-between rounded-xl border border-red-400/20 bg-red-400/5 px-4 py-2 text-sm">
+              <span className="text-white/60">Debit amount (items total)</span>
+              <span className="font-semibold tabular-nums text-red-300">{pkr(itemsTotal)}</span>
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-3 sm:grid-cols-2">
-          <div>
+          <div className={cn(useItems && "hidden")}>
             <Label>{meta.side === "debit" ? "Debit amount (Rs)" : "Credit amount (Rs)"}</Label>
             <Input
               type="number"
@@ -854,7 +1041,7 @@ function NewEntryModal({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              required
+              required={!useItems}
             />
           </div>
           <div>

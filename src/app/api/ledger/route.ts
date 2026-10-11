@@ -15,7 +15,14 @@ import { ledgerInput } from "@/lib/api/schemas";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope, ledgerScopeFilter } from "@/lib/api/scope";
-import { balanceEffect, dateBounds } from "@/lib/ledger/statement";
+import { Product } from "@/lib/db/models/Product";
+import { balanceEffect, dateBounds, ledgerItemsTotal } from "@/lib/ledger/statement";
+import { ledgerEntryItems, syncCustomerBalance } from "@/lib/ledger/server";
+
+/** Return units to stock (undo of a goods-on-account deduction). */
+async function restock(lines: { productId: string; qty: number }[]) {
+  for (const t of lines) await Product.updateOne({ _id: t.productId }, { $inc: { stock: t.qty } });
+}
 
 function mapLedger(item: Record<string, unknown>) {
   const customer = item.customerId as { _id?: unknown; name?: string; whatsapp?: string } | string | null;
@@ -37,6 +44,7 @@ function mapLedger(item: Record<string, unknown>) {
     invoiceId:
       typeof invoice === "object" && invoice?._id ? String(invoice._id) : invoice ? String(invoice) : null,
     invoiceNumber: typeof invoice === "object" && invoice?.number ? invoice.number : "",
+    items: ledgerEntryItems(item as Parameters<typeof ledgerEntryItems>[0]),
     date: item.date instanceof Date ? (item.date as Date).toISOString().slice(0, 10) : item.date,
   };
 }
@@ -96,23 +104,69 @@ export async function POST(req: Request) {
     const customer = await Customer.findOne({ _id: body.customerId, ...notDeleted });
     if (!customer) throw new ApiError(400, "Invalid customer");
 
-    // Store a consistent sign: debits positive, credits / payments negative.
-    const signed = balanceEffect(body.type, body.amount);
-    const doc = await LedgerEntry.create({
-      ...body,
-      amount: signed,
-      date: new Date(body.date),
-      employeeId: body.employeeId || user.employeeId || null,
-      installationId: body.installationId || null,
-      status: body.status || "pending",
-    });
-    if (doc.status === "approved") {
-      await Customer.findByIdAndUpdate(customer._id, { $inc: { balance: balanceEffect(doc.type, doc.amount) } });
+    // Goods given on account: only on debit-side entries; the amount is the
+    // items' total and product lines come out of stock.
+    const items = (body.items ?? []).filter((i) => i.description.trim() && i.qty > 0);
+    if (items.length && body.type !== "debit" && body.type !== "invoice") {
+      throw new ApiError(400, "Items can only be added to a debit entry");
     }
+    const amount = items.length ? ledgerItemsTotal(items) : body.amount;
+    if (items.length && amount <= 0) throw new ApiError(400, "Items total must be greater than 0");
+
+    const taken: { productId: string; qty: number }[] = [];
+    try {
+      for (const it of items) {
+        if (!it.productId) continue;
+        const updated = await Product.findOneAndUpdate(
+          { _id: it.productId, stock: { $gte: it.qty }, ...notDeleted },
+          { $inc: { stock: -it.qty } },
+          { returnDocument: "after" },
+        );
+        if (!updated) {
+          const p = await Product.findOne({ _id: it.productId, ...notDeleted }).select("stock");
+          throw new ApiError(
+            400,
+            p
+              ? `Insufficient stock for ${it.description} (available: ${p.stock}, requested: ${it.qty})`
+              : `Product not found for line "${it.description}"`,
+          );
+        }
+        taken.push({ productId: it.productId, qty: it.qty });
+      }
+    } catch (err) {
+      // Put back anything already taken before the failing line.
+      await restock(taken);
+      throw err;
+    }
+
+    // Store a consistent sign: debits positive, credits / payments negative.
+    const signed = balanceEffect(body.type, amount);
+    let doc;
+    try {
+      doc = await LedgerEntry.create({
+        ...body,
+        items: items.map((i) => ({
+          productId: i.productId || null,
+          description: i.description,
+          qty: i.qty,
+          unitPrice: i.unitPrice,
+        })),
+        stockDeducted: taken.length > 0,
+        amount: signed,
+        date: new Date(body.date),
+        employeeId: body.employeeId || user.employeeId || null,
+        installationId: body.installationId || null,
+        status: body.status || "pending",
+      });
+    } catch (err) {
+      await restock(taken);
+      throw err;
+    }
+    await syncCustomerBalance(customer._id);
     const populated = await LedgerEntry.findById(doc._id).populate([
       { path: "customerId", strictPopulate: false },
       { path: "installationId", strictPopulate: false },
-      { path: "invoiceId", select: "number", strictPopulate: false },
+      { path: "invoiceId", select: "number items", strictPopulate: false },
     ]);
     return json(mapLedger(serializeDoc(populated!)), 201);
   } catch (err) {

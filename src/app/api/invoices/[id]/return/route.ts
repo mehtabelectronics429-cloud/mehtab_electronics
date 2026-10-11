@@ -17,6 +17,7 @@ import { returnRefund } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { logActivity } from "@/lib/db/logActivity";
+import { syncCustomerBalance } from "@/lib/ledger/server";
 
 type Ctx = { params: { id: string } };
 
@@ -117,8 +118,9 @@ export async function POST(req: Request, { params }: Ctx) {
     invoice.returnedCost = (invoice.returnedCost || 0) + restockedCost;
     await invoice.save();
 
-    // Ledger trace of the cash refund (customer receivable is unaffected — cash
-    // out neutralises the goods coming back, so customer.balance is untouched).
+    // Ledger trace: the goods coming back (credit, with the returned lines) and
+    // the cash paid out for them (debit). They cancel, so the customer's
+    // receivable is unaffected.
     if (refund > 0) {
       await LedgerEntry.create({
         customerId: invoice.customerId,
@@ -128,8 +130,25 @@ export async function POST(req: Request, { params }: Ctx) {
         amount: -refund,
         status: "approved",
         date,
-        note: `Cash refund — return ${number} (${body.reason})`,
+        note: `Goods returned — ${number} (${body.reason})`,
+        items: returnItems.map((i) => ({
+          productId: i.productId ?? null,
+          description: i.description,
+          qty: i.qty,
+          unitPrice: i.unitPrice,
+        })),
       });
+      await LedgerEntry.create({
+        customerId: invoice.customerId,
+        employeeId: user.employeeId || null,
+        invoiceId: invoice._id,
+        type: "debit",
+        amount: refund,
+        status: "approved",
+        date,
+        note: `Cash refund paid — return ${number}`,
+      });
+      await syncCustomerBalance(invoice.customerId);
     }
 
     await logActivity({

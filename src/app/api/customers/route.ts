@@ -14,6 +14,7 @@ import { customerInput } from "@/lib/api/schemas";
 import { connectMongo } from "@/lib/db/mongodb";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
 import { logActivity } from "@/lib/db/logActivity";
+import { syncCustomerBalances } from "@/lib/ledger/server";
 
 export async function GET(req: Request) {
   try {
@@ -31,7 +32,17 @@ export async function GET(req: Request) {
     if (isOwnScope(ownIds)) filter._id = { $in: ownIds };
 
     const result = await paginate(Customer, filter, { ...p, populate: undefined });
-    return json(result);
+    // Balances shown are always the ledger's figures.
+    const balances = await syncCustomerBalances(
+      result.items.map((c) => String(c.id)),
+    );
+    return json({
+      ...result,
+      items: result.items.map((c) => ({
+        ...c,
+        balance: balances.get(String(c.id)) ?? (c as { balance?: number }).balance ?? 0,
+      })),
+    });
   } catch (err) {
     return errorResponse(err);
   }

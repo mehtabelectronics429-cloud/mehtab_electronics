@@ -16,6 +16,7 @@ import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
 import { queueWhatsAppEvent } from "@/lib/whatsapp/queue";
 import { logActivity } from "@/lib/db/logActivity";
+import { syncCustomerBalance } from "@/lib/ledger/server";
 
 type Ctx = { params: { id: string } };
 
@@ -34,6 +35,8 @@ export async function GET(_req: Request, { params }: Ctx) {
     await assertCustomerAccess(user, params.id);
     const doc = await Customer.findOne({ _id: params.id, ...notDeleted });
     if (!doc) throw new ApiError(404, "Customer not found");
+    // Balance is always the ledger's figure (Σ approved debit − credit).
+    doc.balance = await syncCustomerBalance(doc._id);
     return json(serializeDoc(doc));
   } catch (err) {
     return errorResponse(err);

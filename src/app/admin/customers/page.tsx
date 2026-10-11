@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronRight,
   ExternalLink,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -39,6 +40,7 @@ import { can } from "@/lib/admin/permissions";
 import { pkr } from "@/lib/admin/format";
 import type { Customer } from "@/lib/admin/types";
 import { toastForWhatsAppResult } from "@/lib/admin/whatsapp-client";
+import { downloadFile, generateLedgerStatementPdf } from "@/lib/admin/ledger-pdf";
 
 const schema = z.object({
   name: z.string().min(2, "Required"),
@@ -62,6 +64,7 @@ export default function CustomersPage() {
   const [expandedInv, setExpandedInv] = useState<string | null>(null);
   const [expandedInst, setExpandedInst] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["customers", page, q],
@@ -414,13 +417,37 @@ export default function CustomersPage() {
                   Balance {pkr(ledgerData.customer.balance)}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="secondary"
+                  disabled={pdfBusy}
+                  onClick={async () => {
+                    setPdfBusy(true);
+                    try {
+                      const st = await api.ledgerReport({ customerId: ledgerData.customer.id });
+                      downloadFile(await generateLedgerStatementPdf(st));
+                      toast.success("Ledger PDF downloaded");
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Could not build PDF");
+                    } finally {
+                      setPdfBusy(false);
+                    }
+                  }}
+                >
+                  <FileText className="h-4 w-4" /> {pdfBusy ? "Preparing…" : "PDF statement"}
+                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => api.downloadLedger({ customerId: ledgerData.customer.id })}
                 >
                   <Download className="h-4 w-4" /> Download CSV
                 </Button>
+                <Link
+                  href={`/admin/ledger?customerId=${ledgerData.customer.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white"
+                >
+                  <BookOpen className="h-4 w-4" /> Full ledger
+                </Link>
                 <Button
                   variant="secondary"
                   onClick={() =>
@@ -449,22 +476,32 @@ export default function CustomersPage() {
               <h4 className="mb-2 text-xs uppercase tracking-wider text-white/40">
                 Ledger entries
               </h4>
-              <div className="max-h-48 space-y-1 overflow-y-auto">
+              <div className="max-h-80 space-y-1 overflow-y-auto">
                 {ledgerData.ledger.length === 0 ? (
                   <p className="text-sm text-white/40">No ledger entries.</p>
                 ) : (
                   ledgerData.ledger.map((l) => (
                     <div
                       key={l.id}
-                      className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm"
+                      className="flex items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm"
                     >
-                      <div>
+                      <div className="min-w-0">
                         <span className="capitalize text-white">{l.type}</span>
                         <span className="ml-2 text-xs text-white/40">
                           {String(l.date).slice(0, 10)}
                         </span>
                         {l.note ? (
                           <div className="text-xs text-white/35">{l.note}</div>
+                        ) : null}
+                        {l.items?.length ? (
+                          <ul className="mt-1 space-y-0.5 text-[0.7rem] text-white/55">
+                            {l.items.map((it, idx) => (
+                              <li key={idx}>
+                                {it.description} × {it.qty} @ {pkr(it.unitPrice)} ={" "}
+                                <span className="text-white/80">{pkr(it.qty * it.unitPrice)}</span>
+                              </li>
+                            ))}
+                          </ul>
                         ) : null}
                       </div>
                       <div className="flex items-center gap-2">

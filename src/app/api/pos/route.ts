@@ -8,6 +8,7 @@ import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { logActivity } from "@/lib/db/logActivity";
+import { syncCustomerBalance } from "@/lib/ledger/server";
 
 async function nextNumber() {
   const count = await Invoice.countDocuments({});
@@ -31,6 +32,9 @@ export async function POST(req: Request) {
       ? await Customer.findOne({ _id: body.customerId, ...notDeleted })
       : await walkInCustomer();
     if (!customer) throw new ApiError(400, "Invalid customer");
+    const isWalkIn = !body.customerId;
+    // Bring the stored balance in line with the ledger before taking money against it.
+    const previousBalance = isWalkIn ? 0 : await syncCustomerBalance(customer._id);
 
     const totals = invoiceTotals({
       items: body.items.map((i) => ({ qty: i.qty, unitPrice: i.unitPrice })),
@@ -64,6 +68,15 @@ export async function POST(req: Request) {
 
     const paid = Math.min(totals.total, body.paid ?? totals.total);
     const fullyPaid = paid >= totals.total;
+    // Walk-in is a shared counter account — credit must go on a named customer.
+    if (isWalkIn && !fullyPaid) {
+      throw new ApiError(400, "Walk-in sales must be paid in full. Select a customer to sell on credit.");
+    }
+    // Extra cash towards the old balance only once this sale is fully paid.
+    const balancePayment =
+      !isWalkIn && fullyPaid
+        ? Math.round(Math.min(Math.max(0, previousBalance), body.balancePayment ?? 0) * 100) / 100
+        : 0;
     const date = body.date ? new Date(body.date) : new Date();
 
     const invoice = await Invoice.create({
@@ -99,7 +112,9 @@ export async function POST(req: Request) {
       }
     }
 
-    // Ledger: the sale, then the payment taken at the counter.
+    // Ledger: the sale (with its goods lines), the payment taken at the
+    // counter, then any extra paid against the previous balance.
+    const unitCount = body.items.reduce((s, i) => s + i.qty, 0);
     await LedgerEntry.create({
       customerId: customer._id,
       employeeId: user.employeeId || null,
@@ -108,7 +123,13 @@ export async function POST(req: Request) {
       amount: totals.total,
       status: "approved",
       date,
-      note: `POS sale ${invoice.number}`,
+      note: `POS sale ${invoice.number} · ${unitCount} item${unitCount === 1 ? "" : "s"}`,
+      items: body.items.map((i) => ({
+        productId: i.productId || null,
+        description: i.description,
+        qty: i.qty,
+        unitPrice: i.unitPrice,
+      })),
     });
     if (paid > 0) {
       await LedgerEntry.create({
@@ -122,6 +143,19 @@ export async function POST(req: Request) {
         note: `POS payment for ${invoice.number}`,
       });
     }
+    if (balancePayment > 0) {
+      await LedgerEntry.create({
+        customerId: customer._id,
+        employeeId: user.employeeId || null,
+        invoiceId: null,
+        type: "payment",
+        amount: balancePayment,
+        status: "approved",
+        date,
+        note: `Payment against previous balance (at POS, ${invoice.number})`,
+      });
+    }
+    const newBalance = await syncCustomerBalance(customer._id);
 
     await logActivity({
       actor: user.name,
@@ -131,7 +165,16 @@ export async function POST(req: Request) {
       kind: "invoice",
     });
 
-    return json({ ...serializeDoc(invoice), balance: totals.total - paid }, 201);
+    return json(
+      {
+        ...serializeDoc(invoice),
+        balance: totals.total - paid,
+        previousBalance,
+        balancePayment,
+        customerBalance: newBalance,
+      },
+      201,
+    );
   } catch (err) {
     return errorResponse(err);
   }

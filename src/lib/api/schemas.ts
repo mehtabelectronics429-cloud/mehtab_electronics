@@ -166,6 +166,8 @@ export const posSaleInput = z.object({
   taxRate: z.coerce.number().min(0).optional(),
   shipping: z.coerce.number().min(0).optional(),
   paid: z.coerce.number().min(0).optional(),
+  /** Extra cash taken at the counter towards the customer's previous balance. */
+  balancePayment: z.coerce.number().min(0).optional(),
   date: z.string().optional(),
 });
 
@@ -225,6 +227,8 @@ export const ledgerInput = z.object({
   status: z.enum(["pending", "approved"]).optional(),
   date: z.string().or(z.date()),
   note: z.string().optional(),
+  /** Goods given on account — product lines are taken out of stock. */
+  items: z.array(posItemInput).optional(),
 });
 
 export const whatsappSendInput = z.object({

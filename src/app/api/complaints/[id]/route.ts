@@ -17,6 +17,7 @@ import { invoiceTotals } from "@/lib/invoice";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { logActivity } from "@/lib/db/logActivity";
+import { syncCustomerBalance } from "@/lib/ledger/server";
 
 type Params = { params: { id: string } };
 
@@ -188,6 +189,12 @@ export async function PATCH(req: Request, { params }: Params) {
           status: "approved",
           date,
           note: `Complaint service ${complaint.number} (${invoice.number})`,
+          items: invoiceItems.map((i) => ({
+            productId: i.productId || null,
+            description: i.description,
+            qty: i.qty,
+            unitPrice: i.unitPrice,
+          })),
         });
         await LedgerEntry.create({
           customerId,
@@ -199,6 +206,7 @@ export async function PATCH(req: Request, { params }: Params) {
           date,
           note: `Payment for complaint ${complaint.number}`,
         });
+        await syncCustomerBalance(customerId);
 
         complaint.invoiceId = invoice._id;
       }

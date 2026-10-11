@@ -8,6 +8,7 @@ import {
   type LedgerStatement,
   type LedgerSummary,
   type LedgerSummaryRow,
+  type LedgerItem,
   type RawLedgerEntry,
 } from "@/lib/ledger/statement";
 
@@ -26,9 +27,43 @@ type PopulatedEntry = {
   amount: number;
   status: string;
   note?: string;
-  invoiceId?: { number?: string } | null;
+  invoiceId?: { number?: string; items?: RawItem[] } | null;
   installationId?: { ref?: string } | null;
+  items?: RawItem[];
 };
+
+type RawItem = {
+  productId?: unknown;
+  description?: string;
+  qty?: number;
+  unitPrice?: number;
+};
+
+const cleanItems = (items?: RawItem[]): LedgerItem[] =>
+  (items ?? [])
+    .filter((i) => i && (i.description || "").trim())
+    .map((i) => ({
+      productId: i.productId ? String(i.productId) : null,
+      description: String(i.description),
+      qty: Number(i.qty) || 0,
+      unitPrice: Number(i.unitPrice) || 0,
+    }));
+
+/**
+ * Goods lines for a ledger entry: its own snapshot, or — for sale entries
+ * recorded before snapshots existed — the linked invoice's lines.
+ */
+export function ledgerEntryItems(e: {
+  type: string;
+  items?: RawItem[];
+  invoiceId?: unknown;
+}): LedgerItem[] {
+  const own = cleanItems(e.items);
+  if (own.length) return own;
+  if (e.type !== "invoice") return [];
+  const inv = e.invoiceId as { items?: RawItem[] } | null;
+  return inv && typeof inv === "object" ? cleanItems(inv.items) : [];
+}
 
 const toRaw = (e: PopulatedEntry): RawLedgerEntry => ({
   id: String(e._id),
@@ -38,6 +73,7 @@ const toRaw = (e: PopulatedEntry): RawLedgerEntry => ({
   status: e.status,
   note: e.note || "",
   ref: e.invoiceId?.number || e.installationId?.ref || "",
+  items: ledgerEntryItems(e),
 });
 
 export async function loadCustomerStatement(
@@ -55,7 +91,7 @@ export async function loadCustomerStatement(
   const [entries, before] = await Promise.all([
     LedgerEntry.find(period)
       .populate([
-        { path: "invoiceId", select: "number", strictPopulate: false },
+        { path: "invoiceId", select: "number items", strictPopulate: false },
         { path: "installationId", select: "ref", strictPopulate: false },
       ])
       .sort({ date: 1, createdAt: 1 })
@@ -187,4 +223,52 @@ export async function loadLedgerSummary(
   );
 
   return { from, to, rows, totals };
+}
+
+/**
+ * Recompute `Customer.balance` from the ledger (Σ approved debit − credit,
+ * soft-deleted entries excluded) so it can never drift from the statement.
+ * Call after any write that creates, edits, approves or deletes entries.
+ * Returns the fresh balance per customer id.
+ */
+export async function syncCustomerBalances(
+  customerIds: (string | Types.ObjectId | null | undefined)[],
+): Promise<Map<string, number>> {
+  const ids = Array.from(
+    new Set(customerIds.filter(Boolean).map((id) => String(id))),
+  ).filter((id) => Types.ObjectId.isValid(id));
+  const out = new Map<string, number>();
+  if (!ids.length) return out;
+
+  const grouped = await LedgerEntry.aggregate<{ _id: Types.ObjectId; debit: number; credit: number }>([
+    {
+      $match: {
+        ...notDeleted,
+        status: "approved",
+        customerId: { $in: ids.map((id) => new Types.ObjectId(id)) },
+      },
+    },
+    { $group: { _id: "$customerId", debit: { $sum: debitExpr }, credit: { $sum: creditExpr } } },
+  ]);
+  for (const id of ids) out.set(id, 0);
+  for (const g of grouped) {
+    out.set(String(g._id), Math.round((g.debit - g.credit) * 100) / 100);
+  }
+
+  await Customer.bulkWrite(
+    Array.from(out, ([id, balance]) => ({
+      // Only touch documents whose stored balance is actually stale.
+      updateOne: {
+        filter: { _id: new Types.ObjectId(id), balance: { $ne: balance } },
+        update: { $set: { balance } },
+        timestamps: false,
+      },
+    })),
+  );
+  return out;
+}
+
+export async function syncCustomerBalance(customerId: string | Types.ObjectId | null | undefined) {
+  const map = await syncCustomerBalances([customerId]);
+  return map.get(String(customerId)) ?? 0;
 }

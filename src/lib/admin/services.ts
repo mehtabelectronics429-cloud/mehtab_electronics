@@ -262,7 +262,12 @@ export const api = {
   },
 
   createSale: (body: Record<string, unknown>) =>
-    request<import("./types").Invoice & { balance: number }>("/api/pos", {
+    request<import("./types").Invoice & {
+      balance: number;
+      previousBalance: number;
+      balancePayment: number;
+      customerBalance: number;
+    }>("/api/pos", {
       method: "POST",
       body: JSON.stringify(body),
     }),
@@ -431,6 +436,18 @@ export const api = {
     return request<import("@/lib/ledger/statement").LedgerStatement>(
       `/api/ledger/report?${sp.toString()}`,
     );
+  },
+  ledgerStatements: (params?: { from?: string; to?: string; customerIds?: string[] }) => {
+    const sp = new URLSearchParams();
+    if (params?.from) sp.set("from", params.from);
+    if (params?.to) sp.set("to", params.to);
+    if (params?.customerIds?.length) sp.set("customerIds", params.customerIds.join(","));
+    const q = sp.toString();
+    return request<{
+      from: string | null;
+      to: string | null;
+      statements: import("@/lib/ledger/statement").LedgerStatement[];
+    }>(`/api/ledger/statements${q ? `?${q}` : ""}`);
   },
   ledgerSummary: (params?: { from?: string; to?: string }) => {
     const sp = new URLSearchParams();

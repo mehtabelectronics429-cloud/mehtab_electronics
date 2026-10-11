@@ -5,9 +5,10 @@ import { can } from "@/lib/admin/permissions";
 import { connectMongo } from "@/lib/db/mongodb";
 import { notDeleted } from "@/lib/db/soft-delete";
 import { ownCustomerIdList, isOwnScope } from "@/lib/api/scope";
-import { loadCustomerStatement, loadLedgerSummary } from "@/lib/ledger/server";
+import { ledgerEntryItems, loadCustomerStatement, loadLedgerSummary } from "@/lib/ledger/server";
 import {
   dateBounds,
+  ledgerItemText,
   ledgerTypeLabel,
   splitDebitCredit,
 } from "@/lib/ledger/statement";
@@ -62,7 +63,7 @@ export async function GET(req: Request) {
         line(["Ledger statement", st.customer.name]),
         line(["Period", from || "Beginning", to || "Today"]),
         "",
-        line(["Date", "Ref", "Particulars", "Type", "Status", "Debit", "Credit", "Balance"]),
+        line(["Date", "Ref", "Particulars", "Type", "Status", "Debit", "Credit", "Balance", "Items"]),
         line([from || "", "", "Opening balance", "", "", "", "", n2(st.totals.opening)]),
         ...st.rows.map((r) =>
           line([
@@ -74,6 +75,7 @@ export async function GET(req: Request) {
             r.debit ? n2(r.debit) : "",
             r.credit ? n2(r.credit) : "",
             r.status === "approved" ? n2(r.balance) : "",
+            r.items.map((i) => ledgerItemText(i)).join("; "),
           ]),
         ),
         line(["", "", "Total (approved)", "", "", n2(st.totals.debit), n2(st.totals.credit), ""]),
@@ -105,7 +107,7 @@ export async function GET(req: Request) {
       const entries = await LedgerEntry.find(filter)
         .populate([
           { path: "customerId", select: "name" },
-          { path: "invoiceId", select: "number", strictPopulate: false },
+          { path: "invoiceId", select: "number items", strictPopulate: false },
           { path: "installationId", select: "ref", strictPopulate: false },
         ])
         .sort({ date: 1, createdAt: 1 })
@@ -113,7 +115,7 @@ export async function GET(req: Request) {
       let td = 0;
       let tc = 0;
       rows = [
-        line(["Date", "Customer", "Ref", "Particulars", "Type", "Status", "Debit", "Credit"]),
+        line(["Date", "Customer", "Ref", "Particulars", "Type", "Status", "Debit", "Credit", "Items"]),
         ...entries.map((e) => {
           const { debit, credit } = splitDebitCredit(e.type, e.amount);
           if (e.status === "approved") {
@@ -132,6 +134,9 @@ export async function GET(req: Request) {
             e.status,
             debit ? n2(debit) : "",
             credit ? n2(credit) : "",
+            ledgerEntryItems(e as Parameters<typeof ledgerEntryItems>[0])
+              .map((i) => ledgerItemText(i))
+              .join("; "),
           ]);
         }),
         line(["", "", "", "Total (approved)", "", "", n2(td), n2(tc)]),
