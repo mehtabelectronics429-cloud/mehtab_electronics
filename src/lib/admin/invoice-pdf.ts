@@ -5,11 +5,23 @@ import { jsPDF } from "jspdf";
 
 /** Rasterise the invoice sheet element into a real (A4) PDF File. */
 export async function generateInvoicePdfFile(el: HTMLElement, filename: string): Promise<File> {
+  // Always lay the sheet out at desktop / A4 width, even on a phone: the clone
+  // is rendered in a wide virtual window (so `sm:`/`md:` styles apply) and the
+  // sheet itself is pinned to 794px (A4 at 96dpi). The on-screen sheet is
+  // untouched.
   const canvas = await html2canvas(el, {
     scale: 2,
     backgroundColor: "#ffffff",
     useCORS: true,
     logging: false,
+    windowWidth: Math.max(window.innerWidth, 1280),
+    onclone: (doc) => {
+      const sheet = el.id ? doc.getElementById(el.id) : null;
+      if (sheet) {
+        sheet.style.width = "794px";
+        sheet.style.maxWidth = "794px";
+      }
+    },
   });
   const imgData = canvas.toDataURL("image/jpeg", 0.95);
 

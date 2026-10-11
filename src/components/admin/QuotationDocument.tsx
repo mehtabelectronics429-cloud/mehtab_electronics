@@ -66,7 +66,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
   return (
     <div
       id="quotation-sheet"
-      className="mx-auto w-full max-w-3xl bg-white p-8 text-[13px] text-neutral-900 md:p-10"
+      className="mx-auto w-full max-w-3xl bg-white p-4 text-[12px] text-neutral-900 sm:p-8 sm:text-[13px] md:p-10"
     >
       <div className="flex items-start justify-between">
         <div />
@@ -75,12 +75,12 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
             <div className="text-[10px] font-semibold tracking-widest text-neutral-500">
               {L.since}
             </div>
-            <div className="mt-8 text-[10px] italic text-neutral-400">
+            <div className="mt-4 text-[10px] italic text-neutral-400 sm:mt-8">
               {L.tagline}
             </div>
           </div>
           <span
-            className="grid h-20 w-20 place-items-center overflow-hidden rounded-md"
+            className="grid h-14 w-14 place-items-center overflow-hidden rounded-md sm:h-20 sm:w-20"
             style={{ background: "#000000" }}
           >
             <Image
@@ -96,7 +96,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
       </div>
 
       <h1
-        className="-mt-6 font-display text-4xl font-bold uppercase"
+        className="mt-2 font-display text-3xl font-bold uppercase sm:-mt-6 sm:text-4xl"
         style={{ color: accent }}
       >
         Quotation
@@ -105,8 +105,8 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
         <p className="mt-1 text-sm text-neutral-600">{data.title}</p>
       ) : null}
 
-      <div className="mt-4 flex items-start justify-between gap-8">
-        <div className="leading-relaxed">
+      <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+        <div className="min-w-0 break-words leading-relaxed">
           <div className="text-base font-bold">{L.name}</div>
           <div className="text-neutral-600">{L.address}</div>
           <div className="text-neutral-600">{L.postal}</div>
@@ -116,7 +116,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
             {L.email}
           </a>
         </div>
-        <div className="w-52 shrink-0">
+        <div className="w-full shrink-0 sm:w-52">
           <div className="border-b border-neutral-300 pb-1 text-[10px] uppercase tracking-widest text-neutral-500">
             Date
           </div>
@@ -136,8 +136,8 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
         </div>
       </div>
 
-      <div className="mt-6 flex items-start justify-between gap-8">
-        <div>
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+        <div className="min-w-0 break-words">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
             Quote To
           </div>
@@ -149,7 +149,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
             <div className="text-neutral-600">{data.customerPhone}</div>
           )}
         </div>
-        <div className="w-52 shrink-0">
+        <div className="w-full shrink-0 sm:w-52">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
             Prepared By
           </div>
@@ -162,20 +162,21 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
       <table className="mt-6 w-full border-collapse text-[12px]">
         <thead>
           <tr style={{ background: accent }} className="text-left text-white">
+            <th className="w-6 px-2 py-2 font-semibold">#</th>
             <th className="px-2 py-2 font-semibold">DESCRIPTION</th>
-            <th className="w-20 px-2 py-2 font-semibold">TYPE</th>
-            <th className="w-16 px-2 py-2 text-right font-semibold">QTY</th>
-            <th className="w-28 px-2 py-2 text-right font-semibold">
+            <th className="hidden w-20 px-2 py-2 font-semibold sm:table-cell">TYPE</th>
+            <th className="hidden w-16 px-2 py-2 text-right font-semibold sm:table-cell">QTY</th>
+            <th className="hidden w-28 px-2 py-2 text-right font-semibold sm:table-cell">
               UNIT PRICE
             </th>
-            <th className="w-32 px-2 py-2 text-right font-semibold">TOTAL</th>
+            <th className="w-28 px-2 py-2 text-right font-semibold sm:w-32">TOTAL</th>
           </tr>
         </thead>
         <tbody>
           {data.items.length === 0 && (
             <tr>
               <td
-                colSpan={5}
+                colSpan={6}
                 className="px-2 py-6 text-center text-neutral-400"
               >
                 No line items
@@ -183,16 +184,24 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
             </tr>
           )}
           {data.items.map((it, i) => (
-            <tr key={i} className="border-b border-neutral-200">
-              <td className="px-2 py-1.5">{it.description}</td>
-              <td className="px-2 py-1.5 capitalize text-neutral-600">
+            <tr key={i} className="border-b border-neutral-200 align-top">
+              <td className="px-2 py-1.5 text-neutral-400">{i + 1}</td>
+              <td className="px-2 py-1.5">
+                {it.description}
+                {/* phones: the hidden columns, folded under the item */}
+                <div className="mt-0.5 text-[11px] tabular-nums text-neutral-500 sm:hidden">
+                  {it.qty} × {money(it.unitPrice)}
+                  <span className="capitalize"> · {it.kind || "other"}</span>
+                </div>
+              </td>
+              <td className="hidden px-2 py-1.5 capitalize text-neutral-600 sm:table-cell">
                 {it.kind || "other"}
               </td>
-              <td className="px-2 py-1.5 text-right tabular-nums">{it.qty}</td>
-              <td className="px-2 py-1.5 text-right tabular-nums">
+              <td className="hidden px-2 py-1.5 text-right tabular-nums sm:table-cell">{it.qty}</td>
+              <td className="hidden px-2 py-1.5 text-right tabular-nums sm:table-cell">
                 {money(it.unitPrice)}
               </td>
-              <td className="px-2 py-1.5 text-right tabular-nums">
+              <td className="whitespace-nowrap px-2 py-1.5 text-right font-medium tabular-nums">
                 {money(it.qty * it.unitPrice)}
               </td>
             </tr>
@@ -201,7 +210,7 @@ export default function QuotationDocument({ data }: { data: QuotationData }) {
       </table>
 
       <div className="mt-4 flex justify-end">
-        <div className="w-72">
+        <div className="w-full sm:w-72">
           <Row label="Subtotal" value={money(t.subtotal)} />
           <Row label="Discount" value={money(t.discount)} />
           <Row label="Subtotal Less Discount" value={money(t.lessDiscount)} />

@@ -581,7 +581,7 @@ export default function QuotationsPage() {
           </div>
         </Card>
 
-        <div className="w-full overflow-x-auto rounded-xl bg-neutral-200/60 p-4 print:bg-transparent print:p-0">
+        <div className="w-full overflow-x-auto rounded-xl bg-neutral-200/60 p-1.5 sm:p-4 print:bg-transparent print:p-0">
           <QuotationDocument data={quoteData} />
         </div>
       </div>
