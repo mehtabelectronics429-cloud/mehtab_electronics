@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 
 type Theme = "dark" | "light";
 const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({
@@ -11,6 +12,30 @@ const ThemeCtx = createContext<{ theme: Theme; toggle: () => void }>({
 function systemTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+/**
+ * Paint the phone browser bar (meta theme-color) to match the active theme —
+ * the admin uses its own background. The media-specific tags from the layout
+ * only follow the OS setting, so they're collapsed to one explicit colour.
+ */
+function syncThemeColor(theme: Theme, pathname: string) {
+  const admin = pathname.startsWith("/admin");
+  const color = admin
+    ? theme === "dark" ? "#06070d" : "#f3f5f9"
+    : theme === "dark" ? "#09090b" : "#f5f5f4";
+  const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!metas.length) {
+    const m = document.createElement("meta");
+    m.name = "theme-color";
+    document.head.appendChild(m);
+    m.content = color;
+    return;
+  }
+  metas.forEach((m) => {
+    m.removeAttribute("media");
+    m.content = color;
+  });
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -34,6 +59,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
+
+  const pathname = usePathname() || "/";
+  useEffect(() => {
+    syncThemeColor(theme, pathname);
+  }, [theme, pathname]);
 
   const toggle = useCallback(() => {
     setTheme((prev) => {

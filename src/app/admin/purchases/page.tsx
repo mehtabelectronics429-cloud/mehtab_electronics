@@ -16,7 +16,7 @@ import {
   type SearchableOption,
 } from "@/components/admin/ui/SearchableSelect";
 import {
-  searchProductOptions,
+  productOption,
   productFromOption,
 } from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
@@ -38,6 +38,7 @@ import {
   QtyStepper,
   totalsSummary,
 } from "@/components/admin/ui/LineItems";
+import { ProductLineField } from "@/components/admin/ui/ProductLineItems";
 
 const schema = z.object({
   supplierId: z.string().min(1, "Select a supplier"),
@@ -116,6 +117,11 @@ export default function PurchasesPage() {
         shipping,
       }).total,
     [rows, discount, shipping],
+  );
+
+  const productOpts = useMemo(
+    () => (products?.items ?? []).map(productOption),
+    [products],
   );
 
   const setRow = (i: number, patch: Partial<ItemRow>) =>
@@ -497,35 +503,28 @@ export default function PurchasesPage() {
                     setRows((rs) => rs.filter((_, i) => i !== idx))
                   }
                   item={
-                    <div className="space-y-1.5">
-                      <SearchableSelect
-                        value={row.productId}
-                        onChange={(v, opt) => pickProduct(idx, v, opt)}
-                        placeholder="Custom / not in catalogue…"
-                        options={[
-                          { value: "", label: "Custom / not in catalogue…" },
-                          ...(products?.items ?? []).map((p) => ({
-                            value: p.id,
-                            label: `${p.brand} ${p.model}`.trim(),
-                            searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
-                            data: p as unknown as Record<string, unknown>,
-                          })),
-                          // Rows added from a group may reference products outside the loaded list.
-                          ...(row.productId &&
-                          !(products?.items ?? []).some((p) => p.id === row.productId)
-                            ? [{ value: row.productId, label: row.name }]
-                            : []),
-                        ]}
-                        onSearch={searchProductOptions}
-                        allowClear={false}
-                      />
-                      <Input
-                        value={row.name}
-                        onChange={(e) => setRow(idx, { name: e.target.value })}
-                        placeholder="Item name / description"
-                        className="h-9"
-                      />
-                    </div>
+                    <ProductLineField
+                      line={{ productId: row.productId || null, description: row.name }}
+                      productOptions={productOpts}
+                      onPick={(p) =>
+                        p
+                          ? pickProduct(idx, p.id, {
+                              value: p.id,
+                              label: `${p.brand} ${p.model}`.trim(),
+                              data: p as unknown as Record<string, unknown>,
+                            })
+                          : undefined
+                      }
+                      onText={(text) =>
+                        setRow(idx, {
+                          name: text,
+                          // clearing the text unlinks the catalogue product
+                          productId: text.trim() ? row.productId : "",
+                        })
+                      }
+                      onUnlink={() => setRow(idx, { productId: "" })}
+                      onCommit={() => undefined}
+                    />
                   }
                   qty={
                     <QtyStepper

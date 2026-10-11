@@ -131,26 +131,26 @@ export default function AdminShell({
 
   if (loading || !user) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[var(--admin-bg)]">
+      <div className="grid min-h-[100dvh] place-items-center bg-[var(--admin-bg)]">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan/30 border-t-cyan" />
       </div>
     );
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[var(--admin-bg)] text-[var(--admin-fg)]">
+    <div className="h-[100dvh] overflow-hidden bg-[var(--admin-bg)] text-[var(--admin-fg)]">
       {/* Fixed sidebar (out of flow); the content column is offset by its width. */}
       <Sidebar />
       <div
         className={cn(
-          "flex h-screen flex-col transition-[padding] duration-300",
+          "flex h-[100dvh] flex-col transition-[padding] duration-300",
           collapsed ? "lg:pl-[76px]" : "lg:pl-64",
         )}
       >
         {/* Topbar stays pinned; only <main> scrolls. */}
         <Topbar onSearch={() => setCmd(true)} />
         <main className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
+          <div className="mx-auto max-w-[1400px] px-3 py-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-6 md:px-8 md:py-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}

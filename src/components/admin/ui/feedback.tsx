@@ -5,14 +5,14 @@ import Icon from "@/components/ui/Icon";
 import { Card } from "./primitives";
 import { cn } from "@/lib/utils";
 
-export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: React.ReactNode }) {
+export function PageHeader({ title, subtitle, actions }: { title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <div className="mb-7 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--admin-fg)]">{title}</h1>
-        {subtitle && <p className="mt-1.5 text-sm text-[var(--admin-muted)]">{subtitle}</p>}
+    <div className="mb-5 flex flex-col justify-between gap-3 sm:mb-7 sm:flex-row sm:items-end sm:gap-4">
+      <div className="min-w-0">
+        <h1 className="font-display text-xl font-bold tracking-tight text-[var(--admin-fg)] sm:text-2xl">{title}</h1>
+        {subtitle && <p className="mt-1 text-xs text-[var(--admin-muted)] sm:mt-1.5 sm:text-sm">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">{actions}</div>}
     </div>
   );
 }
@@ -26,7 +26,7 @@ export function StatCard({ label, value, delta, icon, accent = "cyan", index = 0
 }) {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}>
-      <Card className="group relative overflow-hidden p-5 transition-colors hover:border-white/20">
+      <Card className="group relative overflow-hidden p-4 transition-colors hover:border-white/20 sm:p-5">
         <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-cyan/10 opacity-0 blur-2xl transition-opacity group-hover:opacity-100" />
         <div className="flex items-center justify-between">
           <span className="text-xs text-[var(--admin-muted)]">{label}</span>
@@ -34,7 +34,7 @@ export function StatCard({ label, value, delta, icon, accent = "cyan", index = 0
             <Icon name={icon} className="h-4 w-4" />
           </span>
         </div>
-        <div className="mt-3 font-display text-2xl font-bold text-[var(--admin-fg)]">{value}</div>
+        <div className="mt-2 break-words font-display text-xl font-bold text-[var(--admin-fg)] sm:mt-3 sm:text-2xl">{value}</div>
         {delta && <div className="mt-1 text-xs text-[var(--admin-muted)]">{delta}</div>}
       </Card>
     </motion.div>
@@ -53,20 +53,20 @@ export function EmptyState({ icon = "Inbox", title, body, action }: { icon?: str
 }
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  pending: { label: "Pending", cls: "text-amber-300 border-amber-400/30 bg-amber-400/10" },
-  assigned: { label: "Assigned", cls: "text-sky-300 border-sky-400/30 bg-sky-400/10" },
+  pending: { label: "Pending", cls: "text-amber-700 dark:text-amber-300 border-amber-400/30 bg-amber-400/10" },
+  assigned: { label: "Assigned", cls: "text-sky-700 dark:text-sky-300 border-sky-400/30 bg-sky-400/10" },
   in_progress: { label: "In Progress", cls: "text-cyan border-cyan/30 bg-cyan/10" },
-  submitted: { label: "Submitted", cls: "text-violet-300 border-violet-400/30 bg-violet-400/10" },
-  approved: { label: "Approved", cls: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10" },
-  rejected: { label: "Rejected", cls: "text-red-300 border-red-400/30 bg-red-400/10" },
+  submitted: { label: "Submitted", cls: "text-violet-700 dark:text-violet-300 border-violet-400/30 bg-violet-400/10" },
+  approved: { label: "Approved", cls: "text-emerald-700 dark:text-emerald-300 border-emerald-400/30 bg-emerald-400/10" },
+  rejected: { label: "Rejected", cls: "text-red-700 dark:text-red-300 border-red-400/30 bg-red-400/10" },
   completed: { label: "Completed", cls: "text-energy border-energy/30 bg-energy/10" },
   draft: { label: "Draft", cls: "text-white/60 border-white/15 bg-white/5" },
-  sent: { label: "Sent", cls: "text-sky-300 border-sky-400/30 bg-sky-400/10" },
-  accepted: { label: "Accepted", cls: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10" },
-  converted: { label: "Converted", cls: "text-violet-300 border-violet-400/30 bg-violet-400/10" },
-  unpaid: { label: "Unpaid", cls: "text-red-300 border-red-400/30 bg-red-400/10" },
-  partial: { label: "Partial", cls: "text-amber-300 border-amber-400/30 bg-amber-400/10" },
-  paid: { label: "Paid", cls: "text-emerald-300 border-emerald-400/30 bg-emerald-400/10" },
+  sent: { label: "Sent", cls: "text-sky-700 dark:text-sky-300 border-sky-400/30 bg-sky-400/10" },
+  accepted: { label: "Accepted", cls: "text-emerald-700 dark:text-emerald-300 border-emerald-400/30 bg-emerald-400/10" },
+  converted: { label: "Converted", cls: "text-violet-700 dark:text-violet-300 border-violet-400/30 bg-violet-400/10" },
+  unpaid: { label: "Unpaid", cls: "text-red-700 dark:text-red-300 border-red-400/30 bg-red-400/10" },
+  partial: { label: "Partial", cls: "text-amber-700 dark:text-amber-300 border-amber-400/30 bg-amber-400/10" },
+  paid: { label: "Paid", cls: "text-emerald-700 dark:text-emerald-300 border-emerald-400/30 bg-emerald-400/10" },
 };
 
 export function StatusBadge({ status }: { status: string }) {

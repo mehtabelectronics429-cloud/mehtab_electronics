@@ -45,12 +45,17 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090B",
+  // Phone browser bar colour; ThemeProvider keeps it in sync with the chosen
+  // theme (and the admin palette) after load.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f5f5f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
 
-const themeScript = `(function(){try{var s=localStorage.getItem('theme');var t=s||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');}catch(e){document.documentElement.classList.add('dark');}})();`;
+const themeScript = `(function(){try{var s=localStorage.getItem('theme');var t=s||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');var a=location.pathname.indexOf('/admin')===0;var c=a?(t==='dark'?'#06070d':'#f3f5f9'):(t==='dark'?'#09090b':'#f5f5f4');document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.removeAttribute('media');m.setAttribute('content',c);});});}catch(e){document.documentElement.classList.add('dark');}})();`;
 
 export default function RootLayout({
   children,

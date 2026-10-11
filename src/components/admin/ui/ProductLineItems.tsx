@@ -320,7 +320,12 @@ export default function ProductLineItems({
 
 /* ── combined search-and-view product field ───────────────────────────── */
 
-function ProductLineField({
+/**
+ * One field to search the catalogue or type a custom item name (shared with
+ * the purchase and installation editors). Picking a product links it; typing
+ * free text keeps a custom line.
+ */
+export function ProductLineField({
   line,
   productOptions,
   inputRef,
@@ -329,9 +334,9 @@ function ProductLineField({
   onUnlink,
   onCommit,
 }: {
-  line: ProductLine;
+  line: Pick<ProductLine, "productId" | "description">;
   productOptions: SearchableOption[];
-  inputRef: (el: HTMLInputElement | null) => void;
+  inputRef?: (el: HTMLInputElement | null) => void;
   onPick: (product: ProductPick | null) => void;
   onText: (text: string) => void;
   onUnlink: () => void;
@@ -395,6 +400,7 @@ function ProductLineField({
       brand: p.brand,
       model: p.model,
       sellingPrice: p.sellingPrice,
+      purchasePrice: p.purchasePrice,
     };
   };
 
@@ -520,9 +526,10 @@ function ProductLineField({
   );
 }
 
-type ProductPick = {
+export type ProductPick = {
   id: string;
   brand: string;
   model: string;
   sellingPrice: number;
+  purchasePrice?: number;
 };

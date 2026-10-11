@@ -117,7 +117,7 @@ export function CameraScanModal({
   // so the admin light/dark theme tokens still apply.
   if (typeof document === "undefined") return null;
   return createPortal(
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal open={open} onClose={onClose} title={title} size="dialog">
       <div className="space-y-3">
         <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-black">
           <video ref={videoRef} className="h-full w-full object-cover" muted playsInline />

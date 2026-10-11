@@ -14,6 +14,14 @@ import { Skeleton } from "./primitives";
 import { EmptyState } from "./feedback";
 import { cn } from "@/lib/utils";
 
+/** A column shows a label in the phone card layout only if it has a header. */
+const hasHeader = (def: { header?: unknown }) => {
+  const h = def.header;
+  if (typeof h === "string") return h.trim().length > 0;
+  if (h != null) return true;
+  return "accessorKey" in def; // tanstack falls back to the key as the header
+};
+
 export default function DataTable<T>({
   columns,
   data,
@@ -62,7 +70,57 @@ export default function DataTable<T>({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-      <div className="overflow-x-auto">
+      {/* phones: one card per row, "label · value" lines; header-less columns (actions) sit at the bottom */}
+      <ul className="divide-y divide-white/[0.06] md:hidden">
+        {table.getRowModel().rows.map((row) => {
+          const cells = row.getVisibleCells();
+          const labelled = cells.filter((c) => hasHeader(c.column.columnDef));
+          const bare = cells.filter((c) => !hasHeader(c.column.columnDef));
+          const header = (id: string) => {
+            const h = table.getFlatHeaders().find((x) => x.column.id === id);
+            return h ? flexRender(h.column.columnDef.header, h.getContext()) : null;
+          };
+          return (
+            <li
+              key={row.id}
+              onClick={() => onRowClick?.(row.original)}
+              className={cn("px-4 py-3", onRowClick && "cursor-pointer active:bg-white/[0.03]")}
+            >
+              <div className="space-y-1.5">
+                {labelled.map((cell, i) => (
+                  <div
+                    key={cell.id}
+                    className={cn(
+                      "flex items-start justify-between gap-3 text-sm",
+                      i === 0 && "pb-0.5 font-medium",
+                    )}
+                  >
+                    <span className="shrink-0 pt-0.5 text-[0.65rem] uppercase tracking-wider text-[var(--admin-muted)] [&_*]:!text-left">
+                      {header(cell.column.id)}
+                    </span>
+                    <span className="min-w-0 text-right text-[var(--admin-fg)] [&>*]:ml-auto">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {bare.length > 0 && (
+                <div
+                  className="mt-2.5 flex flex-wrap items-center justify-end gap-1 border-t border-white/[0.06] pt-2.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {bare.map((cell) => (
+                    <div key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>
+                  ))}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* tablets / desktop: table */}
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead>
             {table.getHeaderGroups().map((hg) => (
@@ -103,7 +161,7 @@ export default function DataTable<T>({
         </table>
       </div>
       {showPager && (
-        <div className="flex items-center justify-between border-t border-white/10 px-4 py-3 text-xs text-[var(--admin-muted)]">
+        <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3 text-xs text-[var(--admin-muted)]">
           <span>
             Page {page} of {totalPages}
             {typeof total === "number" ? ` · ${total} total` : ""}
@@ -113,7 +171,7 @@ export default function DataTable<T>({
               type="button"
               disabled={page! <= 1}
               onClick={() => onPageChange!(page! - 1)}
-              className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 disabled:opacity-30 hover:bg-white/5"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 disabled:opacity-30 hover:bg-white/5"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -121,7 +179,7 @@ export default function DataTable<T>({
               type="button"
               disabled={page! >= totalPages!}
               onClick={() => onPageChange!(page! + 1)}
-              className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 disabled:opacity-30 hover:bg-white/5"
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/10 disabled:opacity-30 hover:bg-white/5"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

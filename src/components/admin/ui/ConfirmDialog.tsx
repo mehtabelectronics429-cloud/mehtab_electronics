@@ -21,7 +21,7 @@ export default function ConfirmDialog({
   onConfirm: () => void;
 }) {
   return (
-    <Modal open={open} onClose={onClose} title={title}>
+    <Modal open={open} onClose={onClose} title={title} size="dialog">
       <div className="space-y-5">
         <p className="text-sm leading-6 text-slate-600 dark:text-white/70">{message}</p>
         <div className="flex justify-end gap-2">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,7 +20,7 @@ import {
   type SearchableOption,
 } from "@/components/admin/ui/SearchableSelect";
 import {
-  searchProductOptions,
+  productOption,
   productFromOption,
 } from "@/lib/admin/product-search";
 import DataTable from "@/components/admin/ui/DataTable";
@@ -41,6 +41,7 @@ import {
   QtyStepper,
   totalsSummary,
 } from "@/components/admin/ui/LineItems";
+import { ProductLineField } from "@/components/admin/ui/ProductLineItems";
 import { invoiceTotals } from "@/lib/invoice";
 
 const FILTERS: (InstallationStatus | "all")[] = [
@@ -150,6 +151,11 @@ function InstallationsInner() {
 
   const subtotal = itemRows.reduce((s, r) => s + (r.qty * r.unitPrice || 0), 0);
   const computedAmount = Math.max(0, subtotal - discount) + shipping;
+
+  const productOpts = useMemo(
+    () => (products?.items ?? []).map(productOption),
+    [products],
+  );
 
   const setItem = (idx: number, patch: Partial<ItemRow>) =>
     setItemRows((rows) =>
@@ -582,30 +588,28 @@ function InstallationsInner() {
                     setItemRows((rs) => rs.filter((_, i) => i !== idx))
                   }
                   item={
-                    <div className="space-y-1.5">
-                      <SearchableSelect
-                        value={row.productId}
-                        onChange={(v, opt) => pickProduct(idx, v, opt)}
-                        placeholder="Custom / type below…"
-                        options={[
-                          { value: "", label: "Custom / type below…" },
-                          ...(products?.items ?? []).map((p) => ({
-                            value: p.id,
-                            label: `${p.brand} ${p.model}`.trim(),
-                            searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
-                            data: p as unknown as Record<string, unknown>,
-                          })),
-                        ]}
-                        onSearch={searchProductOptions}
-                        allowClear={false}
-                      />
-                      <Input
-                        value={row.name}
-                        onChange={(e) => setItem(idx, { name: e.target.value })}
-                        placeholder="Item name / description"
-                        className="h-9"
-                      />
-                    </div>
+                    <ProductLineField
+                      line={{ productId: row.productId || null, description: row.name }}
+                      productOptions={productOpts}
+                      onPick={(p) =>
+                        p
+                          ? pickProduct(idx, p.id, {
+                              value: p.id,
+                              label: `${p.brand} ${p.model}`.trim(),
+                              data: p as unknown as Record<string, unknown>,
+                            })
+                          : undefined
+                      }
+                      onText={(text) =>
+                        setItem(idx, {
+                          name: text,
+                          // clearing the text unlinks the catalogue product
+                          productId: text.trim() ? row.productId : "",
+                        })
+                      }
+                      onUnlink={() => setItem(idx, { productId: "" })}
+                      onCommit={() => undefined}
+                    />
                   }
                   qty={
                     <QtyStepper
