@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, Trash2, Wallet, Upload, Eye, Search, Download } from "lucide-react";
+import { Plus, Wallet, Upload, Eye, Search, Download } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader, StatusBadge } from "@/components/admin/ui/feedback";
 import { Button, Input, Label } from "@/components/admin/ui/primitives";
@@ -28,6 +28,16 @@ import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
 import type { Product, ProductGroup, Purchase } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
+import {
+  LineEditorFooter,
+  LineEditorFrame,
+  LineEditorHeader,
+  LineEditorRow,
+  LineTotal,
+  PriceInput,
+  QtyStepper,
+  totalsSummary,
+} from "@/components/admin/ui/LineItems";
 
 const schema = z.object({
   supplierId: z.string().min(1, "Select a supplier"),
@@ -476,67 +486,74 @@ export default function PurchasesPage() {
               placeholder="Scan received items (barcode / SKU + Enter)"
               className="mb-2"
             />
-            <div className="space-y-2">
+            <LineEditorFrame>
+              <LineEditorHeader priceLabel="Unit cost" />
               {rows.map((row, idx) => (
-                <div
+                <LineEditorRow
                   key={idx}
-                  className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1.7fr)_minmax(0,0.9fr)_minmax(0,0.6fr)_auto]"
-                >
-                  <SearchableSelect
-                    value={row.productId}
-                    onChange={(v, opt) => pickProduct(idx, v, opt)}
-                    placeholder="Custom / not in catalogue…"
-                    options={[
-                      { value: "", label: "Custom / not in catalogue…" },
-                      ...(products?.items ?? []).map((p) => ({
-                        value: p.id,
-                        label: `${p.brand} ${p.model}`.trim(),
-                        searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
-                        data: p as unknown as Record<string, unknown>,
-                      })),
-                      // Rows added from a group may reference products outside the loaded list.
-                      ...(row.productId &&
-                      !(products?.items ?? []).some((p) => p.id === row.productId)
-                        ? [{ value: row.productId, label: row.name }]
-                        : []),
-                    ]}
-                    onSearch={searchProductOptions}
-                    allowClear={false}
-                  />
-                  <Input
-                    value={row.name}
-                    onChange={(e) => setRow(idx, { name: e.target.value })}
-                    placeholder="Item name"
-                  />
-                  <Input
-                    type="number"
-                    value={row.unitCost}
-                    onChange={(e) =>
-                      setRow(idx, { unitCost: Number(e.target.value) || 0 })
-                    }
-                    placeholder="Unit cost"
-                  />
-                  <Input
-                    type="number"
-                    value={row.qty}
-                    onChange={(e) =>
-                      setRow(idx, { qty: Number(e.target.value) || 0 })
-                    }
-                    placeholder="Qty"
-                  />
-                  <button
-                    type="button"
-                    disabled={rows.length <= 1}
-                    onClick={() =>
-                      setRows((rs) => rs.filter((_, i) => i !== idx))
-                    }
-                    className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-white/40 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-30"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                  index={idx}
+                  removeDisabled={rows.length <= 1}
+                  onRemove={() =>
+                    setRows((rs) => rs.filter((_, i) => i !== idx))
+                  }
+                  item={
+                    <div className="space-y-1.5">
+                      <SearchableSelect
+                        value={row.productId}
+                        onChange={(v, opt) => pickProduct(idx, v, opt)}
+                        placeholder="Custom / not in catalogue…"
+                        options={[
+                          { value: "", label: "Custom / not in catalogue…" },
+                          ...(products?.items ?? []).map((p) => ({
+                            value: p.id,
+                            label: `${p.brand} ${p.model}`.trim(),
+                            searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
+                            data: p as unknown as Record<string, unknown>,
+                          })),
+                          // Rows added from a group may reference products outside the loaded list.
+                          ...(row.productId &&
+                          !(products?.items ?? []).some((p) => p.id === row.productId)
+                            ? [{ value: row.productId, label: row.name }]
+                            : []),
+                        ]}
+                        onSearch={searchProductOptions}
+                        allowClear={false}
+                      />
+                      <Input
+                        value={row.name}
+                        onChange={(e) => setRow(idx, { name: e.target.value })}
+                        placeholder="Item name / description"
+                        className="h-9"
+                      />
+                    </div>
+                  }
+                  qty={
+                    <QtyStepper
+                      value={row.qty}
+                      onChange={(qty) => setRow(idx, { qty })}
+                    />
+                  }
+                  price={
+                    <PriceInput
+                      value={row.unitCost}
+                      onChange={(v) => setRow(idx, { unitCost: v })}
+                    />
+                  }
+                  total={<LineTotal value={(row.qty || 0) * (row.unitCost || 0)} />}
+                />
               ))}
-            </div>
+              <LineEditorFooter
+                lines={rows.map((r) => ({ description: r.name || r.productId, qty: r.qty, unitPrice: r.unitCost }))}
+                summary={totalsSummary(
+                  invoiceTotals({
+                    items: rows.map((r) => ({ qty: r.qty, unitPrice: r.unitCost })),
+                    discount,
+                    shipping,
+                  }),
+                  { totalLabel: "Bill total" },
+                )}
+              />
+            </LineEditorFrame>
             <p className="mt-2 text-xs text-white/40">
               Catalogue items increase stock and update their purchase cost.
               Custom items are recorded on the bill only.

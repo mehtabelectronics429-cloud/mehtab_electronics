@@ -7,15 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Loader2,
-  Minus,
-  Package,
-  Plus,
-  Search,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Loader2, Package, Plus, Search, X } from "lucide-react";
 import {
   searchProductOptions,
   productFromOption,
@@ -27,6 +19,16 @@ import toast from "react-hot-toast";
 import GroupPicker, { mergeGroup } from "@/components/admin/ui/GroupPicker";
 import ScanInput from "@/components/admin/ui/BarcodeScanner";
 import type { Product, ProductGroup } from "@/lib/admin/types";
+import {
+  LineEditorFooter,
+  LineEditorFrame,
+  LineEditorHeader,
+  LineEditorRow,
+  LineTotal,
+  PriceInput,
+  QtyStepper,
+  type SummaryRow,
+} from "@/components/admin/ui/LineItems";
 
 export type LineKind = "product" | "labour" | "material" | "other";
 
@@ -69,6 +71,8 @@ type Props = {
   showGroups?: boolean;
   /** Show the barcode scan field (USB scanner + camera). Default true. */
   scanner?: boolean;
+  /** Extra rows under the items total (discount, tax, grand total…). */
+  summary?: SummaryRow[];
   className?: string;
 };
 
@@ -76,9 +80,10 @@ const lineIsEmpty = (l: ProductLine) =>
   !l.productId && !l.description.trim() && !l.unitPrice;
 
 /**
- * Reusable line-items editor shared by POS, Quotations and Invoices.
- * Each row has ONE combined search-and-view product field, then qty, unit
- * price, a live row total, and a remove control. Completing a field advances
+ * Reusable line-items editor shared by Quotations, Invoices, Complaints and
+ * the ledger, laid out like the POS cart: numbered rows with ONE combined
+ * search-and-view product field, qty stepper, unit price, live line total and
+ * remove, then an items-total footer. Completing a field advances
  * focus to the next (product → qty → price → next row), and filling the last
  * row auto-appends a fresh one.
  */
@@ -92,6 +97,7 @@ export default function ProductLineItems({
   currency = pkr,
   showGroups = true,
   scanner = true,
+  summary,
   className,
 }: Props) {
   const rows = value;
@@ -192,190 +198,122 @@ export default function ProductLineItems({
     focusKey(`${nextIdx}:product`);
   };
 
-  const gridCols = showKind
-    ? "sm:grid-cols-[minmax(0,1.6fr)_7rem_5.5rem_7rem_6.5rem_2.5rem]"
-    : "sm:grid-cols-[minmax(0,1.8fr)_7rem_7rem_6.5rem_2.5rem]";
-
   return (
     <div className={cn("space-y-2", className)}>
       {scanner && <ScanInput onProduct={addScanned} />}
 
-      {/* header (desktop only) */}
-      <div
-        className={cn(
-          "hidden gap-2 px-1 text-[0.62rem] font-semibold uppercase tracking-wider text-white/35 sm:grid",
-          gridCols,
-        )}
-      >
-        <span>Item</span>
-        {showKind && <span>Type</span>}
-        <span className="text-center">Qty</span>
-        <span className="text-right">Unit price</span>
-        <span className="text-right">Total</span>
-        <span />
-      </div>
+      <LineEditorFrame>
+        <LineEditorHeader extra={showKind ? "Type" : undefined} />
 
-      {rows.map((line, idx) => {
-        const stock =
-          line.productId && stockLookup ? stockLookup(line.productId) : null;
-        const atLimit = stock != null && line.qty >= stock;
-        const rowTotal = (line.qty || 0) * (line.unitPrice || 0);
-        return (
-          <div
-            key={idx}
-            className={cn(
-              "grid grid-cols-2 items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2",
-              gridCols,
-            )}
-          >
-            {/* combined product search + view */}
-            <div className="col-span-2 sm:col-span-1">
-              <ProductLineField
-                line={line}
-                productOptions={productOptions}
-                inputRef={register(`${idx}:product`)}
-                onPick={(p) => {
-                  setLine(idx, {
-                    productId: p ? p.id : null,
-                    description: p
-                      ? `${p.brand} ${p.model}`.trim()
-                      : line.description,
-                    unitPrice: p ? p.sellingPrice : line.unitPrice,
-                    kind: p ? "product" : line.kind,
-                  });
-                  focusKey(`${idx}:qty`);
-                }}
-                onText={(text) =>
-                  setLine(idx, {
-                    description: text,
-                    // typing a fresh description unlinks the product
-                    productId: text.trim() ? line.productId : null,
-                  })
-                }
-                onUnlink={() => setLine(idx, { productId: null })}
-                onCommit={() => focusKey(`${idx}:qty`)}
-              />
-            </div>
-
-            {showKind && (
-              <select
-                value={line.kind || "product"}
-                onChange={(e) =>
-                  setLine(idx, { kind: e.target.value as LineKind })
-                }
-                className="h-9 rounded-lg border border-white/10 bg-transparent px-2 text-sm text-white outline-none focus:border-cyan/50"
-              >
-                {KIND_OPTIONS.map((k) => (
-                  <option
-                    key={k.value}
-                    value={k.value}
-                    className="bg-[#12151f]"
-                  >
-                    {k.label}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {/* qty with steppers */}
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                tabIndex={-1}
-                onClick={() =>
-                  setLine(idx, { qty: Math.max(0, (line.qty || 0) - 1) })
-                }
-                className="grid h-8 w-7 shrink-0 place-items-center rounded-lg border border-white/10 text-white/60 hover:bg-white/5"
-              >
-                <Minus className="h-3 w-3" />
-              </button>
-              <input
-                ref={register(`${idx}:qty`)}
-                type="number"
-                inputMode="decimal"
-                value={line.qty}
-                min={0}
-                onChange={(e) => {
-                  let q = Number(e.target.value) || 0;
-                  if (stock != null && q > stock) q = stock;
-                  setLine(idx, { qty: q });
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    focusKey(`${idx}:price`);
+        {rows.map((line, idx) => {
+          const stock =
+            line.productId && stockLookup ? stockLookup(line.productId) : null;
+          const rowTotal = (line.qty || 0) * (line.unitPrice || 0);
+          return (
+            <LineEditorRow
+              key={idx}
+              index={idx}
+              onRemove={() => removeLine(idx)}
+              item={
+                <ProductLineField
+                  line={line}
+                  productOptions={productOptions}
+                  inputRef={register(`${idx}:product`)}
+                  onPick={(p) => {
+                    setLine(idx, {
+                      productId: p ? p.id : null,
+                      description: p
+                        ? `${p.brand} ${p.model}`.trim()
+                        : line.description,
+                      unitPrice: p ? p.sellingPrice : line.unitPrice,
+                      kind: p ? "product" : line.kind,
+                    });
+                    focusKey(`${idx}:qty`);
+                  }}
+                  onText={(text) =>
+                    setLine(idx, {
+                      description: text,
+                      // typing a fresh description unlinks the product
+                      productId: text.trim() ? line.productId : null,
+                    })
                   }
-                }}
-                className="h-8 w-full min-w-0 rounded-lg border border-white/10 bg-transparent text-center text-sm text-white outline-none focus:border-cyan/50"
-              />
+                  onUnlink={() => setLine(idx, { productId: null })}
+                  onCommit={() => focusKey(`${idx}:qty`)}
+                />
+              }
+              extra={
+                showKind ? (
+                  <select
+                    value={line.kind || "product"}
+                    onChange={(e) =>
+                      setLine(idx, { kind: e.target.value as LineKind })
+                    }
+                    className="h-9 w-full rounded-lg border border-white/10 bg-transparent px-2 text-sm text-white outline-none focus:border-cyan/50"
+                  >
+                    {KIND_OPTIONS.map((k) => (
+                      <option
+                        key={k.value}
+                        value={k.value}
+                        className="bg-[#12151f]"
+                      >
+                        {k.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : undefined
+              }
+              qty={
+                <QtyStepper
+                  value={line.qty}
+                  max={stock}
+                  inputRef={register(`${idx}:qty`)}
+                  onChange={(qty) => setLine(idx, { qty })}
+                  onEnter={() => focusKey(`${idx}:price`)}
+                />
+              }
+              price={
+                <PriceInput
+                  value={line.unitPrice}
+                  inputRef={register(`${idx}:price`)}
+                  onChange={(unitPrice) => setLine(idx, { unitPrice })}
+                  onEnter={() => advanceAfterPrice(idx)}
+                />
+              }
+              total={
+                <LineTotal
+                  value={rowTotal}
+                  currency={currency}
+                  hint={
+                    stock != null ? (
+                      <span className={stock <= 5 ? "text-red-300" : "text-white/35"}>
+                        stock {stock}
+                      </span>
+                    ) : undefined
+                  }
+                />
+              }
+            />
+          );
+        })}
+
+        <LineEditorFooter
+          lines={rows}
+          currency={currency}
+          summary={summary}
+          actions={
+            <>
               <button
                 type="button"
-                tabIndex={-1}
-                disabled={atLimit}
-                onClick={() => setLine(idx, { qty: (line.qty || 0) + 1 })}
-                className="grid h-8 w-7 shrink-0 place-items-center rounded-lg border border-white/10 text-white/60 hover:bg-white/5 disabled:opacity-30"
+                onClick={addRow}
+                className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
               >
-                <Plus className="h-3 w-3" />
+                <Plus className="h-3.5 w-3.5" /> Add line
               </button>
-            </div>
-
-            {/* unit price */}
-            <input
-              ref={register(`${idx}:price`)}
-              type="number"
-              inputMode="decimal"
-              value={line.unitPrice}
-              min={0}
-              onChange={(e) =>
-                setLine(idx, { unitPrice: Number(e.target.value) || 0 })
-              }
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  advanceAfterPrice(idx);
-                }
-              }}
-              className="h-8 w-full min-w-0 rounded-lg border border-white/10 bg-transparent px-2 text-right text-sm text-white outline-none focus:border-cyan/50"
-            />
-
-            {/* row total */}
-            <div className="text-right text-sm font-medium text-white">
-              {currency(rowTotal)}
-              {stock != null && (
-                <div
-                  className={cn(
-                    "text-[0.6rem] font-normal",
-                    stock <= 5 ? "text-red-300" : "text-white/35",
-                  )}
-                >
-                  stock {stock}
-                </div>
-              )}
-            </div>
-
-            {/* remove */}
-            <button
-              type="button"
-              onClick={() => removeLine(idx)}
-              tabIndex={-1}
-              className="ml-auto grid h-8 w-8 place-items-center rounded-lg text-white/40 hover:bg-red-500/10 hover:text-red-300"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        );
-      })}
-
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={addRow}
-          className="inline-flex items-center gap-1 text-xs text-cyan hover:underline"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add line
-        </button>
-        {showGroups && <GroupPicker onPick={addGroup} />}
-      </div>
+              {showGroups && <GroupPicker onPick={addGroup} />}
+            </>
+          }
+        />
+      </LineEditorFrame>
     </div>
   );
 }

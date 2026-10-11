@@ -27,6 +27,7 @@ import {
 import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import DataTable from "@/components/admin/ui/DataTable";
 import Modal from "@/components/admin/ui/Modal";
+import { LineItemsTable } from "@/components/admin/ui/LineItems";
 import ProductLineItems, {
   emptyLine,
   type ProductLine,
@@ -256,7 +257,7 @@ export default function LedgerPageInner() {
       id: "particulars",
       header: "Particulars",
       cell: (i) => (
-        <div className="max-w-[22rem]">
+        <div className="min-w-[16rem] max-w-[28rem]">
           <div className="truncate">{i.row.original.note || ledgerTypeLabel(i.row.original.type)}</div>
           <div className="text-[0.65rem] text-white/40">{ledgerTypeLabel(i.row.original.type)}</div>
           <LedgerItems items={i.row.original.items} compact />
@@ -772,55 +773,18 @@ function ProductsSummary({ rows }: { rows: LedgerStatement["rows"] }) {
   );
 }
 
-/** Goods lines on a ledger entry: name × qty @ price = total. */
+/** Goods lines on a ledger entry, in the shared POS-style table. */
 function LedgerItems({ items, compact }: { items?: LedgerItem[]; compact?: boolean }) {
   if (!items?.length) return null;
   const shown = compact ? items.slice(0, 3) : items;
   return (
-    <div className="mt-1.5 overflow-hidden rounded-lg border border-white/10 bg-white/[0.02] not-italic">
-      <table className="w-full text-[0.7rem]">
-        {!compact && (
-          <thead>
-            <tr className="text-left text-[0.6rem] uppercase tracking-wider text-white/35">
-              <th className="px-2 py-1 font-medium">Item</th>
-              <th className="px-2 py-1 text-right font-medium">Qty</th>
-              <th className="px-2 py-1 text-right font-medium">Price</th>
-              <th className="px-2 py-1 text-right font-medium">Total</th>
-            </tr>
-          </thead>
-        )}
-        <tbody>
-          {shown.map((it, idx) => (
-            <tr key={idx} className="border-t border-white/5 text-white/70 first:border-0">
-              <td className="px-2 py-1">{it.description}</td>
-              <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums">× {it.qty}</td>
-              {!compact && (
-                <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums">{pkr(it.unitPrice)}</td>
-              )}
-              <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums text-white/85">
-                {pkr(it.qty * it.unitPrice)}
-              </td>
-            </tr>
-          ))}
-          {compact && items.length > shown.length && (
-            <tr className="border-t border-white/5 text-white/40">
-              <td colSpan={3} className="px-2 py-1">
-                +{items.length - shown.length} more
-              </td>
-            </tr>
-          )}
-          {!compact && items.length > 1 && (
-            <tr className="border-t border-white/10 font-medium text-white/85">
-              <td colSpan={3} className="px-2 py-1 text-right">
-                Items total
-              </td>
-              <td className="whitespace-nowrap px-2 py-1 text-right tabular-nums">
-                {pkr(ledgerItemsTotal(items))}
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+    <div className="mt-2 not-italic">
+      <LineItemsTable compact items={shown} hideItemsTotal={compact && items.length > shown.length} />
+      {compact && items.length > shown.length && (
+        <div className="mt-1 text-[0.65rem] text-white/40">
+          +{items.length - shown.length} more · items total {pkr(ledgerItemsTotal(items))}
+        </div>
+      )}
     </div>
   );
 }

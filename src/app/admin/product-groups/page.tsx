@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Archive, Trash2, Layers } from "lucide-react";
+import { Plus, Pencil, Archive, Layers } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/admin/ui/feedback";
 import {
@@ -22,6 +22,15 @@ import ConfirmDialog from "@/components/admin/ui/ConfirmDialog";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import type { ProductGroup } from "@/lib/admin/types";
+import {
+  LineEditorFooter,
+  LineEditorFrame,
+  LineEditorHeader,
+  LineEditorRow,
+  LineItemsTable,
+  LineTotal,
+  QtyStepper,
+} from "@/components/admin/ui/LineItems";
 
 type Line = { productId: string; qty: number };
 
@@ -145,10 +154,6 @@ export default function ProductGroupsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {groups.map((g) => {
-            const total = g.items.reduce(
-              (s, i) => s + (i.sellingPrice ?? 0) * i.qty,
-              0,
-            );
             return (
               <Card key={g.id} className="flex flex-col p-4">
                 <div className="flex items-start justify-between gap-2">
@@ -183,26 +188,16 @@ export default function ProductGroupsPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex-1 space-y-1.5 border-t border-white/10 pt-3">
-                  {g.items.map((i, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between text-sm"
-                    >
-                      <span className="text-white/70">
-                        {i.name || "Deleted product"}
-                      </span>
-                      <span className="text-white/45">×{i.qty}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-sm">
-                  <span className="text-white/45">
-                    {g.items.length} item{g.items.length === 1 ? "" : "s"}
-                  </span>
-                  <span className="font-semibold text-cyan">{pkr(total)}</span>
-                </div>
+                <LineItemsTable
+                  compact
+                  className="mt-3 flex-1"
+                  totalLabel="Bundle total"
+                  items={g.items.map((i) => ({
+                    description: i.name || "Deleted product",
+                    qty: i.qty,
+                    unitPrice: i.sellingPrice ?? 0,
+                  }))}
+                />
               </Card>
             );
           })}
@@ -248,61 +243,69 @@ export default function ProductGroupsPage() {
                 <Plus className="h-3.5 w-3.5" /> Add product
               </button>
             </div>
-            <div className="space-y-2">
-              {lines.length === 0 && (
-                <p className="rounded-lg border border-dashed border-white/10 py-4 text-center text-xs text-white/40">
-                  No products yet — add at least one.
-                </p>
-              )}
-              {lines.map((line, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <SearchableSelect
-                      value={line.productId}
-                      onChange={(v, opt) => {
-                        const price = (opt?.data as { sellingPrice?: number })
-                          ?.sellingPrice;
-                        if (v && typeof price === "number")
-                          setPriceCache((m) => ({ ...m, [v]: price }));
-                        setLines((ls) =>
-                          ls.map((l, i) =>
-                            i === idx ? { ...l, productId: v } : l,
-                          ),
-                        );
-                      }}
-                      placeholder="Select product…"
-                      options={productOptions}
-                      onSearch={searchProductOptions}
-                      allowClear={false}
-                    />
-                  </div>
-                  <input
-                    type="number"
-                    min={1}
-                    value={line.qty}
-                    onChange={(e) =>
-                      setLines((ls) =>
-                        ls.map((l, i) =>
-                          i === idx
-                            ? { ...l, qty: Number(e.target.value) || 0 }
-                            : l,
-                        ),
-                      )
-                    }
-                    className="h-9 w-16 rounded-lg border border-slate-300 bg-transparent px-2 text-right text-sm text-slate-900 dark:border-white/10 dark:text-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
+            {lines.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-white/10 py-4 text-center text-xs text-white/40">
+                No products yet — add at least one.
+              </p>
+            ) : (
+              <LineEditorFrame>
+                <LineEditorHeader />
+                {lines.map((line, idx) => (
+                  <LineEditorRow
+                    key={idx}
+                    index={idx}
+                    onRemove={() =>
                       setLines((ls) => ls.filter((_, i) => i !== idx))
                     }
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-white/40 hover:bg-red-500/10 hover:text-red-300"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
+                    item={
+                      <SearchableSelect
+                        value={line.productId}
+                        onChange={(v, opt) => {
+                          const price = (opt?.data as { sellingPrice?: number })
+                            ?.sellingPrice;
+                          if (v && typeof price === "number")
+                            setPriceCache((m) => ({ ...m, [v]: price }));
+                          setLines((ls) =>
+                            ls.map((l, i) =>
+                              i === idx ? { ...l, productId: v } : l,
+                            ),
+                          );
+                        }}
+                        placeholder="Select product…"
+                        options={productOptions}
+                        onSearch={searchProductOptions}
+                        allowClear={false}
+                      />
+                    }
+                    qty={
+                      <QtyStepper
+                        value={line.qty}
+                        min={1}
+                        onChange={(qty) =>
+                          setLines((ls) =>
+                            ls.map((l, i) => (i === idx ? { ...l, qty } : l)),
+                          )
+                        }
+                      />
+                    }
+                    price={
+                      <div className="text-right text-sm tabular-nums text-white/70">
+                        {pkr(priceOf(line.productId))}
+                      </div>
+                    }
+                    total={<LineTotal value={priceOf(line.productId) * line.qty} />}
+                  />
+                ))}
+                <LineEditorFooter
+                  label="Est. bundle total"
+                  lines={lines.map((l) => ({
+                    description: l.productId,
+                    qty: l.qty,
+                    unitPrice: priceOf(l.productId),
+                  }))}
+                />
+              </LineEditorFrame>
+            )}
           </div>
 
           <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-white/70">

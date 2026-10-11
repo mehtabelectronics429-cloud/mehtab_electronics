@@ -37,7 +37,7 @@ export default function Modal({
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
               "relative z-10 w-full rounded-2xl border p-6 shadow-2xl backdrop-blur-xl",
-              wide ? "max-w-2xl" : "max-w-md",
+              wide ? "max-w-3xl" : "max-w-md",
               "border-slate-200 bg-white text-slate-900",
               "dark:border-white/10 dark:bg-[#0c0e16] dark:text-white",
             )}

@@ -16,6 +16,7 @@ import { Button, Card, Input, Label } from "@/components/admin/ui/primitives";
 import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
+import { LineItemsTable, totalsSummary } from "@/components/admin/ui/LineItems";
 
 export default function PurchaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -123,71 +124,28 @@ export default function PurchaseDetailPage() {
           </div>
 
           <h3 className="mb-3 text-sm font-medium text-white/80">Line items</h3>
-          <div className="overflow-hidden rounded-xl border border-white/10">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-left text-[0.7rem] uppercase tracking-wider text-white/40">
-                  <th className="px-3 py-2">Item</th>
-                  <th className="px-3 py-2 text-right">Qty</th>
-                  <th className="px-3 py-2 text-right">Unit cost</th>
-                  <th className="px-3 py-2 text-right">Line</th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it, i) => (
-                  <tr key={i} className="border-b border-white/5">
-                    <td className="px-3 py-2.5 text-white">{it.name}</td>
-                    <td className="px-3 py-2.5 text-right text-white/70">
-                      {it.qty}
-                    </td>
-                    <td className="px-3 py-2.5 text-right text-white/70">
-                      {pkr(it.unitCost)}
-                    </td>
-                    <td className="px-3 py-2.5 text-right text-white">
-                      {pkr(it.qty * it.unitCost)}
-                    </td>
-                  </tr>
-                ))}
-                {!items.length && (
-                  <tr>
-                    <td
-                      colSpan={4}
-                      className="px-3 py-8 text-center text-white/40"
-                    >
-                      No line items
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 space-y-1.5 text-sm">
-            {(purchase.discount ?? 0) > 0 && (
-              <div className="flex justify-between text-white/60">
-                <span>Discount</span>
-                <span>-{pkr(purchase.discount!)}</span>
-              </div>
+          <LineItemsTable
+            items={items.map((it) => ({
+              description: it.name,
+              qty: it.qty,
+              unitPrice: it.unitCost,
+            }))}
+            priceLabel="Unit cost"
+            empty="No line items"
+            summary={totalsSummary(
+              {
+                discount: purchase.discount ?? 0,
+                shipping: purchase.shipping ?? 0,
+                total: purchase.amount,
+              },
+              {
+                extra: [
+                  { label: "Paid", value: purchase.paid, tone: "good" },
+                  { label: "Balance", value: balance, tone: "warn" },
+                ],
+              },
             )}
-            {(purchase.shipping ?? 0) > 0 && (
-              <div className="flex justify-between text-white/60">
-                <span>Shipping</span>
-                <span>{pkr(purchase.shipping!)}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-semibold text-white">
-              <span>Total</span>
-              <span>{pkr(purchase.amount)}</span>
-            </div>
-            <div className="flex justify-between text-emerald-300">
-              <span>Paid</span>
-              <span>{pkr(purchase.paid)}</span>
-            </div>
-            <div className="flex justify-between text-amber-300">
-              <span>Balance</span>
-              <span>{pkr(balance)}</span>
-            </div>
-          </div>
+          />
 
           {purchase.notes ? (
             <p className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-white/60">

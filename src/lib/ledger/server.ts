@@ -1,6 +1,11 @@
 import { Types } from "mongoose";
 import { LedgerEntry } from "@/lib/db/models/LedgerEntry";
 import { Customer } from "@/lib/db/models/Customer";
+// Registered here because statements populate `invoiceId` / `installationId`;
+// without these imports a route that never touched them fails with
+// MissingSchemaError ("Schema hasn't been registered for model Invoice").
+import "@/lib/db/models/Invoice";
+import "@/lib/db/models/Installation";
 import { notDeleted } from "@/lib/db/soft-delete";
 import {
   buildStatement,

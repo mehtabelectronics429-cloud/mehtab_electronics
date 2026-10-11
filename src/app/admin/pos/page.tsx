@@ -10,8 +10,6 @@ import {
   Receipt,
   Camera,
   Layers,
-  Minus,
-  Trash2,
   Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -27,6 +25,15 @@ import type { ProductLine } from "@/components/admin/ui/ProductLineItems";
 import { mergeGroup, useProductGroups } from "@/components/admin/ui/GroupPicker";
 import { CameraScanModal } from "@/components/admin/ui/BarcodeScanner";
 import { api } from "@/lib/admin/services";
+import {
+  LineEditorFooter,
+  LineEditorFrame,
+  LineEditorHeader,
+  LineEditorRow,
+  LineTotal,
+  PriceInput,
+  QtyStepper,
+} from "@/components/admin/ui/LineItems";
 import { pkr } from "@/lib/admin/format";
 import { invoiceTotals } from "@/lib/invoice";
 import { cn } from "@/lib/utils";
@@ -441,35 +448,26 @@ export default function PosPage() {
             </div>
           )}
 
-          <div className="min-h-[200px] flex-1 overflow-x-auto overflow-y-auto rounded-xl border border-white/10">
+          <div className="min-h-[200px] flex-1 overflow-y-auto">
             {cart.length === 0 ? (
-              <div className="py-12 text-center text-sm text-white/40">
+              <div className="rounded-xl border border-white/10 py-12 text-center text-sm text-white/40">
                 Scan a barcode or tap products to add them.
               </div>
             ) : (
-              <table className="w-full min-w-[520px] text-sm">
-                <thead className="sticky top-0 z-10 bg-bg text-[0.7rem] uppercase tracking-wide text-white/40">
-                  <tr className="border-b border-white/10">
-                    <th className="w-8 px-3 py-2.5 text-left font-medium">#</th>
-                    <th className="px-3 py-2.5 text-left font-medium">Item</th>
-                    <th className="px-3 py-2.5 text-center font-medium">Qty</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Price</th>
-                    <th className="px-3 py-2.5 text-right font-medium">Total</th>
-                    <th className="w-10" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {cart.map((l, idx) => {
-                    const p = l.productId ? findProduct(l.productId) : undefined;
-                    return (
-                      <tr
-                        key={`${l.productId ?? "x"}-${idx}`}
-                        className="border-b border-white/5 last:border-0 hover:bg-white/[0.02]"
-                      >
-                        <td className="px-3 py-3 align-middle text-white/40">
-                          {idx + 1}
-                        </td>
-                        <td className="px-3 py-3 align-middle">
+              <LineEditorFrame>
+                <LineEditorHeader />
+                {cart.map((l, idx) => {
+                  const p = l.productId ? findProduct(l.productId) : undefined;
+                  const max = l.productId
+                    ? Math.max(1, stockOf(l.productId) - cartQtyOf(l.productId, idx))
+                    : null;
+                  return (
+                    <LineEditorRow
+                      key={`${l.productId ?? "x"}-${idx}`}
+                      index={idx}
+                      onRemove={() => removeLine(idx)}
+                      item={
+                        <div className="line-pad">
                           <div className="font-medium leading-snug text-white">
                             {l.description}
                           </div>
@@ -478,60 +476,28 @@ export default function PosPage() {
                               {p.sku ? `${p.sku} · ` : ""}stock {p.stock}
                             </div>
                           )}
-                        </td>
-                        <td className="px-3 py-3 align-middle">
-                          <div className="mx-auto flex w-fit items-center rounded-lg border border-white/10">
-                            <button
-                              type="button"
-                              onClick={() => setQty(idx, l.qty - 1)}
-                              disabled={l.qty <= 1}
-                              className="grid h-8 w-8 place-items-center text-white/60 hover:text-cyan disabled:opacity-30"
-                            >
-                              <Minus className="h-3.5 w-3.5" />
-                            </button>
-                            <input
-                              type="number"
-                              min={1}
-                              value={l.qty}
-                              onChange={(e) => setQty(idx, Number(e.target.value))}
-                              className="h-8 w-12 border-x border-white/10 bg-transparent text-center text-white [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setQty(idx, l.qty + 1)}
-                              className="grid h-8 w-8 place-items-center text-white/60 hover:text-cyan"
-                            >
-                              <Plus className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-right align-middle">
-                          <input
-                            type="number"
-                            min={0}
-                            value={l.unitPrice}
-                            onChange={(e) => setPrice(idx, Number(e.target.value) || 0)}
-                            className="h-8 w-24 rounded-lg border border-white/10 bg-transparent px-2 text-right text-white"
-                          />
-                        </td>
-                        <td className="whitespace-nowrap px-3 py-3 text-right align-middle font-semibold text-white">
-                          {pkr(l.qty * l.unitPrice)}
-                        </td>
-                        <td className="px-2 py-3 align-middle">
-                          <button
-                            type="button"
-                            title="Remove"
-                            onClick={() => removeLine(idx)}
-                            className="grid h-8 w-8 place-items-center rounded-lg text-white/40 hover:bg-red-500/10 hover:text-red-300"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </div>
+                      }
+                      qty={
+                        <QtyStepper
+                          value={l.qty}
+                          min={1}
+                          max={max}
+                          onChange={(n) => setQty(idx, n)}
+                        />
+                      }
+                      price={
+                        <PriceInput
+                          value={l.unitPrice}
+                          onChange={(n) => setPrice(idx, n)}
+                        />
+                      }
+                      total={<LineTotal value={l.qty * l.unitPrice} />}
+                    />
+                  );
+                })}
+                <LineEditorFooter lines={cart} />
+              </LineEditorFrame>
             )}
           </div>
 

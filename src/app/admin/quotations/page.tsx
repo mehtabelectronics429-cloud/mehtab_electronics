@@ -29,6 +29,7 @@ import { SearchableSelect } from "@/components/admin/ui/SearchableSelect";
 import ProductLineItems, {
   type ProductLine,
 } from "@/components/admin/ui/ProductLineItems";
+import { totalsSummary } from "@/components/admin/ui/LineItems";
 import { productOption } from "@/lib/admin/product-search";
 import QuotationDocument, {
   type QuotationData,
@@ -529,6 +530,7 @@ export default function QuotationsPage() {
               onChange={setLines}
               showKind
               productOptions={productOptions}
+              summary={totalsSummary(totals, { totalLabel: "Quote total" })}
             />
           </div>
 

@@ -41,6 +41,8 @@ import { pkr } from "@/lib/admin/format";
 import type { Customer } from "@/lib/admin/types";
 import { toastForWhatsAppResult } from "@/lib/admin/whatsapp-client";
 import { downloadFile, generateLedgerStatementPdf } from "@/lib/admin/ledger-pdf";
+import { LineItemsTable, totalsSummary } from "@/components/admin/ui/LineItems";
+import { invoiceTotals } from "@/lib/invoice";
 
 const schema = z.object({
   name: z.string().min(2, "Required"),
@@ -485,7 +487,7 @@ export default function CustomersPage() {
                       key={l.id}
                       className="flex items-start justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm"
                     >
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <span className="capitalize text-white">{l.type}</span>
                         <span className="ml-2 text-xs text-white/40">
                           {String(l.date).slice(0, 10)}
@@ -494,14 +496,7 @@ export default function CustomersPage() {
                           <div className="text-xs text-white/35">{l.note}</div>
                         ) : null}
                         {l.items?.length ? (
-                          <ul className="mt-1 space-y-0.5 text-[0.7rem] text-white/55">
-                            {l.items.map((it, idx) => (
-                              <li key={idx}>
-                                {it.description} × {it.qty} @ {pkr(it.unitPrice)} ={" "}
-                                <span className="text-white/80">{pkr(it.qty * it.unitPrice)}</span>
-                              </li>
-                            ))}
-                          </ul>
+                          <LineItemsTable compact items={l.items} className="mt-2" />
                         ) : null}
                       </div>
                       <div className="flex items-center gap-2">
@@ -529,12 +524,12 @@ export default function CustomersPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-5">
               <div>
                 <h4 className="mb-2 text-xs uppercase tracking-wider text-white/40">
                   Installations
                 </h4>
-                <div className="max-h-64 space-y-1 overflow-y-auto">
+                <div className="max-h-96 space-y-1 overflow-y-auto">
                   {ledgerData.installations.length === 0 ? (
                     <p className="text-sm text-white/40">No installations.</p>
                   ) : (
@@ -576,19 +571,17 @@ export default function CustomersPage() {
                                   <div className="mb-1 text-[0.65rem] uppercase tracking-wider text-white/35">
                                     Items
                                   </div>
-                                  {items.map((it, idx) => (
-                                    <div
-                                      key={idx}
-                                      className="flex justify-between gap-2 text-xs text-white/70"
-                                    >
-                                      <span>
-                                        {it.name} × {it.qty}
-                                      </span>
-                                      <span>
-                                        {pkr(it.qty * it.unitPrice)}
-                                      </span>
-                                    </div>
-                                  ))}
+                                  <LineItemsTable
+                                    compact
+                                    items={items.map((it) => ({
+                                      description: it.name,
+                                      qty: it.qty,
+                                      unitPrice: it.unitPrice,
+                                    }))}
+                                    summary={[
+                                      { label: "Installation amount", value: i.amount, tone: "strong" },
+                                    ]}
+                                  />
                                 </div>
                               )}
                               {materials.length > 0 && (
@@ -635,7 +628,7 @@ export default function CustomersPage() {
                 <h4 className="mb-2 text-xs uppercase tracking-wider text-white/40">
                   Invoices
                 </h4>
-                <div className="max-h-64 space-y-1 overflow-y-auto">
+                <div className="max-h-96 space-y-1 overflow-y-auto">
                   {ledgerData.invoices.length === 0 ? (
                     <p className="text-sm text-white/40">No invoices.</p>
                   ) : (
@@ -671,25 +664,30 @@ export default function CustomersPage() {
                           </button>
                           {open && (
                             <div className="space-y-1.5 border-t border-white/10 px-3 py-2">
-                              {items.length === 0 ? (
-                                <p className="text-xs text-white/40">
-                                  No line items.
-                                </p>
-                              ) : (
-                                items.map((it, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex justify-between gap-2 text-xs text-white/70"
-                                  >
-                                    <span>
-                                      {it.description} × {it.qty}
-                                    </span>
-                                    <span>
-                                      {pkr(it.qty * it.unitPrice)}
-                                    </span>
-                                  </div>
-                                ))
-                              )}
+                              <LineItemsTable
+                                compact
+                                items={items}
+                                empty="No line items."
+                                summary={totalsSummary(
+                                  invoiceTotals({ ...v, items }),
+                                  {
+                                    extra: [
+                                      ...(v.returnedAmount
+                                        ? [{ label: "Returned", value: v.returnedAmount, tone: "minus" as const }]
+                                        : []),
+                                      { label: "Paid", value: v.paid, tone: "good" as const },
+                                      {
+                                        label: "Balance due",
+                                        value: Math.max(
+                                          0,
+                                          invoiceTotals({ ...v, items }).total - (v.returnedAmount || 0) - (v.paid || 0),
+                                        ),
+                                        tone: "warn" as const,
+                                      },
+                                    ],
+                                  },
+                                )}
+                              />
                               <Link
                                 href={`/admin/billing/${v.id}`}
                                 className="inline-flex items-center gap-1 pt-1 text-xs text-cyan hover:underline"

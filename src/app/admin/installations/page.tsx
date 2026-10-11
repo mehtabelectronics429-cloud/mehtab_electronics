@@ -31,6 +31,17 @@ import { can } from "@/lib/admin/permissions";
 import { pkr } from "@/lib/admin/format";
 import type { Installation, InstallationStatus } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
+import {
+  LineEditorFooter,
+  LineEditorFrame,
+  LineEditorHeader,
+  LineEditorRow,
+  LineTotal,
+  PriceInput,
+  QtyStepper,
+  totalsSummary,
+} from "@/components/admin/ui/LineItems";
+import { invoiceTotals } from "@/lib/invoice";
 
 const FILTERS: (InstallationStatus | "all")[] = [
   "all",
@@ -560,62 +571,69 @@ function InstallationsInner() {
               Pick a product from the catalogue or type a custom name &amp;
               price it doesn&apos;t have to be in the list.
             </p>
-            <div className="space-y-2">
+            <LineEditorFrame>
+              <LineEditorHeader priceLabel="Unit price" />
               {itemRows.map((row, idx) => (
-                <div
+                <LineEditorRow
                   key={idx}
-                  className="grid grid-cols-1 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-2 sm:grid-cols-[1.3fr_1.7fr_0.9fr_0.6fr_auto]"
-                >
-                  <SearchableSelect
-                    value={row.productId}
-                    onChange={(v, opt) => pickProduct(idx, v, opt)}
-                    placeholder="Custom / type below…"
-                    options={[
-                      { value: "", label: "Custom / type below…" },
-                      ...(products?.items ?? []).map((p) => ({
-                        value: p.id,
-                        label: `${p.brand} ${p.model}`.trim(),
-                        searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
-                        data: p as unknown as Record<string, unknown>,
-                      })),
-                    ]}
-                    onSearch={searchProductOptions}
-                    allowClear={false}
-                  />
-                  <Input
-                    value={row.name}
-                    onChange={(e) => setItem(idx, { name: e.target.value })}
-                    placeholder="Description"
-                  />
-                  <Input
-                    type="number"
-                    value={row.unitPrice}
-                    onChange={(e) =>
-                      setItem(idx, { unitPrice: Number(e.target.value) || 0 })
-                    }
-                    placeholder="Unit price"
-                  />
-                  <Input
-                    type="number"
-                    value={row.qty}
-                    onChange={(e) =>
-                      setItem(idx, { qty: Number(e.target.value) || 0 })
-                    }
-                    placeholder="Qty"
-                  />
-                  <button
-                    type="button"
-                    disabled={itemRows.length <= 1}
-                    onClick={() =>
-                      setItemRows((rows) => rows.filter((_, i) => i !== idx))
-                    }
-                    className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-white/40 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-30"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                  index={idx}
+                  removeDisabled={itemRows.length <= 1}
+                  onRemove={() =>
+                    setItemRows((rs) => rs.filter((_, i) => i !== idx))
+                  }
+                  item={
+                    <div className="space-y-1.5">
+                      <SearchableSelect
+                        value={row.productId}
+                        onChange={(v, opt) => pickProduct(idx, v, opt)}
+                        placeholder="Custom / type below…"
+                        options={[
+                          { value: "", label: "Custom / type below…" },
+                          ...(products?.items ?? []).map((p) => ({
+                            value: p.id,
+                            label: `${p.brand} ${p.model}`.trim(),
+                            searchText: `${p.brand} ${p.model} ${p.sku || ""} ${p.category}`,
+                            data: p as unknown as Record<string, unknown>,
+                          })),
+                        ]}
+                        onSearch={searchProductOptions}
+                        allowClear={false}
+                      />
+                      <Input
+                        value={row.name}
+                        onChange={(e) => setItem(idx, { name: e.target.value })}
+                        placeholder="Item name / description"
+                        className="h-9"
+                      />
+                    </div>
+                  }
+                  qty={
+                    <QtyStepper
+                      value={row.qty}
+                      onChange={(qty) => setItem(idx, { qty })}
+                    />
+                  }
+                  price={
+                    <PriceInput
+                      value={row.unitPrice}
+                      onChange={(v) => setItem(idx, { unitPrice: v })}
+                    />
+                  }
+                  total={<LineTotal value={(row.qty || 0) * (row.unitPrice || 0)} />}
+                />
               ))}
-            </div>
+              <LineEditorFooter
+                lines={itemRows.map((r) => ({ description: r.name || r.productId, qty: r.qty, unitPrice: r.unitPrice }))}
+                summary={totalsSummary(
+                  invoiceTotals({
+                    items: itemRows.map((r) => ({ qty: r.qty, unitPrice: r.unitPrice })),
+                    discount,
+                    shipping,
+                  }),
+                  { totalLabel: "Invoice total" },
+                )}
+              />
+            </LineEditorFrame>
           </div>
 
           {/* discount / shipping / computed total */}

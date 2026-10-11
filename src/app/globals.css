@@ -650,3 +650,79 @@ html:not(.dark) .admin-root thead th {
     background-position: 300% 0;
   }
 }
+
+/* ── product line items (components/admin/ui/LineItems.tsx) ─────────────
+   Layout follows the width of the frame, not the viewport, so the same
+   editor works in a modal, the POS side panel and a full page.
+   Narrow: each row is a card — [# | item | ✕] then [qty | price | total].
+   Wide (≥ 560px frame): one grid row per line with a column header. */
+.line-frame {
+  container-type: inline-size;
+}
+.line-head {
+  display: none;
+}
+.line-row {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) 2.25rem;
+  align-items: start;
+  gap: 0.5rem;
+}
+.line-cells {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 0.5rem;
+}
+.line-cells > .line-extra {
+  grid-column: 1 / -1;
+}
+.line-cap {
+  display: block;
+}
+/* nudge text cells level with the 36px inputs in the stacked layout */
+.line-pad {
+  padding-top: 0.5rem;
+}
+.line-table-wide {
+  display: none;
+}
+@container (min-width: 560px) {
+  .line-head,
+  .line-row {
+    display: grid;
+    align-items: center;
+    gap: 0.5rem;
+    grid-template-columns: 1.5rem minmax(0, 1fr) 7.25rem 6.5rem 6.75rem 2.25rem;
+  }
+  .line-head.has-extra,
+  .line-row.has-extra {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 5.75rem 7.25rem 6.5rem 6.75rem 2.25rem;
+  }
+  .line-cells {
+    display: contents;
+  }
+  .line-cells > .line-extra {
+    grid-column: auto;
+  }
+  .line-row > .line-remove {
+    order: 99;
+  }
+  .line-cap {
+    display: none;
+  }
+  .line-pad {
+    padding-top: 0;
+  }
+  .line-center {
+    justify-content: center;
+    text-align: center;
+  }
+  .line-table-wide {
+    display: table;
+  }
+  .line-table-narrow {
+    display: none;
+  }
+}

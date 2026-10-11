@@ -7,6 +7,14 @@ import toast from "react-hot-toast";
 import Modal from "@/components/admin/ui/Modal";
 import { Button, Label, Textarea } from "@/components/admin/ui/primitives";
 import { api } from "@/lib/admin/services";
+import {
+  LineEditorFooter,
+  LineEditorFrame,
+  LineEditorHeader,
+  LineEditorRow,
+  LineTotal,
+  QtyStepper,
+} from "@/components/admin/ui/LineItems";
 import { pkr } from "@/lib/admin/format";
 import { returnRefund } from "@/lib/invoice";
 import type { Invoice } from "@/lib/admin/types";
@@ -135,62 +143,76 @@ export default function ReturnModal({
         </p>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 dark:border-white/10">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2 border-b border-slate-200 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500 dark:border-white/10">
-              <span>Item</span>
-              <span className="text-right">Return qty</span>
-              <span className="text-right">Resalable</span>
-            </div>
+          <LineEditorFrame>
+            <LineEditorHeader qtyLabel="Return qty" extra="Resalable" />
             {items.map((it, idx) => {
               const remaining = remainingOf(idx);
               const state = lines[idx];
               const canRestock = !!it.productId;
+              const qty = state?.qty ?? 0;
               return (
-                <div
+                <LineEditorRow
                   key={idx}
-                  className="grid grid-cols-[1fr_auto_auto] items-center gap-2 px-3 py-2 text-sm"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-slate-900 dark:text-white">
-                      {it.description}
+                  index={idx}
+                  labels={{ qty: "Return qty", total: "Value" }}
+                  item={
+                    <div className="min-w-0">
+                      <div className="font-medium leading-snug text-slate-900 dark:text-white">
+                        {it.description}
+                      </div>
+                      <div className="text-xs text-neutral-500 dark:text-white/50">
+                        sold {it.qty} ·{" "}
+                        {remaining > 0 ? `${remaining} returnable` : "fully returned"}
+                      </div>
                     </div>
-                    <div className="text-xs text-neutral-500 dark:text-white/50">
-                      {pkr(it.unitPrice)} · sold {it.qty} ·{" "}
-                      {remaining > 0 ? `${remaining} returnable` : "fully returned"}
-                    </div>
-                  </div>
-                  <input
-                    type="number"
-                    min={0}
-                    max={remaining}
-                    disabled={remaining <= 0}
-                    value={state?.qty ?? 0}
-                    onChange={(e) => setQty(idx, Number(e.target.value) || 0)}
-                    className="h-8 w-16 rounded-lg border border-slate-300 bg-transparent px-2 text-right text-sm text-slate-900 disabled:opacity-40 dark:border-white/10 dark:text-white"
-                  />
-                  <div className="flex w-14 justify-end">
-                    {canRestock ? (
-                      <input
-                        type="checkbox"
-                        checked={state?.restock ?? true}
-                        disabled={!state?.qty}
-                        onChange={(e) => setRestock(idx, e.target.checked)}
-                        className="h-4 w-4 accent-emerald-500 disabled:opacity-40"
-                        title="Add resalable units back to stock"
-                      />
+                  }
+                  extra={
+                    canRestock ? (
+                      <label className="line-center flex items-center gap-2 text-xs text-white/60">
+                        <input
+                          type="checkbox"
+                          checked={state?.restock ?? true}
+                          disabled={!qty}
+                          onChange={(e) => setRestock(idx, e.target.checked)}
+                          className="h-4 w-4 accent-emerald-500 disabled:opacity-40"
+                          title="Add resalable units back to stock"
+                        />
+                        <span className="line-cap">Resalable (back to stock)</span>
+                      </label>
                     ) : (
                       <span
-                        className="text-[10px] text-neutral-400"
+                        className="line-center block text-[10px] text-neutral-400"
                         title="Custom line — not linked to a product, cannot restock"
                       >
                         n/a
                       </span>
-                    )}
-                  </div>
-                </div>
+                    )
+                  }
+                  qty={
+                    remaining > 0 ? (
+                      <QtyStepper value={qty} max={remaining} onChange={(n) => setQty(idx, n)} />
+                    ) : (
+                      <span className="block text-center text-xs text-white/40">—</span>
+                    )
+                  }
+                  price={
+                    <div className="text-right text-sm tabular-nums text-white/70">
+                      {pkr(it.unitPrice)}
+                    </div>
+                  }
+                  total={<LineTotal value={qty * it.unitPrice} />}
+                />
               );
             })}
-          </div>
+            <LineEditorFooter
+              label="Returned goods"
+              lines={items.map((it, idx) => ({
+                description: it.description,
+                qty: lines[idx]?.qty ?? 0,
+                unitPrice: it.unitPrice,
+              }))}
+            />
+          </LineEditorFrame>
 
           <div>
             <Label>Reason for return</Label>
