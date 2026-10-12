@@ -73,6 +73,8 @@ type Props = {
   scanner?: boolean;
   /** Extra rows under the items total (discount, tax, grand total…). */
   summary?: SummaryRow[];
+  /** Product price used when a product is picked — purchases use cost. Default selling. */
+  priceField?: "sellingPrice" | "purchasePrice";
   className?: string;
 };
 
@@ -99,8 +101,11 @@ export default function ProductLineItems({
   scanner = true,
   summary,
   className,
+  priceField = "sellingPrice",
 }: Props) {
   const rows = value;
+  const priceOf = (p: { sellingPrice?: number; purchasePrice?: number }) =>
+    p[priceField] ?? 0;
   // Focus registry keyed by `${rowIndex}:${field}`.
   const inputs = useRef<Record<string, HTMLInputElement | null>>({});
   const register = useCallback(
@@ -132,7 +137,7 @@ export default function ProductLineItems({
         productId: it.productId,
         description: it.name || "",
         qty: it.qty,
-        unitPrice: it.sellingPrice ?? 0,
+        unitPrice: priceOf(it),
         kind: "product" as const,
       }),
       { isEmpty: lineIsEmpty, cap: stockLookup },
@@ -167,7 +172,7 @@ export default function ProductLineItems({
       productId: p.id,
       description: `${p.brand} ${p.model}`.trim(),
       qty: 1,
-      unitPrice: p.sellingPrice,
+      unitPrice: priceOf(p),
       kind: "product",
     };
     const empty = rows.findIndex(lineIsEmpty);
@@ -225,7 +230,7 @@ export default function ProductLineItems({
                       description: p
                         ? `${p.brand} ${p.model}`.trim()
                         : line.description,
-                      unitPrice: p ? p.sellingPrice : line.unitPrice,
+                      unitPrice: p ? priceOf(p) : line.unitPrice,
                       kind: p ? "product" : line.kind,
                     });
                     focusKey(`${idx}:qty`);

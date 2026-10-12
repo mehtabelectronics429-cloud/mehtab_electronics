@@ -89,6 +89,18 @@ export const purchaseInput = z.object({
   invoiceUrl: z.string().url().optional().or(z.literal("")),
 });
 
+/** Full edit of an existing purchase (PUT /api/purchases/[id]). */
+export const purchaseEditInput = z.object({
+  supplierId: z.string().min(1).optional(),
+  supplierInvoiceNo: z.string().optional(),
+  items: z.array(purchaseItemInput).min(1, "Add at least one line item").optional(),
+  discount: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
+  date: z.string().optional(),
+  notes: z.string().optional(),
+});
+
 /** Record a payment against a purchase (to the supplier). */
 export const purchasePaymentInput = z.object({
   amount: z.coerce.number().min(0),
@@ -215,6 +227,19 @@ export const invoiceInput = z.object({
   date: z.string().or(z.date()),
   notes: z.string().optional(),
   number: z.string().optional(),
+});
+
+/** Full edit of an existing invoice (PUT /api/invoices/[id]). */
+export const invoiceEditInput = z.object({
+  customerId: z.string().min(1).optional(),
+  items: z.array(posItemInput).min(1, "Add at least one line item").optional(),
+  discount: z.coerce.number().min(0).optional(),
+  taxRate: z.coerce.number().min(0).optional(),
+  shipping: z.coerce.number().min(0).optional(),
+  /** Explicit cost of goods; omitted → adjusted from catalogue purchase prices. */
+  cost: z.coerce.number().min(0).optional().nullable(),
+  date: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 export const ledgerInput = z.object({

@@ -10,6 +10,7 @@ import { Button, Card, Input, Label } from "@/components/admin/ui/primitives";
 import InvoiceDocument from "@/components/admin/InvoiceDocument";
 import ShareInvoiceButton from "@/components/admin/ShareInvoiceButton";
 import { ReturnButton } from "@/components/admin/ReturnModal";
+import { EditInvoiceButton } from "@/components/admin/EditInvoiceModal";
 import { api } from "@/lib/admin/services";
 import { useAuth } from "@/lib/admin/auth";
 import { can } from "@/lib/admin/permissions";
@@ -53,6 +54,7 @@ export default function InvoiceDetailPage() {
   const returned = invoice.returnedAmount ?? 0;
   const netTotal = totals.total - returned;
   const balance = Math.max(0, netTotal - paid);
+  const canEdit = !!user && can(user.role, "billing.manage");
   const canReturn =
     !!user &&
     can(user.role, "billing.approve") &&
@@ -118,6 +120,7 @@ export default function InvoiceDetailPage() {
             <Button variant="secondary" onClick={sendWhatsApp}>
               <MessageCircle className="h-4 w-4" /> WhatsApp link
             </Button>
+            {canEdit && <EditInvoiceButton invoice={invoice} />}
             {canReturn && <ReturnButton invoice={invoice} />}
             <ShareInvoiceButton
               filename={`Invoice-${invoice.number}.pdf`}

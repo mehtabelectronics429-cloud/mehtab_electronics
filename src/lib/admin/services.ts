@@ -242,6 +242,11 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ invoiceUrl }),
     }),
+  editPurchase: (id: string, body: Record<string, unknown>) =>
+    request<import("./types").Purchase>(`/api/purchases/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
   archivePurchase: (id: string) =>
     request<{ ok: boolean }>(`/api/purchases/${id}`, { method: "DELETE" }),
   uploadFile: async (file: File, folder?: string) => {
@@ -339,6 +344,11 @@ export const api = {
   updateInvoice: (id: string, body: Record<string, unknown>) =>
     request<import("./types").Invoice>(`/api/invoices/${id}`, {
       method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+  editInvoice: (id: string, body: Record<string, unknown>) =>
+    request<import("./types").Invoice>(`/api/invoices/${id}`, {
+      method: "PUT",
       body: JSON.stringify(body),
     }),
   archiveInvoice: (id: string) =>

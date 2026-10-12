@@ -17,6 +17,9 @@ import Modal from "@/components/admin/ui/Modal";
 import { api } from "@/lib/admin/services";
 import { pkr } from "@/lib/admin/format";
 import { LineItemsTable, totalsSummary } from "@/components/admin/ui/LineItems";
+import { EditPurchaseButton } from "@/components/admin/EditPurchaseModal";
+import { useAuth } from "@/lib/admin/auth";
+import { can } from "@/lib/admin/permissions";
 
 export default function PurchaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +29,8 @@ export default function PurchaseDetailPage() {
   const [payOpen, setPayOpen] = useState(false);
   const [payAmt, setPayAmt] = useState("");
   const [uploading, setUploading] = useState(false);
+  const { user } = useAuth();
+  const canEdit = !!user && can(user.role, "purchases.manage");
 
   const { data: purchase, isLoading } = useQuery({
     queryKey: ["purchase", id],
@@ -98,6 +103,7 @@ export default function PurchaseDetailPage() {
             <Button variant="secondary" onClick={() => router.push("/admin/purchases")}>
               <ArrowLeft className="h-4 w-4" /> Back
             </Button>
+            {canEdit && <EditPurchaseButton purchase={purchase} />}
             {balance > 0 && (
               <Button
                 onClick={() => {
